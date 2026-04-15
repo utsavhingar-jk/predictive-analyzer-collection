@@ -3,8 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Bot,
-  AlertTriangle,
-  CheckCircle,
   Clock,
   DollarSign,
 } from "lucide-react";
@@ -12,6 +10,9 @@ import { PageLayout } from "@/components/layout/PageLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RiskBadge } from "@/components/dashboard/RiskBadge";
+import { PaymentBehaviorCard } from "@/components/dashboard/PaymentBehaviorCard";
+import { DelayPredictionCard } from "@/components/dashboard/DelayPredictionCard";
+import { StrategyCard } from "@/components/dashboard/StrategyCard";
 import { ShapBarChart } from "@/components/charts/ShapBarChart";
 import { api } from "@/lib/api";
 import { mockInvoiceDetail } from "@/lib/mockData";
@@ -52,8 +53,8 @@ export function InvoiceDetail() {
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [recLoading, setRecLoading] = useState(false);
-  const [recommendation, setRecommendation] = useState(null);
+  const [agentLoading, setAgentLoading] = useState(false);
+  const [agentResult, setAgentResult] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -75,55 +76,63 @@ export function InvoiceDetail() {
     return () => { cancelled = true; };
   }, [invoiceId]);
 
+  // Pre-populate agent result from mock data if present
   useEffect(() => {
     if (!invoice) return;
-    // Use pre-computed recommendation from mock data if available
-    if (invoice.ai_recommendation) {
-      setRecommendation(invoice.ai_recommendation);
-      return;
+    if (invoice.payment_behavior || invoice.delay_prediction || invoice.strategy) {
+      setAgentResult({
+        payment_behavior: invoice.payment_behavior,
+        delay_prediction: invoice.delay_prediction,
+        strategy: invoice.strategy,
+        business_summary: invoice.ai_recommendation?.reasoning,
+        recommended_action: invoice.ai_recommendation?.recommended_action || invoice.recommended_action,
+      });
     }
-    // Otherwise fetch from backend
-    async function fetchRecommendation() {
-      setRecLoading(true);
-      try {
-        const rec = await api.getRecommendation({
-          invoice_id: invoice.invoice_id,
-          invoice_amount: invoice.amount,
-          days_overdue: invoice.days_overdue,
-          risk_label: invoice.risk_label,
-          pay_7_days: invoice.pay_7_days,
-          pay_15_days: invoice.pay_15_days,
-          pay_30_days: invoice.pay_30_days,
-          customer_history: {
-            customer_name: invoice.customer_name,
-            avg_days_to_pay: invoice.avg_days_to_pay || 30,
-            num_late_payments: invoice.num_late_payments || 0,
-            num_disputes: 0,
-            total_outstanding: invoice.amount,
-            credit_score: invoice.credit_score || 650,
-            industry: invoice.industry || "unknown",
-          },
-        });
-        setRecommendation(rec);
-      } catch {
-        setRecommendation({
-          recommended_action: invoice.recommended_action,
-          priority: "High",
-          timeline: "Within 48 Hours",
-          reasoning: "Based on risk classification and payment probability.",
-        });
-      } finally {
-        setRecLoading(false);
-      }
-    }
-    fetchRecommendation();
   }, [invoice]);
+
+  async function runAgentAnalysis() {
+    if (!invoice) return;
+    setAgentLoading(true);
+    try {
+      // Coerce all values to the exact types the backend schema requires.
+      // customer_id MUST be a string (Pydantic v2 won't coerce int→str).
+      // All numeric fields default-guarded so null/undefined never reaches the API.
+      const behaviorOnTimeRatio = invoice.payment_behavior?.on_time_ratio ?? 70;
+      const result = await api.analyzeCase({
+        invoice_id: String(invoice.invoice_id),
+        customer_id: String(invoice.customer_id ?? invoice.customer_name),
+        customer_name: String(invoice.customer_name),
+        invoice_amount: Number(invoice.amount) || 0,
+        days_overdue: Math.round(Number(invoice.days_overdue) || 0),
+        payment_terms: Math.round(Number(invoice.payment_terms) || 30),
+        customer_credit_score: Math.round(Number(invoice.credit_score) || 650),
+        customer_avg_days_to_pay: Number(invoice.avg_days_to_pay) || 30,
+        num_late_payments: Math.round(Number(invoice.num_late_payments) || 0),
+        customer_total_overdue: Number(invoice.customer_total_overdue) || 0,
+        industry: invoice.industry || "unknown",
+        historical_on_time_ratio: Number(behaviorOnTimeRatio) / 100,
+        avg_delay_days: Number(invoice.payment_behavior?.avg_delay_days) || 10,
+        repayment_consistency: 0.6,
+        partial_payment_frequency: 0.1,
+        payment_after_followup_count: Math.round(Number(invoice.num_late_payments) || 0),
+        total_invoices: 10,
+        deterioration_trend: 0.0,
+        invoice_acknowledgement_behavior: "normal",
+        transaction_success_failure_pattern: 0.05,
+      });
+      setAgentResult(result);
+    } catch {
+      // Keep existing pre-computed result
+    } finally {
+      setAgentLoading(false);
+    }
+  }
 
   if (loading) {
     return (
       <PageLayout title="Invoice Detail" subtitle="Loading…">
-        <div className="grid grid-cols-2 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
+        <div className="grid grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="animate-pulse rounded-xl bg-muted h-48" />
           ))}
         </div>
@@ -133,15 +142,10 @@ export function InvoiceDetail() {
 
   if (!invoice) return null;
 
-  const priorityLevel =
-    invoice.days_overdue > 60 || invoice.risk_label === "High"
-      ? "Critical"
-      : invoice.days_overdue > 30
-      ? "High"
-      : "Medium";
+  const recommendation = agentResult?.strategy || invoice.strategy || invoice.ai_recommendation;
 
   return (
-    <PageLayout title="Invoice Detail" subtitle={`${invoice.invoice_number} · ${invoice.customer_name}`}>
+    <PageLayout title="Invoice Detail" subtitle={`${invoice.invoice_number || invoice.invoice_id} · ${invoice.customer_name}`}>
       <Button
         variant="ghost"
         size="sm"
@@ -151,9 +155,10 @@ export function InvoiceDetail() {
         <ArrowLeft className="h-4 w-4" /> Back to Worklist
       </Button>
 
-      <div className="grid grid-cols-3 gap-4">
+      {/* Row 1 — Invoice info + Payment probability + AI rec */}
+      <div className="grid grid-cols-3 gap-4 mb-4">
         {/* Invoice Info */}
-        <Card className="col-span-1">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-primary" />
@@ -177,7 +182,7 @@ export function InvoiceDetail() {
         </Card>
 
         {/* Payment Probability */}
-        <Card className="col-span-1">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-primary" />
@@ -189,7 +194,6 @@ export function InvoiceDetail() {
             <PaymentProbabilityBar label="Within 7 Days" value={invoice.pay_7_days} />
             <PaymentProbabilityBar label="Within 15 Days" value={invoice.pay_15_days} />
             <PaymentProbabilityBar label="Within 30 Days" value={invoice.pay_30_days} />
-
             <div className="pt-2 text-xs text-muted-foreground space-y-1 border-t border-border">
               <p>Credit Score: <strong>{invoice.credit_score}</strong></p>
               <p>Avg. Days to Pay: <strong>{invoice.avg_days_to_pay}d</strong></p>
@@ -198,11 +202,13 @@ export function InvoiceDetail() {
           </CardContent>
         </Card>
 
-        {/* AI Recommendation */}
-        <Card className={`col-span-1 border-l-4 ${
-          recommendation?.priority === "Critical" ? "border-l-red-500" :
-          recommendation?.priority === "High" ? "border-l-orange-500" :
-          "border-l-primary"
+        {/* AI Recommendation / Strategy */}
+        <Card className={`border-l-4 ${
+          (recommendation?.urgency === "Critical" || recommendation?.priority === "Critical")
+            ? "border-l-red-500"
+            : (recommendation?.urgency === "High" || recommendation?.priority === "High")
+            ? "border-l-orange-500"
+            : "border-l-primary"
         }`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -212,48 +218,93 @@ export function InvoiceDetail() {
             <CardDescription>GPT-4o powered collection strategy</CardDescription>
           </CardHeader>
           <CardContent>
-            {recLoading ? (
+            {recommendation ? (
+              <div className="space-y-4">
+                <div className="p-3 rounded-lg bg-primary/10">
+                  <p className="text-xs text-muted-foreground mb-1">Recommended Action</p>
+                  <p className="font-semibold text-primary">
+                    {recommendation.recommended_action}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Urgency / Priority</p>
+                    <p className={`font-semibold text-sm ${getPriorityColor(recommendation.urgency || recommendation.priority)}`}>
+                      {recommendation.urgency || recommendation.priority}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">SLA / Timeline</p>
+                    <p className="font-medium text-sm text-foreground">
+                      {recommendation.next_action_in_hours
+                        ? `${recommendation.next_action_in_hours}h`
+                        : recommendation.timeline}
+                    </p>
+                  </div>
+                </div>
+                {(recommendation.reason || recommendation.reasoning) && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Reasoning</p>
+                    <p className="text-sm text-foreground leading-relaxed">
+                      {recommendation.reason || recommendation.reasoning}
+                    </p>
+                  </div>
+                )}
+                {invoice.ai_recommendation?.additional_notes && (
+                  <div className="p-3 rounded-lg bg-muted/50">
+                    <p className="text-xs text-muted-foreground">{invoice.ai_recommendation.additional_notes}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
               <div className="space-y-2">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <div key={i} className="animate-pulse h-4 bg-muted rounded" />
                 ))}
               </div>
-            ) : recommendation ? (
-              <div className="space-y-4">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  <p className="text-xs text-muted-foreground mb-1">Recommended Action</p>
-                  <p className="font-semibold text-primary">{recommendation.recommended_action}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Priority</p>
-                    <p className={`font-semibold text-sm ${getPriorityColor(recommendation.priority)}`}>
-                      {recommendation.priority}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Timeline</p>
-                    <p className="font-medium text-sm text-foreground">{recommendation.timeline}</p>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Reasoning</p>
-                  <p className="text-sm text-foreground leading-relaxed">{recommendation.reasoning}</p>
-                </div>
-                {recommendation.additional_notes && (
-                  <div className="p-3 rounded-lg bg-muted/50">
-                    <p className="text-xs text-muted-foreground">{recommendation.additional_notes}</p>
-                  </div>
-                )}
-              </div>
-            ) : null}
+            )}
           </CardContent>
         </Card>
+      </div>
 
-        {/* SHAP Explanation */}
-        <div className="col-span-3">
-          <ShapBarChart explanation={invoice.shap_explanation} />
+      {/* Row 2 — Behavior + Delay + Strategy */}
+      <div className="grid grid-cols-3 gap-4 mb-4">
+        <PaymentBehaviorCard
+          behavior={agentResult?.payment_behavior || invoice.payment_behavior}
+        />
+        <DelayPredictionCard
+          prediction={agentResult?.delay_prediction || invoice.delay_prediction}
+        />
+        <StrategyCard
+          strategy={agentResult?.strategy || invoice.strategy}
+        />
+      </div>
+
+      {/* Run Agent Analysis button */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-sm text-muted-foreground">
+          {agentResult?.business_summary && (
+            <div className="p-4 rounded-lg bg-muted/50 border border-border max-w-3xl">
+              <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
+                Agent Business Summary
+              </p>
+              <p className="text-sm text-foreground leading-relaxed">{agentResult.business_summary}</p>
+            </div>
+          )}
         </div>
+        <Button
+          onClick={runAgentAnalysis}
+          disabled={agentLoading}
+          className="gap-2 ml-auto"
+        >
+          <Bot className="h-4 w-4" />
+          {agentLoading ? "Running Analysis…" : "Re-run AI Analysis"}
+        </Button>
+      </div>
+
+      {/* Row 3 — SHAP Explanation */}
+      <div>
+        <ShapBarChart explanation={invoice.shap_explanation} />
       </div>
     </PageLayout>
   );

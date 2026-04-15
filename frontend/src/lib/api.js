@@ -71,4 +71,30 @@ export const api = {
 
   simulateWhatIf: (payload) =>
     request("/whatif/simulate", { method: "POST", body: JSON.stringify(payload) }),
+
+  // ─── Payment Behavior Analysis ─────────────────────────────────────────────
+
+  analyzePaymentBehavior: (payload) =>
+    request("/analyze/payment-behavior", { method: "POST", body: JSON.stringify(payload) }),
+
+  getCustomerBehavior: (customerId) =>
+    request(`/analyze/payment-behavior/${customerId}`),
+
+  // ─── Enhanced Delay Prediction ─────────────────────────────────────────────
+
+  predictDelay: (payload) =>
+    request("/predict/delay", { method: "POST", body: JSON.stringify(payload) }),
+
+  // ─── Collection Strategy Optimization ─────────────────────────────────────
+
+  optimizeStrategy: (payload) =>
+    request("/optimize/collection-strategy", { method: "POST", body: JSON.stringify(payload) }),
+
+  getPortfolioStrategy: () =>
+    request("/optimize/portfolio-strategy"),
+
+  // ─── Orchestrated Agent ────────────────────────────────────────────────────
+
+  analyzeCase: (payload) =>
+    request("/agent/analyze-case", { method: "POST", body: JSON.stringify(payload) }),
 };

@@ -207,13 +207,179 @@ def get_portfolio_summary() -> dict:
         inv["amount"] for inv in MOCK_INVOICES if inv["status"] in ("open", "overdue")
     )
     overdue_count = sum(1 for inv in MOCK_INVOICES if inv["status"] == "overdue")
+    overdue_amount = sum(
+        inv["amount"] for inv in MOCK_INVOICES if inv["status"] == "overdue"
+    )
+    # Amount at risk: invoices with delay_prob > 0.60
+    amount_at_risk = sum(
+        inv["amount"]
+        for inv in MOCK_INVOICES
+        if inv["status"] in ("open", "overdue") and (1 - inv.get("pay_30_days", 0.5)) > 0.60
+    )
     risk_breakdown = {"High": 0, "Medium": 0, "Low": 0}
     for inv in MOCK_INVOICES:
         risk_breakdown[inv.get("risk_label", "Medium")] += 1
+
+    high_risk_count = risk_breakdown["High"]
 
     return {
         "total_invoices": len(MOCK_INVOICES),
         "total_outstanding": total_outstanding,
         "overdue_count": overdue_count,
+        "overdue_amount": overdue_amount,
+        "amount_at_risk": amount_at_risk,
+        "high_risk_count": high_risk_count,
         "risk_breakdown": risk_breakdown,
     }
+
+
+# ─── Payment Behavior Profiles (pre-computed for demo customers) ──────────────
+
+MOCK_BEHAVIOR_PROFILES = [
+    {
+        "customer_id": "1",
+        "customer_name": "Apex Manufacturing Inc.",
+        "behavior_type": "Chronic Delayed Payer",
+        "on_time_ratio": 31.0,
+        "avg_delay_days": 22.0,
+        "trend": "Worsening",
+        "payment_style": "Chronic Late + High DPD",
+        "behavior_risk_score": 82.0,
+        "followup_dependency": True,
+        "nach_recommended": True,
+        "behavior_summary": (
+            "Apex Manufacturing Inc. is classified as a 'Chronic Delayed Payer'. "
+            "On-time payment ratio is 31% with an average delay of 22 days. "
+            "Payment trend is worsening. NACH/auto-debit is recommended. "
+            "Behavior risk score: 82/100."
+        ),
+    },
+    {
+        "customer_id": "2",
+        "customer_name": "BlueSky Logistics Ltd.",
+        "behavior_type": "Occasional Late Payer",
+        "on_time_ratio": 68.0,
+        "avg_delay_days": 12.0,
+        "trend": "Stable",
+        "payment_style": "Mostly On-Time",
+        "behavior_risk_score": 42.0,
+        "followup_dependency": False,
+        "nach_recommended": False,
+        "behavior_summary": (
+            "BlueSky Logistics Ltd. is classified as an 'Occasional Late Payer'. "
+            "On-time payment ratio is 68% with an average delay of 12 days. "
+            "Payment trend is stable. Behavior risk score: 42/100."
+        ),
+    },
+    {
+        "customer_id": "3",
+        "customer_name": "GreenField Retail Corp.",
+        "behavior_type": "Consistent Payer",
+        "on_time_ratio": 92.0,
+        "avg_delay_days": 3.0,
+        "trend": "Improving",
+        "payment_style": "Prompt + Autonomous",
+        "behavior_risk_score": 8.0,
+        "followup_dependency": False,
+        "nach_recommended": False,
+        "behavior_summary": (
+            "GreenField Retail Corp. is classified as a 'Consistent Payer'. "
+            "On-time payment ratio is 92% with an average delay of 3 days. "
+            "Payment trend is improving. Behavior risk score: 8/100."
+        ),
+    },
+    {
+        "customer_id": "4",
+        "customer_name": "TechNova Solutions",
+        "behavior_type": "High Risk Defaulter",
+        "on_time_ratio": 18.0,
+        "avg_delay_days": 38.0,
+        "trend": "Worsening",
+        "payment_style": "Erratic + Non-Responsive",
+        "behavior_risk_score": 94.0,
+        "followup_dependency": True,
+        "nach_recommended": True,
+        "behavior_summary": (
+            "TechNova Solutions is classified as a 'High Risk Defaulter'. "
+            "On-time payment ratio is 18% with an average delay of 38 days. "
+            "Payment trend is worsening. NACH/auto-debit is recommended. "
+            "Behavior risk score: 94/100."
+        ),
+    },
+    {
+        "customer_id": "5",
+        "customer_name": "Solaris Energy Partners",
+        "behavior_type": "Occasional Late Payer",
+        "on_time_ratio": 72.0,
+        "avg_delay_days": 8.0,
+        "trend": "Stable",
+        "payment_style": "Mostly On-Time",
+        "behavior_risk_score": 28.0,
+        "followup_dependency": False,
+        "nach_recommended": False,
+        "behavior_summary": (
+            "Solaris Energy Partners is classified as an 'Occasional Late Payer'. "
+            "On-time payment ratio is 72% with an average delay of 8 days. "
+            "Payment trend is stable. Behavior risk score: 28/100."
+        ),
+    },
+    {
+        "customer_id": "6",
+        "customer_name": "NorthStar Healthcare",
+        "behavior_type": "Reminder Driven Payer",
+        "on_time_ratio": 52.0,
+        "avg_delay_days": 18.0,
+        "trend": "Stable",
+        "payment_style": "Requires Follow-Up",
+        "behavior_risk_score": 58.0,
+        "followup_dependency": True,
+        "nach_recommended": True,
+        "behavior_summary": (
+            "NorthStar Healthcare is classified as a 'Reminder Driven Payer'. "
+            "On-time payment ratio is 52% with an average delay of 18 days. "
+            "Payment trend is stable. NACH/auto-debit is recommended. "
+            "Behavior risk score: 58/100."
+        ),
+    },
+    {
+        "customer_id": "7",
+        "customer_name": "Pacific Steel Works",
+        "behavior_type": "Chronic Delayed Payer",
+        "on_time_ratio": 28.0,
+        "avg_delay_days": 32.0,
+        "trend": "Worsening",
+        "payment_style": "Partial + Reminder Driven",
+        "behavior_risk_score": 79.0,
+        "followup_dependency": True,
+        "nach_recommended": True,
+        "behavior_summary": (
+            "Pacific Steel Works is classified as a 'Chronic Delayed Payer'. "
+            "On-time payment ratio is 28% with an average delay of 32 days. "
+            "Payment trend is worsening. NACH/auto-debit is recommended. "
+            "Behavior risk score: 79/100."
+        ),
+    },
+    {
+        "customer_id": "8",
+        "customer_name": "Clearwater Financial",
+        "behavior_type": "Consistent Payer",
+        "on_time_ratio": 96.0,
+        "avg_delay_days": 1.0,
+        "trend": "Improving",
+        "payment_style": "Prompt + Autonomous",
+        "behavior_risk_score": 4.0,
+        "followup_dependency": False,
+        "nach_recommended": False,
+        "behavior_summary": (
+            "Clearwater Financial is classified as a 'Consistent Payer'. "
+            "On-time payment ratio is 96% with an average delay of 1 day. "
+            "Payment trend is improving. Behavior risk score: 4/100."
+        ),
+    },
+]
+
+
+def get_behavior_by_customer_id(customer_id: str) -> dict | None:
+    return next(
+        (p for p in MOCK_BEHAVIOR_PROFILES if p["customer_id"] == customer_id), None
+    )
