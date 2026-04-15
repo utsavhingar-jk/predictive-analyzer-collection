@@ -1,0 +1,26 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { ExecutiveDashboard } from "@/pages/ExecutiveDashboard";
+import { CollectorWorklist } from "@/pages/CollectorWorklist";
+import { InvoiceDetail } from "@/pages/InvoiceDetail";
+import { ScenarioSimulator } from "@/pages/ScenarioSimulator";
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <div className="flex h-screen bg-background overflow-hidden">
+        <Sidebar />
+        {/* Main content area offset by sidebar width */}
+        <div className="flex-1 ml-64 flex flex-col min-h-0 overflow-hidden">
+          <Routes>
+            <Route path="/" element={<ExecutiveDashboard />} />
+            <Route path="/worklist" element={<CollectorWorklist />} />
+            <Route path="/invoices/:invoiceId" element={<InvoiceDetail />} />
+            <Route path="/simulator" element={<ScenarioSimulator />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </div>
+    </BrowserRouter>
+  );
+}
