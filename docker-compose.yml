@@ -38,7 +38,7 @@ services:
     container_name: ai-collector-backend
     restart: unless-stopped
     env_file:
-      - ./backend/.env.example
+      - ./backend/.env
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/ai_collector
       ML_SERVICE_URL: http://ml-service:8001

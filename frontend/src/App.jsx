@@ -4,6 +4,7 @@ import { ExecutiveDashboard } from "@/pages/ExecutiveDashboard";
 import { CollectorWorklist } from "@/pages/CollectorWorklist";
 import { InvoiceDetail } from "@/pages/InvoiceDetail";
 import { ScenarioSimulator } from "@/pages/ScenarioSimulator";
+import { BorrowerPortfolio } from "@/pages/BorrowerPortfolio";
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
             <Route path="/worklist" element={<CollectorWorklist />} />
             <Route path="/invoices/:invoiceId" element={<InvoiceDetail />} />
             <Route path="/simulator" element={<ScenarioSimulator />} />
+            <Route path="/borrowers" element={<BorrowerPortfolio />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>

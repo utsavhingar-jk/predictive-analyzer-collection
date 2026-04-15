@@ -11,7 +11,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import forecast, invoices, predict, prioritize, recommend
-from app.api.routes import behavior, delay, strategy, agent
+from app.api.routes import behavior, delay, strategy, agent, borrower
 from app.core.config import get_settings
 from app.core.database import create_tables
 
@@ -54,6 +54,7 @@ app.include_router(behavior.router)
 app.include_router(delay.router)
 app.include_router(strategy.router)
 app.include_router(agent.router)
+app.include_router(borrower.router)
 
 # ─── Lifecycle ───────────────────────────────────────────────────────────────
 

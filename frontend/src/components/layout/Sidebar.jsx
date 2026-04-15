@@ -4,7 +4,7 @@ import {
   ListChecks,
   FileText,
   FlaskConical,
-  TrendingUp,
+  Users,
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Executive Dashboard" },
   { to: "/worklist", icon: ListChecks, label: "Collector Worklist" },
+  { to: "/borrowers", icon: Users, label: "Borrower Portfolio" },
   { to: "/invoices/INV-2024-001", icon: FileText, label: "Invoice Detail" },
   { to: "/simulator", icon: FlaskConical, label: "Scenario Simulator" },
 ];

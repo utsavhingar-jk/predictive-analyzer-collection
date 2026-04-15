@@ -97,4 +97,18 @@ export const api = {
 
   analyzeCase: (payload) =>
     request("/agent/analyze-case", { method: "POST", body: JSON.stringify(payload) }),
+
+  askAgent: (payload) =>
+    request("/agent/ask", { method: "POST", body: JSON.stringify(payload) }),
+
+  // ─── Borrower-Level Prediction ─────────────────────────────────────────────
+
+  predictBorrower: (payload) =>
+    request("/predict/borrower", { method: "POST", body: JSON.stringify(payload) }),
+
+  getBorrowerPrediction: (customerId) =>
+    request(`/predict/borrower/${customerId}`),
+
+  getBorrowerPortfolio: () =>
+    request("/predict/borrowers/portfolio"),
 };

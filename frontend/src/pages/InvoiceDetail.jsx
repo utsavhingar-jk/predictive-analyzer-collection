@@ -13,6 +13,9 @@ import { RiskBadge } from "@/components/dashboard/RiskBadge";
 import { PaymentBehaviorCard } from "@/components/dashboard/PaymentBehaviorCard";
 import { DelayPredictionCard } from "@/components/dashboard/DelayPredictionCard";
 import { StrategyCard } from "@/components/dashboard/StrategyCard";
+import { BorrowerRiskCard } from "@/components/dashboard/BorrowerRiskCard";
+import { AgentReasoningTrace } from "@/components/agent/AgentReasoningTrace";
+import { AgentAskBox } from "@/components/agent/AgentAskBox";
 import { ShapBarChart } from "@/components/charts/ShapBarChart";
 import { api } from "@/lib/api";
 import { mockInvoiceDetail } from "@/lib/mockData";
@@ -55,6 +58,7 @@ export function InvoiceDetail() {
   const [loading, setLoading] = useState(true);
   const [agentLoading, setAgentLoading] = useState(false);
   const [agentResult, setAgentResult] = useState(null);
+  const [borrowerPrediction, setBorrowerPrediction] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -75,6 +79,15 @@ export function InvoiceDetail() {
     load();
     return () => { cancelled = true; };
   }, [invoiceId]);
+
+  // Load borrower-level prediction when invoice loads
+  useEffect(() => {
+    if (!invoice) return;
+    const customerId = String(invoice.customer_id || "1");
+    api.getBorrowerPrediction(customerId)
+      .then(setBorrowerPrediction)
+      .catch(() => {/* borrower prediction unavailable — card stays hidden */});
+  }, [invoice]);
 
   // Pre-populate agent result from mock data if present
   useEffect(() => {
@@ -267,8 +280,8 @@ export function InvoiceDetail() {
         </Card>
       </div>
 
-      {/* Row 2 — Behavior + Delay + Strategy */}
-      <div className="grid grid-cols-3 gap-4 mb-4">
+      {/* Row 2 — Behavior + Delay + Strategy + Borrower */}
+      <div className="grid grid-cols-4 gap-4 mb-4">
         <PaymentBehaviorCard
           behavior={agentResult?.payment_behavior || invoice.payment_behavior}
         />
@@ -278,28 +291,50 @@ export function InvoiceDetail() {
         <StrategyCard
           strategy={agentResult?.strategy || invoice.strategy}
         />
+        <BorrowerRiskCard borrower={borrowerPrediction} />
       </div>
 
-      {/* Run Agent Analysis button */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="text-sm text-muted-foreground">
-          {agentResult?.business_summary && (
-            <div className="p-4 rounded-lg bg-muted/50 border border-border max-w-3xl">
-              <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
-                Agent Business Summary
-              </p>
-              <p className="text-sm text-foreground leading-relaxed">{agentResult.business_summary}</p>
-            </div>
-          )}
+      {/* Agent Analysis button + Reasoning Trace */}
+      <div className="space-y-4 mb-4">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground" />
+          <Button
+            onClick={runAgentAnalysis}
+            disabled={agentLoading}
+            className="gap-2"
+          >
+            <Bot className="h-4 w-4" />
+            {agentLoading ? "Agent Thinking…" : "Run Full AI Analysis"}
+          </Button>
         </div>
-        <Button
-          onClick={runAgentAnalysis}
-          disabled={agentLoading}
-          className="gap-2 ml-auto"
-        >
-          <Bot className="h-4 w-4" />
-          {agentLoading ? "Running Analysis…" : "Re-run AI Analysis"}
-        </Button>
+
+        {/* Reasoning trace — shows every tool GPT-4o called */}
+        {agentResult?.reasoning_trace?.length > 0 && (
+          <AgentReasoningTrace
+            trace={agentResult.reasoning_trace}
+            iterations={agentResult.agent_iterations}
+            toolsCalled={agentResult.tools_called}
+            summary={agentResult.business_summary}
+          />
+        )}
+
+        {/* Fallback: plain summary when no trace (e.g. pre-computed mock data) */}
+        {agentResult?.business_summary && !agentResult?.reasoning_trace?.length && (
+          <div className="p-4 rounded-lg bg-muted/50 border border-border">
+            <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
+              Agent Business Summary
+            </p>
+            <p className="text-sm text-foreground leading-relaxed">{agentResult.business_summary}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Free-form Agent Ask Box */}
+      <div className="mb-4">
+        <AgentAskBox
+          invoiceId={invoice.invoice_id}
+          customerId={invoice.customer_id}
+        />
       </div>
 
       {/* Row 3 — SHAP Explanation */}
