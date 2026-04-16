@@ -97,5 +97,5 @@ def load_invoices_from_json() -> list[dict]:
             "num_late_payments": max(0, days_overdue // 15),
         })
 
-    logger.info("json_data: loaded %d invoices from %s", len(rows), _INVOICES_JSON)
+    logger.info("json_data: loaded %d invoices from %s", len(rows), json_path)
     return rows
