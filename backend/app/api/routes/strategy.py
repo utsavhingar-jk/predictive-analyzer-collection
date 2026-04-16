@@ -30,42 +30,7 @@ router = APIRouter(prefix="/optimize", tags=["Collection Strategy"])
 
 strategy_svc = StrategyService()
 
-# Path to data/invoices.json — works both locally and on Render (full repo checkout)
-_REPO_ROOT = Path(__file__).resolve().parents[4]
-_INVOICES_JSON = _REPO_ROOT / "data" / "invoices.json"
-
-
-def _rows_from_json() -> list[dict]:
-    """Load invoice rows from data/invoices.json as a DB-schema compatible list."""
-    today = date.today()
-    rows: list[dict] = []
-
-    with open(_INVOICES_JSON, "r") as f:
-        invoices = json.load(f)
-
-    for inv in invoices:
-        due_str = inv.get("invoiceDueDate") or inv.get("invoiceDueDate")
-        try:
-            due_date = date.fromisoformat(due_str) if due_str else today
-        except ValueError:
-            due_date = today
-
-        days_overdue = max(0, (today - due_date).days)
-        amount = float(inv.get("invoiceAmount") or inv.get("loanAmount") or 0)
-        customer_name = (
-            inv.get("borrower", {}).get("name")
-            or inv.get("invoiceRaisedAgainstUser", {}).get("name")
-            or "Unknown Customer"
-        )
-        rows.append({
-            "invoice_id": inv.get("invoiceNumber") or inv.get("id"),
-            "customer_name": customer_name,
-            "amount": amount,
-            "days_overdue": days_overdue,
-            "nach_applicable": False,
-        })
-
-    return rows
+from app.services.json_data import load_invoices_from_json
 
 
 def _build_strategies(rows: list[dict]) -> list[StrategyResponse]:
@@ -153,7 +118,7 @@ def get_portfolio_strategy() -> list[StrategyResponse]:
     except Exception as exc:
         # ── Fallback: load from committed JSON data file ──────────────────────
         logger.warning("DB unavailable (%s) — falling back to invoices.json", exc)
-        rows = _rows_from_json()
+        rows = load_invoices_from_json()
         logger.info("portfolio-strategy: loaded %d rows from JSON fallback", len(rows))
 
     return _build_strategies(rows)
