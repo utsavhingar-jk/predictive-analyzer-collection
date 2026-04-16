@@ -12,9 +12,12 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-# Repo root: backend/app/services/ → 3 levels up → repo root
-_REPO_ROOT = Path(__file__).resolve().parents[3]
-_INVOICES_JSON = _REPO_ROOT / "data" / "invoices.json"
+# Primary: backend/data/ (works in Docker — backend/ is the build context)
+# Fallback: repo root data/ (works for local dev and native Python on Render)
+_BACKEND_ROOT = Path(__file__).resolve().parents[2]
+_PRIMARY_JSON = _BACKEND_ROOT / "data" / "invoices.json"
+_FALLBACK_JSON = _BACKEND_ROOT.parent / "data" / "invoices.json"
+_INVOICES_JSON = _PRIMARY_JSON if _PRIMARY_JSON.exists() else _FALLBACK_JSON
 
 
 def load_invoices_from_json() -> list[dict]:
