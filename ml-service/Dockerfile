@@ -13,9 +13,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Create model directory if it doesn't exist
-RUN mkdir -p serialized_models
+# Create model directory and pre-train models during build
+RUN mkdir -p serialized_models && \
+    python training/train_all.py || echo "Training skipped — will use heuristic fallbacks"
 
 EXPOSE 8001
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8001}
