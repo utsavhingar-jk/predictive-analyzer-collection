@@ -49,8 +49,8 @@ def _build_strategies(rows: list[dict]) -> list[StrategyResponse]:
 
         req = StrategyRequest(
             invoice_id=str(row["invoice_id"]),
-            customer_name=str(row["customer_name"] or "Unknown Customer"),
-            invoice_amount=amount,
+            customer_name=str(row.get("customer_name") or "Unknown Customer"),
+            invoice_amount=max(float(amount), 1.0),
             days_overdue=days_overdue,
             delay_probability=delay_prob,
             risk_tier=risk_tier,
