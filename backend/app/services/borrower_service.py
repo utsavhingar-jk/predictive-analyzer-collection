@@ -27,6 +27,7 @@ from app.schemas.borrower import (
     BorrowerPredictionResponse,
 )
 from app.services.llm_refiner import LLMRefiner
+from app.services.json_data import load_invoices_from_json
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -452,8 +453,28 @@ class BorrowerService:
                     )
                 return result
         except Exception:
-            logger.exception("Failed loading borrower invoices from DB")
-        return []
+            logger.warning("Failed loading borrower invoices from DB, using fallback")
+            raw = load_invoices_from_json()
+            rows = [r for r in raw if str(r.get("customer_id") or r.get("invoice_id")) == str(customer_id)]
+            result = []
+            for row in rows:
+                days_overdue = int(row.get("days_overdue", 0))
+                delay_prob = round(min(0.95, max(0.05, days_overdue / 45.0)), 4)
+                pay_30 = round(1.0 - delay_prob, 4)
+                risk_label = "High" if days_overdue >= 30 else "Medium" if days_overdue >= 10 else "Low"
+                result.append(
+                    BorrowerInvoiceSummary(
+                        invoice_id=str(row["invoice_id"]),
+                        amount=float(row.get("amount", 0)),
+                        days_overdue=days_overdue,
+                        status=str(row.get("status", "open")),
+                        risk_label=risk_label,
+                        delay_probability=delay_prob,
+                        pay_30_days=pay_30,
+                        recommended_action=self._recommended_action_for_days_overdue(days_overdue),
+                    )
+                )
+            return result
 
     def _load_portfolio_customer_map(self) -> tuple[dict[str, dict], float]:
         """Load grouped borrower invoice map from database rows."""
@@ -517,8 +538,42 @@ class BorrowerService:
                     portfolio_total += amount
                 return customer_map, portfolio_total
         except Exception:
-            logger.exception("Failed loading borrower portfolio from DB")
-        return {}, 0.0
+            logger.warning("Failed loading borrower portfolio from DB, using fallback")
+            raw = load_invoices_from_json()
+            customer_map = {}
+            portfolio_total = 0.0
+            for row in raw:
+                cid = str(row.get("customer_id") or row.get("invoice_id"))
+                amount = float(row.get("amount", 0))
+                days_overdue = int(row.get("days_overdue", 0))
+                delay_prob = round(min(0.95, max(0.05, days_overdue / 45.0)), 4)
+                pay_30 = round(1.0 - delay_prob, 4)
+                risk_label = "High" if days_overdue >= 30 else "Medium" if days_overdue >= 10 else "Low"
+                if cid not in customer_map:
+                    customer_map[cid] = {
+                        "customer_id": cid,
+                        "customer_name": str(row.get("customer_name") or f"Customer {cid}"),
+                        "industry": str(row.get("industry") or "unknown"),
+                        "credit_score": int(row.get("credit_score") or 650),
+                        "avg_days_to_pay": float(row.get("avg_days_to_pay") or 30),
+                        "payment_terms": int(row.get("payment_terms") or 30),
+                        "num_late_payments": int(row.get("num_late_payments") or 0),
+                        "invoices": [],
+                    }
+                customer_map[cid]["invoices"].append(
+                    BorrowerInvoiceSummary(
+                        invoice_id=str(row.get("invoice_id")),
+                        amount=amount,
+                        days_overdue=days_overdue,
+                        status=str(row.get("status", "open")),
+                        risk_label=risk_label,
+                        delay_probability=delay_prob,
+                        pay_30_days=pay_30,
+                        recommended_action=self._recommended_action_for_days_overdue(days_overdue),
+                    )
+                )
+                portfolio_total += amount
+            return customer_map, portfolio_total
 
     def get_portfolio_total_outstanding(self) -> float:
         customer_map, portfolio_total = self._load_portfolio_customer_map()
@@ -565,8 +620,22 @@ class BorrowerService:
                     invoices=customer_invoices,
                 )
         except Exception:
-            logger.exception("Failed loading borrower profile from DB")
-        return None
+            logger.warning("Failed loading borrower profile from DB, using fallback")
+            raw = load_invoices_from_json()
+            rows = [r for r in raw if str(r.get("customer_id") or r.get("invoice_id")) == str(customer_id)]
+            if rows:
+                row = rows[0]
+                return BorrowerPredictionRequest(
+                    customer_id=str(customer_id),
+                    customer_name=str(row.get("customer_name") or f"Customer {customer_id}"),
+                    industry=str(row.get("industry", "unknown")),
+                    credit_score=int(row.get("credit_score", 650)),
+                    avg_days_to_pay=float(row.get("avg_days_to_pay", 30)),
+                    payment_terms=int(row.get("payment_terms", 30)),
+                    num_late_payments=int(row.get("num_late_payments", 0)),
+                    invoices=customer_invoices,
+                )
+            return None
 
     @staticmethod
     def _recommended_action_for_days_overdue(days_overdue: int) -> str:

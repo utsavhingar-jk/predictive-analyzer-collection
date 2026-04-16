@@ -1,7 +1,7 @@
 """Application configuration loaded from environment variables."""
 
 from functools import lru_cache
-from typing import Optional
+from typing import Optional, Union
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -31,14 +31,22 @@ class Settings(BaseSettings):
 
     # Security
     SECRET_KEY: str = "dev-secret-key-change-in-production"
-    ALLOWED_ORIGINS: list[str] = [
+    ALLOWED_ORIGINS: Union[list[str], str] = [
         "http://localhost:3000",
         "http://localhost:3002",
         "http://localhost:5173",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:3002",
         "http://127.0.0.1:5173",
+        "https://predictive-analyzer-collection.vercel.app",
     ]
+
+    @property
+    def allowed_origins_list(self) -> list[str]:
+        """Support comma-separated string from env var or list from code."""
+        if isinstance(self.ALLOWED_ORIGINS, str):
+            return [o.strip() for o in self.ALLOWED_ORIGINS.split(",") if o.strip()]
+        return self.ALLOWED_ORIGINS
 
 
 @lru_cache()

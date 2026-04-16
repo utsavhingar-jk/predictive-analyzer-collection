@@ -10,17 +10,21 @@ Incorporates:
 - shortfall signal
 """
 
+import logging
 from datetime import date, timedelta
 
 from sqlalchemy import text
 
 from app.core.database import SessionLocal
 from app.schemas.forecast import CashflowForecastResponse, DailyForecast
+from app.services.json_data import load_invoices_from_json
 from app.services.risk_scoring import (
     build_amount_reference,
     delay_probability_from_score,
     risk_score,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class CashflowService:
@@ -40,39 +44,57 @@ class CashflowService:
           - borrower_concentration_risk: top single borrower as % of outstanding
           - shortfall_signal: expected_30d < 70% of total outstanding
         """
-        with SessionLocal() as db:
-            rows = db.execute(
-                text(
-                    """
-                    SELECT
-                        i.invoice_number AS invoice_id,
-                        c.name AS customer_name,
-                        COALESCE(i.outstanding_amount, i.amount) AS amount,
-                        i.due_date,
-                        i.days_overdue,
-                        i.status
-                    FROM invoices i
-                    LEFT JOIN customers c ON c.id = i.customer_id
-                    WHERE i.status IN ('open', 'overdue')
-                    """
+        try:
+            with SessionLocal() as db:
+                db_rows = db.execute(
+                    text(
+                        """
+                        SELECT
+                            i.invoice_number AS invoice_id,
+                            c.name AS customer_name,
+                            COALESCE(i.outstanding_amount, i.amount) AS amount,
+                            i.due_date,
+                            i.days_overdue,
+                            i.status
+                        FROM invoices i
+                        LEFT JOIN customers c ON c.id = i.customer_id
+                        WHERE i.status IN ('open', 'overdue')
+                        """
+                    )
+                ).mappings().all()
+            invoices = []
+            for row in db_rows:
+                days_overdue = int(row["days_overdue"] or 0)
+                pay_30 = max(0.05, min(0.95, 1.0 - (days_overdue / 45.0)))
+                invoices.append(
+                    {
+                        "invoice_id": row["invoice_id"],
+                        "customer_name": row["customer_name"] or "Unknown Customer",
+                        "amount": float(row["amount"] or 0),
+                        "due_date": row["due_date"],
+                        "status": row["status"],
+                        "days_overdue": days_overdue,
+                        "pay_30_days": pay_30,
+                    }
                 )
-            ).mappings().all()
-
-        invoices = []
-        for row in rows:
-            days_overdue = int(row["days_overdue"] or 0)
-            pay_30 = max(0.05, min(0.95, 1.0 - (days_overdue / 45.0)))
-            invoices.append(
-                {
-                    "invoice_id": row["invoice_id"],
-                    "customer_name": row["customer_name"] or "Unknown Customer",
-                    "amount": float(row["amount"] or 0),
-                    "due_date": row["due_date"],
-                    "status": row["status"],
-                    "days_overdue": days_overdue,
-                    "pay_30_days": pay_30,
-                }
-            )
+        except Exception as exc:
+            logger.warning("CashflowService: DB unavailable (%s) — using JSON fallback", exc)
+            raw = load_invoices_from_json()
+            invoices = []
+            for row in raw:
+                days_overdue = int(row["days_overdue"] or 0)
+                pay_30 = max(0.05, min(0.95, 1.0 - (days_overdue / 45.0)))
+                invoices.append(
+                    {
+                        "invoice_id": row["invoice_id"],
+                        "customer_name": row["customer_name"],
+                        "amount": float(row["amount"] or 0),
+                        "due_date": row["due_date"],   # already a date object
+                        "status": row["status"],
+                        "days_overdue": days_overdue,
+                        "pay_30_days": pay_30,
+                    }
+                )
         return self._build_forecast_from_invoices(invoices)
 
     def _build_forecast_from_invoices(self, invoices: list[dict]) -> CashflowForecastResponse:
