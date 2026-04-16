@@ -12,29 +12,44 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-# Primary: backend/data/ (works in Docker — backend/ is the build context)
-# Fallback: repo root data/ (works for local dev and native Python on Render)
-_BACKEND_ROOT = Path(__file__).resolve().parents[2]
-_PRIMARY_JSON = _BACKEND_ROOT / "data" / "invoices.json"
-_FALLBACK_JSON = _BACKEND_ROOT.parent / "data" / "invoices.json"
-_INVOICES_JSON = _PRIMARY_JSON if _PRIMARY_JSON.exists() else _FALLBACK_JSON
+
+def _find_invoices_json() -> Path | None:
+    """Search multiple candidate paths for invoices.json."""
+    this_file = Path(__file__).resolve()
+
+    candidates = [
+        # Docker: WORKDIR /app, COPY backend/ . → /app/data/invoices.json
+        this_file.parents[2] / "data" / "invoices.json",
+        # Native Render / local: repo root data/
+        this_file.parents[3] / "data" / "invoices.json",
+        # Absolute fallback — common Render native path
+        Path("/opt/render/project/src/data/invoices.json"),
+        Path("/opt/render/project/src/backend/data/invoices.json"),
+    ]
+    for p in candidates:
+        if p.exists():
+            logger.info("json_data: found invoices.json at %s", p)
+            return p
+
+    logger.error("json_data: invoices.json not found. Tried: %s", [str(c) for c in candidates])
+    return None
 
 
 def load_invoices_from_json() -> list[dict]:
     """
     Parse data/invoices.json and return a list of normalized invoice dicts.
-
-    Computed fields:
-      - days_overdue: max(0, today − invoiceDueDate)
-      - status: 'overdue' if days_overdue > 0 else 'open'
     """
     today = date.today()
+    json_path = _find_invoices_json()
+
+    if json_path is None:
+        return []
 
     try:
-        with open(_INVOICES_JSON, "r") as f:
+        with open(json_path, "r") as f:
             raw: list[dict] = json.load(f)
-    except FileNotFoundError:
-        logger.error("invoices.json not found at %s", _INVOICES_JSON)
+    except Exception as exc:
+        logger.error("json_data: failed to load %s: %s", json_path, exc)
         return []
 
     rows: list[dict] = []
