@@ -163,41 +163,53 @@ def list_invoices(
 @router.get("/{invoice_id}", summary="Get invoice detail")
 def get_invoice(invoice_id: str) -> dict:
     """Return full details for a single invoice including ML prediction metadata."""
-    with SessionLocal() as db:
-        row = db.execute(
-            text(
-                """
-                SELECT
-                    i.invoice_number AS invoice_id,
-                    i.invoice_number,
-                    i.customer_id,
-                    c.name AS customer_name,
-                    c.industry,
-                    COALESCE(i.outstanding_amount, i.amount) AS amount,
-                    i.currency,
-                    i.issue_date,
-                    i.due_date,
-                    i.status,
-                    i.days_overdue,
-                    c.credit_score,
-                    c.avg_days_to_pay,
-                    c.num_late_payments,
-                    CASE
-                        WHEN i.days_overdue >= 30 THEN 'High'
-                        WHEN i.days_overdue >= 10 THEN 'Medium'
-                        ELSE 'Low'
-                    END AS risk_label
-                FROM invoices i
-                LEFT JOIN customers c ON c.id = i.customer_id
-                WHERE i.invoice_number = :invoice_id
-                LIMIT 1
-                """
-            ),
-            {"invoice_id": invoice_id},
-        ).mappings().one_or_none()
-    if not row:
-        raise HTTPException(status_code=404, detail=f"Invoice {invoice_id} not found")
-    result = dict(row)
+    try:
+        with SessionLocal() as db:
+            row = db.execute(
+                text(
+                    """
+                    SELECT
+                        i.invoice_number AS invoice_id,
+                        i.invoice_number,
+                        i.customer_id,
+                        c.name AS customer_name,
+                        c.industry,
+                        COALESCE(i.outstanding_amount, i.amount) AS amount,
+                        i.currency,
+                        i.issue_date,
+                        i.due_date,
+                        i.status,
+                        i.days_overdue,
+                        c.credit_score,
+                        c.avg_days_to_pay,
+                        c.num_late_payments,
+                        CASE
+                            WHEN i.days_overdue >= 30 THEN 'High'
+                            WHEN i.days_overdue >= 10 THEN 'Medium'
+                            ELSE 'Low'
+                        END AS risk_label
+                    FROM invoices i
+                    LEFT JOIN customers c ON c.id = i.customer_id
+                    WHERE i.invoice_number = :invoice_id
+                    LIMIT 1
+                    """
+                ),
+                {"invoice_id": invoice_id},
+            ).mappings().one_or_none()
+        if not row:
+            raise HTTPException(status_code=404, detail=f"Invoice {invoice_id} not found")
+        result = dict(row)
+    except Exception as exc:
+        if isinstance(exc, HTTPException):
+            raise
+        logger.warning("get_invoice: DB unavailable (%s) — using JSON fallback", exc)
+        raw_rows = load_invoices_from_json()
+        match = next((r for r in raw_rows if str(r.get("invoice_id")) == str(invoice_id)), None)
+        if not match:
+            raise HTTPException(status_code=404, detail=f"Invoice {invoice_id} not found")
+        result = {"invoice_number": match.get("invoice_id"), "currency": "INR"}
+        result.update(match)
+
     for field in ("issue_date", "due_date"):
         if hasattr(result.get(field), "isoformat"):
             result[field] = result[field].isoformat()
@@ -205,17 +217,22 @@ def get_invoice(invoice_id: str) -> dict:
     days_overdue = int(result.get("days_overdue") or 0)
     amount = float(result.get("amount") or 0)
 
-    with SessionLocal() as db:
-        reference_rows = db.execute(
-            text(
-                """
-                SELECT COALESCE(outstanding_amount, amount) AS amount
-                FROM invoices
-                WHERE status IN ('open', 'overdue')
-                """
-            )
-        ).mappings().all()
-    amount_reference = build_amount_reference(float(r["amount"] or 0) for r in reference_rows)
+    try:
+        with SessionLocal() as db:
+            reference_rows = db.execute(
+                text(
+                    """
+                    SELECT COALESCE(outstanding_amount, amount) AS amount
+                    FROM invoices
+                    WHERE status IN ('open', 'overdue')
+                    """
+                )
+            ).mappings().all()
+            invoices_for_ref = [{"amount": r["amount"]} for r in reference_rows]
+    except Exception:
+        invoices_for_ref = load_invoices_from_json()
+
+    amount_reference = build_amount_reference(float(r["amount"] or 0) for r in invoices_for_ref)
     combined_score = risk_score(days_overdue, amount, amount_reference)
     delay_probability = delay_probability_from_score(combined_score)
     pay_30 = round(1.0 - delay_probability, 4)

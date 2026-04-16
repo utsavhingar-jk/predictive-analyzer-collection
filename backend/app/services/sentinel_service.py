@@ -7,6 +7,7 @@ from sqlalchemy import text
 
 from app.core.database import SessionLocal
 from app.schemas.sentinel import SentinelCheckResponse, SentinelSignal, WatchlistResponse
+from app.services.json_data import load_invoices_from_json
 
 logger = logging.getLogger(__name__)
 
@@ -17,39 +18,63 @@ class SentinelService:
     def check_customer(self, customer_id: str) -> SentinelCheckResponse:
         """Return sentinel signals for a specific customer from DB-derived heuristics."""
         customer_id = str(customer_id)
-        with SessionLocal() as db:
-            customer = db.execute(
-                text(
-                    """
-                    SELECT
-                        CAST(c.id AS TEXT) AS customer_id,
-                        c.name AS customer_name,
-                        COALESCE(c.industry, 'unknown') AS industry,
-                        COALESCE(c.num_late_payments, 0) AS num_late_payments
-                    FROM customers c
-                    WHERE CAST(c.id AS TEXT) = :customer_id
-                    LIMIT 1
-                    """
-                ),
-                {"customer_id": customer_id},
-            ).mappings().one_or_none()
+        try:
+            with SessionLocal() as db:
+                customer = db.execute(
+                    text(
+                        """
+                        SELECT
+                            CAST(c.id AS TEXT) AS customer_id,
+                            c.name AS customer_name,
+                            COALESCE(c.industry, 'unknown') AS industry,
+                            COALESCE(c.num_late_payments, 0) AS num_late_payments
+                        FROM customers c
+                        WHERE CAST(c.id AS TEXT) = :customer_id
+                        LIMIT 1
+                        """
+                    ),
+                    {"customer_id": customer_id},
+                ).mappings().one_or_none()
 
-            invoice_rows = db.execute(
-                text(
-                    """
-                    SELECT
-                        i.invoice_number,
-                        COALESCE(i.outstanding_amount, i.amount) AS amount,
-                        i.days_overdue,
-                        i.status
-                    FROM invoices i
-                    WHERE CAST(i.customer_id AS TEXT) = :customer_id
-                      AND i.status IN ('open', 'overdue')
-                    ORDER BY i.days_overdue DESC, i.due_date ASC
-                    """
-                ),
-                {"customer_id": customer_id},
-            ).mappings().all()
+                invoice_rows = db.execute(
+                    text(
+                        """
+                        SELECT
+                            i.invoice_number,
+                            COALESCE(i.outstanding_amount, i.amount) AS amount,
+                            i.days_overdue,
+                            i.status
+                        FROM invoices i
+                        WHERE CAST(i.customer_id AS TEXT) = :customer_id
+                          AND i.status IN ('open', 'overdue')
+                        ORDER BY i.days_overdue DESC, i.due_date ASC
+                        """
+                    ),
+                    {"customer_id": customer_id},
+                ).mappings().all()
+        except Exception as exc:
+            logger.warning("SentinelService: DB unavailable (%s) — using JSON fallback", exc)
+            raw = load_invoices_from_json()
+            invoices_for_cust = [r for r in raw if str(r.get("customer_id") or r.get("invoice_id")) == customer_id]
+            if not invoices_for_cust:
+                customer = None
+                invoice_rows = []
+            else:
+                customer = {
+                    "customer_id": customer_id,
+                    "customer_name": invoices_for_cust[0].get("customer_name") or f"Customer {customer_id}",
+                    "industry": "unknown",
+                    "num_late_payments": invoices_for_cust[0].get("num_late_payments", 0),
+                }
+                invoice_rows = [
+                    {
+                        "invoice_number": r["invoice_id"],
+                        "amount": r["amount"],
+                        "days_overdue": r["days_overdue"],
+                        "status": r["status"]
+                    }
+                    for r in invoices_for_cust
+                ]
 
         if not customer:
             return SentinelCheckResponse(
@@ -159,20 +184,26 @@ class SentinelService:
 
     def get_watchlist(self) -> WatchlistResponse:
         """Return all flagged customers sorted by sentinel score."""
-        with SessionLocal() as db:
-            customer_ids = [
-                str(r.customer_id)
-                for r in db.execute(
-                    text(
-                        """
-                        SELECT DISTINCT CAST(customer_id AS TEXT) AS customer_id
-                        FROM invoices
-                        WHERE status IN ('open', 'overdue')
-                        ORDER BY customer_id
-                        """
-                    )
-                ).fetchall()
-            ]
+        try:
+            with SessionLocal() as db:
+                customer_ids = [
+                    str(r.customer_id)
+                    for r in db.execute(
+                        text(
+                            """
+                            SELECT DISTINCT CAST(customer_id AS TEXT) AS customer_id
+                            FROM invoices
+                            WHERE status IN ('open', 'overdue')
+                            ORDER BY customer_id
+                            """
+                        )
+                    ).fetchall()
+                ]
+        except Exception as exc:
+            logger.warning("SentinelService: DB unavailable (%s) — using JSON fallback for watchlist", exc)
+            raw = load_invoices_from_json()
+            customer_ids = list({str(r.get("customer_id") or r.get("invoice_id")) for r in raw})
+            customer_ids.sort()
 
         flagged: list[SentinelCheckResponse] = []
         for customer_id in customer_ids:

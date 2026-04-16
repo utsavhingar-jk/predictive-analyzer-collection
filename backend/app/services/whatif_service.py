@@ -5,10 +5,14 @@ Allows collectors and managers to model the impact of strategy changes
 (efficiency improvements, discounts, follow-up timing shifts) on key AR metrics.
 """
 
+import logging
 from sqlalchemy import text
 
 from app.core.database import SessionLocal
 from app.schemas.whatif import WhatIfRequest, WhatIfResponse
+from app.services.json_data import load_invoices_from_json
+
+logger = logging.getLogger(__name__)
 
 
 class WhatIfService:
@@ -24,18 +28,23 @@ class WhatIfService:
         - baseline_cashflow: expected 30-day collections (weighted)
         - baseline_dso: weighted expected collection delay in days
         """
-        with SessionLocal() as db:
-            rows = db.execute(
-                text(
-                    """
-                    SELECT
-                        COALESCE(i.outstanding_amount, i.amount) AS amount,
-                        i.days_overdue
-                    FROM invoices i
-                    WHERE i.status IN ('open', 'overdue')
-                    """
-                )
-            ).mappings().all()
+        try:
+            with SessionLocal() as db:
+                db_rows = db.execute(
+                    text(
+                        """
+                        SELECT
+                            COALESCE(i.outstanding_amount, i.amount) AS amount,
+                            i.days_overdue
+                        FROM invoices i
+                        WHERE i.status IN ('open', 'overdue')
+                        """
+                    )
+                ).mappings().all()
+            rows = [dict(r) for r in db_rows]
+        except Exception as exc:
+            logger.warning("WhatIfService: DB unavailable (%s) — using JSON fallback", exc)
+            rows = load_invoices_from_json()
 
         if not rows:
             return (
