@@ -3,6 +3,8 @@
 from typing import Optional
 from pydantic import BaseModel, Field
 
+from app.schemas.explainability import FeatureDriver
+
 
 class DelayPredictionRequest(BaseModel):
     """
@@ -61,3 +63,4 @@ class DelayPredictionResponse(BaseModel):
     prediction_source: str = "ml"  # "ml" | "ml+llm" | "rule-based"
     llm_refined: bool = False
     explanation: Optional[str] = None
+    feature_drivers: list[FeatureDriver] = Field(default_factory=list)

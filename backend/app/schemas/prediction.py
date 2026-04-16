@@ -3,6 +3,8 @@
 from typing import Optional
 from pydantic import BaseModel, Field
 
+from app.schemas.explainability import FeatureDriver, PredictionOutputDrivers
+
 
 # ─── Payment Prediction ──────────────────────────────────────────────────────
 
@@ -33,6 +35,7 @@ class PaymentPredictionResponse(BaseModel):
     llm_refined: bool = False
     used_fallback: bool = False
     explanation: Optional[str] = None
+    feature_drivers_by_horizon: list[PredictionOutputDrivers] = Field(default_factory=list)
 
 
 # ─── Risk Classification ──────────────────────────────────────────────────────
@@ -58,6 +61,7 @@ class RiskClassificationResponse(BaseModel):
     llm_refined: bool = False
     used_fallback: bool = False
     explanation: Optional[str] = None
+    feature_drivers: list[FeatureDriver] = Field(default_factory=list)
 
 
 # ─── DSO Prediction ──────────────────────────────────────────────────────────

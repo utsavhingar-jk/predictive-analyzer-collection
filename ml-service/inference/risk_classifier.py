@@ -11,6 +11,8 @@ from pathlib import Path
 
 import numpy as np
 
+from explainability.model_driver_explainer import summarize_drivers, top_feature_drivers
+
 MODEL_DIR = Path(__file__).parent.parent / "serialized_models"
 LABEL_MAP = {0: "Low", 1: "Medium", 2: "High"}
 
@@ -32,6 +34,26 @@ INDUSTRY_MAP = {
     "finance/nbfc":   8,
     "pharma":         9,
     "unknown":        1,
+}
+
+FEATURE_LABELS = {
+    "invoice_amount": "Invoice Amount",
+    "days_overdue": "Days Overdue",
+    "customer_credit_score": "Customer Credit Score",
+    "customer_avg_days_to_pay": "Customer Average Days To Pay",
+    "payment_terms": "Payment Terms",
+    "num_late_payments": "Historical Late Payments",
+    "industry_encoded": "Industry Segment",
+    "customer_total_overdue": "Customer Total Overdue",
+    "overdue_ratio": "Overdue Ratio",
+    "late_payment_rate": "Late Payment Rate",
+    "log_amount": "Log Invoice Amount",
+    "log_overdue_ar": "Log Customer Overdue Exposure",
+    "credit_norm": "Normalized Credit Score",
+    "overdue_band": "Overdue Severity Band",
+    "amount_tier": "Invoice Amount Tier",
+    "credit_x_overdue": "Credit-Overdue Interaction",
+    "log_stress": "Payment Stress Indicator",
 }
 
 
@@ -134,11 +156,40 @@ def classify(data: dict) -> dict:
         class_idx = int(np.argmax(proba))
         confidence = float(proba[class_idx])
         risk_score = float(proba[2] * 1.0 + proba[1] * 0.5)
+        drivers = top_feature_drivers(
+            _model,
+            _scaler,
+            features,
+            [
+                "invoice_amount",
+                "days_overdue",
+                "customer_credit_score",
+                "customer_avg_days_to_pay",
+                "payment_terms",
+                "num_late_payments",
+                "industry_encoded",
+                "customer_total_overdue",
+                "overdue_ratio",
+                "late_payment_rate",
+                "log_amount",
+                "log_overdue_ar",
+                "credit_norm",
+                "overdue_band",
+                "amount_tier",
+                "credit_x_overdue",
+                "log_stress",
+            ],
+            top_n=5,
+            class_index=class_idx,
+            display_names=FEATURE_LABELS,
+        )
         return {
             "risk_label": LABEL_MAP[class_idx],
             "risk_score": round(min(1.0, risk_score), 4),
             "confidence": round(confidence, 4),
             "model_version": "xgboost-v1-inr" if _USE_XGB_RISK else "lgbm-v2-inr",
+            "feature_drivers": drivers,
+            "explanation": summarize_drivers(drivers, f"{LABEL_MAP[class_idx]} risk classification"),
         }
     except Exception:
         return _heuristic_risk(data)

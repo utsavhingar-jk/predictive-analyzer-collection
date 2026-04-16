@@ -10,7 +10,9 @@ from typing import Optional
 
 import numpy as np
 
+from explainability.model_driver_explainer import summarize_drivers, top_feature_drivers
 from inference.payment_predictor import build_features as build_payment_features
+from inference.payment_predictor import FEATURE_LABELS, FEATURE_ORDER
 
 MODEL_DIR = Path(__file__).parent.parent / "serialized_models"
 MODEL_NAME = "delay_probability_xgb"
@@ -57,6 +59,18 @@ def predict_delay(data: dict) -> Optional[dict]:
         X = build_payment_features(payload)
         scaled = _scaler.transform(X)
         raw = float(_model.predict(scaled)[0])
-        return {"delay_probability": float(np.clip(raw, 0.02, 0.98))}
+        drivers = top_feature_drivers(
+            _model,
+            _scaler,
+            X,
+            FEATURE_ORDER,
+            top_n=5,
+            display_names=FEATURE_LABELS,
+        )
+        return {
+            "delay_probability": float(np.clip(raw, 0.02, 0.98)),
+            "feature_drivers": drivers,
+            "explanation": summarize_drivers(drivers, "delay probability"),
+        }
     except Exception:
         return None

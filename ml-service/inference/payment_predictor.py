@@ -12,6 +12,8 @@ from typing import Optional
 
 import numpy as np
 
+from explainability.model_driver_explainer import summarize_drivers, top_feature_drivers
+
 MODEL_DIR = Path(__file__).parent.parent / "serialized_models"
 
 # Must match FEATURE_COLS + ENGINEERED_COLS in train_payment.py exactly
@@ -57,6 +59,27 @@ INDUSTRY_MAP = {
     "finance/nbfc":   8,
     "pharma":         9,
     "unknown":        1,   # default to IT (middle-risk industry)
+}
+
+FEATURE_LABELS = {
+    "invoice_amount": "Invoice Amount",
+    "days_overdue": "Days Overdue",
+    "customer_credit_score": "Customer Credit Score",
+    "customer_avg_days_to_pay": "Customer Average Days To Pay",
+    "payment_terms": "Payment Terms",
+    "num_previous_invoices": "Previous Invoice Count",
+    "num_late_payments": "Historical Late Payments",
+    "industry_encoded": "Industry Segment",
+    "customer_total_overdue": "Customer Total Overdue",
+    "overdue_ratio": "Overdue Ratio",
+    "late_payment_rate": "Late Payment Rate",
+    "log_amount": "Log Invoice Amount",
+    "log_overdue_ar": "Log Customer Overdue Exposure",
+    "credit_norm": "Normalized Credit Score",
+    "overdue_band": "Overdue Severity Band",
+    "amount_tier": "Invoice Amount Tier",
+    "credit_x_overdue": "Credit-Overdue Interaction",
+    "log_stress": "Payment Stress Indicator",
 }
 
 
@@ -161,19 +184,28 @@ def predict(data: dict) -> dict:
     """
     features = build_features(data)
 
-    def safe_predict(model, scaler) -> Optional[float]:
+    def safe_predict(model, scaler, output_name: str) -> tuple[Optional[float], list[dict]]:
         if model is None or scaler is None:
-            return None
+            return None, []
         try:
             scaled = scaler.transform(features)
             proba = model.predict_proba(scaled)[0][1]
-            return float(round(proba, 4))
+            drivers = top_feature_drivers(
+                model,
+                scaler,
+                features,
+                FEATURE_ORDER,
+                top_n=5,
+                class_index=0,
+                display_names=FEATURE_LABELS,
+            )
+            return float(round(proba, 4)), drivers
         except Exception:
-            return None
+            return None, []
 
-    u7 = safe_predict(_model_7d, _scaler_7d)
-    u15 = safe_predict(_model_15d, _scaler_15d)
-    u30 = safe_predict(_model_30d, _scaler_30d)
+    u7, d7 = safe_predict(_model_7d, _scaler_7d, "pay_7_days")
+    u15, d15 = safe_predict(_model_15d, _scaler_15d, "pay_15_days")
+    u30, d30 = safe_predict(_model_30d, _scaler_30d, "pay_30_days")
     h7, h15, h30 = _heuristic_payment_probs(data)
 
     p7 = u7 if u7 is not None else h7
@@ -188,9 +220,31 @@ def predict(data: dict) -> dict:
     else:
         model_version = "xgboost-partial-v1"
 
+    horizon_drivers = []
+    if u7 is not None:
+        horizon_drivers.append(
+            {"output_name": "pay_7_days", "predicted_value": p7, "drivers": d7}
+        )
+    if u15 is not None:
+        horizon_drivers.append(
+            {"output_name": "pay_15_days", "predicted_value": p15, "drivers": d15}
+        )
+    if u30 is not None:
+        horizon_drivers.append(
+            {"output_name": "pay_30_days", "predicted_value": p30, "drivers": d30}
+        )
+    if u30 is not None and d30:
+        explanation = summarize_drivers(d30, "payment within 30 days")
+    elif horizon_drivers and horizon_drivers[0]["drivers"]:
+        explanation = summarize_drivers(horizon_drivers[0]["drivers"], horizon_drivers[0]["output_name"])
+    else:
+        explanation = "Rule fallback was used because the trained payment model was unavailable."
+
     return {
         "pay_7_days": p7,
         "pay_15_days": p15,
         "pay_30_days": p30,
         "model_version": model_version,
+        "feature_drivers_by_horizon": horizon_drivers,
+        "explanation": explanation,
     }

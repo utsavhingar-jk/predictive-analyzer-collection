@@ -9,6 +9,7 @@
 
 import { AlertTriangle, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { ExplainabilityPanel } from "@/components/dashboard/ExplainabilityPanel";
 
 const TIER_COLORS = {
   High:   "text-red-600 dark:text-red-400",
@@ -85,6 +86,12 @@ export function DelayPredictionCard({ prediction }) {
             </ul>
           </div>
         )}
+
+        <ExplainabilityPanel
+          explanation={prediction.explanation}
+          drivers={prediction.feature_drivers}
+          title="Why Delay Risk Looks Like This"
+        />
 
         <p className="text-xs text-muted-foreground border-t border-border pt-2">
           Model: <span className="font-mono">{prediction.model_version}</span>

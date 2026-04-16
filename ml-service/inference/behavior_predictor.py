@@ -8,6 +8,8 @@ from typing import Optional
 
 import numpy as np
 
+from explainability.model_driver_explainer import summarize_drivers, top_feature_drivers
+
 MODEL_DIR = Path(__file__).parent.parent / "serialized_models"
 MODEL_NAME = "behavior_classifier_xgb"
 
@@ -34,6 +36,18 @@ FEATURE_ORDER = [
 ]
 
 ACK_MAP = {"normal": 0, "slow": 1, "unresponsive": 2}
+FEATURE_LABELS = {
+    "historical_on_time_ratio": "Historical On-Time Ratio",
+    "avg_delay_days": "Average Delay Days",
+    "repayment_consistency": "Repayment Consistency",
+    "partial_payment_frequency": "Partial Payment Frequency",
+    "prior_delayed_invoice_count": "Prior Delayed Invoice Count",
+    "payment_after_followup_count": "Payments After Follow-Up",
+    "total_invoices": "Total Invoices",
+    "deterioration_trend": "Deterioration Trend",
+    "transaction_success_failure_pattern": "Transaction Failure Pattern",
+    "invoice_acknowledgement_encoded": "Invoice Acknowledgement Behavior",
+}
 
 
 def _load(name: str):
@@ -75,10 +89,21 @@ def predict_behavior(data: dict) -> Optional[dict]:
         idx = int(np.argmax(proba))
         behavior_type = BEHAVIOR_CLASSES[idx]
         confidence = float(proba[idx])
+        drivers = top_feature_drivers(
+            _model,
+            _scaler,
+            X,
+            FEATURE_ORDER,
+            top_n=5,
+            class_index=idx,
+            display_names=FEATURE_LABELS,
+        )
         return {
             "behavior_type": behavior_type,
             "behavior_class_index": idx,
             "confidence": round(confidence, 4),
+            "feature_drivers": drivers,
+            "explanation": summarize_drivers(drivers, behavior_type),
         }
     except Exception:
         return None

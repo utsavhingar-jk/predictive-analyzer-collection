@@ -157,9 +157,11 @@ def borrower_prediction_dict(request: BorrowerFeatures) -> dict:
             "nach_recommended": False,
             "relationship_action": "No Open Invoices",
             "invoices": [],
-            "borrower_summary": f"{request.customer_name} has no open invoices.",
-            "model_version": "ml-borrower-rules-v1",
-        }
+        "borrower_summary": f"{request.customer_name} has no open invoices.",
+        "model_version": "ml-borrower-rules-v1",
+        "feature_drivers": [],
+        "explanation": "No open invoices were available, so borrower-level ML feature drivers could not be computed.",
+    }
 
     total_outstanding = sum(float(inv.amount or 0.0) for inv in invoices)
     total_overdue = sum(float(inv.amount or 0.0) for inv in invoices if inv.status == "overdue")
@@ -180,6 +182,8 @@ def borrower_prediction_dict(request: BorrowerFeatures) -> dict:
         borrower_risk_score = int(round(ml_br["borrower_risk_score"]))
         borrower_risk_tier = ml_br["borrower_risk_tier"]
         br_version = "xgboost-borrower-v1"
+        borrower_feature_drivers = ml_br.get("feature_drivers", [])
+        borrower_explanation = ml_br.get("explanation")
     else:
         overdue_ratio = total_overdue / max(total_outstanding, 1.0)
         credit_factor = max(0.0, (700 - request.credit_score) / 400)
@@ -195,6 +199,8 @@ def borrower_prediction_dict(request: BorrowerFeatures) -> dict:
         borrower_risk_score = int(min(100, round(score_raw * 100)))
         borrower_risk_tier = "High" if borrower_risk_score >= 65 else "Medium" if borrower_risk_score >= 35 else "Low"
         br_version = "ml-borrower-rules-v1"
+        borrower_feature_drivers = []
+        borrower_explanation = "Borrower rule fallback used weighted delay, overdue ratio, credit stress, late payments, and concentration."
 
     concentration_pct = round(concentration_raw * 100, 1)
 
@@ -260,6 +266,8 @@ def borrower_prediction_dict(request: BorrowerFeatures) -> dict:
         "invoices": [inv.model_dump() for inv in invoices],
         "borrower_summary": borrower_summary,
         "model_version": br_version,
+        "feature_drivers": borrower_feature_drivers,
+        "explanation": borrower_explanation,
     }
 
 
@@ -341,6 +349,8 @@ def analyze_behavior_endpoint(request: BehaviorFeatures) -> dict:
             "High Risk Defaulter": "Erratic + Non-Responsive",
         }.get(behavior_type, "Intermittent Delays")
         version = "xgboost-behavior-v1"
+        feature_drivers = ml.get("feature_drivers", [])
+        explanation = ml.get("explanation")
     else:
         if on_time_pct >= 85 and request.avg_delay_days < 5:
             behavior_type = "Consistent Payer"
@@ -364,6 +374,8 @@ def analyze_behavior_endpoint(request: BehaviorFeatures) -> dict:
             behavior_type = "Occasional Late Payer"
             payment_style = "Intermittent Delays"
         version = "ml-behavior-rules-v1"
+        feature_drivers = []
+        explanation = "Behavior rule fallback used on-time ratio, delay days, follow-up dependence, and payment pattern signals."
 
     nach_recommended = behavior_type in (
         "Reminder Driven Payer", "Partial Payment Payer", "Chronic Delayed Payer"
@@ -387,6 +399,8 @@ def analyze_behavior_endpoint(request: BehaviorFeatures) -> dict:
             f"Behavior risk score: {behavior_risk_score}/100."
         ),
         "model_version": version,
+        "feature_drivers": feature_drivers,
+        "explanation": explanation,
     }
 
 
@@ -399,6 +413,8 @@ def predict_delay_endpoint(request: DelayFeatures) -> dict:
     if ml:
         delay_prob = round(ml["delay_probability"], 4)
         version = "xgboost-delay-v1"
+        feature_drivers = ml.get("feature_drivers", [])
+        explanation = ml.get("explanation")
     else:
         overdue_factor = min(1.0, request.days_overdue / 90)
         credit_factor = max(0.0, (700 - request.customer_credit_score) / 400)
@@ -420,6 +436,8 @@ def predict_delay_endpoint(request: DelayFeatures) -> dict:
         ))
         delay_prob = round(delay_prob, 4)
         version = "ml-delay-rules-v1"
+        feature_drivers = []
+        explanation = "Delay rule fallback used overdue days, credit stress, historical late payments, and behavior context."
 
     risk_score = int(delay_prob * 100)
     risk_tier = "High" if risk_score >= 65 else "Medium" if risk_score >= 35 else "Low"
@@ -447,6 +465,8 @@ def predict_delay_endpoint(request: DelayFeatures) -> dict:
             for d in top_drivers[:4]
         ],
         "model_version": version,
+        "feature_drivers": feature_drivers,
+        "explanation": explanation,
     }
 
 

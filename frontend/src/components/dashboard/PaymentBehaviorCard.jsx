@@ -11,6 +11,7 @@
 
 import { UserCheck, TrendingUp, TrendingDown, Minus, AlertCircle, CheckCircle, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { ExplainabilityPanel } from "@/components/dashboard/ExplainabilityPanel";
 
 const BEHAVIOR_COLORS = {
   "Consistent Payer":       "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
@@ -117,6 +118,12 @@ export function PaymentBehaviorCard({ behavior }) {
             {behavior.behavior_summary}
           </p>
         )}
+
+        <ExplainabilityPanel
+          explanation={behavior.explanation}
+          drivers={behavior.feature_drivers}
+          title="Why This Behavior Was Predicted"
+        />
       </CardContent>
     </Card>
   );

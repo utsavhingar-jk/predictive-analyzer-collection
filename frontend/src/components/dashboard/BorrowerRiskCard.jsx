@@ -11,6 +11,7 @@
 
 import { Users, TrendingDown, AlertOctagon, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { ExplainabilityPanel } from "@/components/dashboard/ExplainabilityPanel";
 import { formatCurrency, formatPct } from "@/lib/utils";
 
 const TIER_COLORS = {
@@ -162,6 +163,12 @@ export function BorrowerRiskCard({ borrower }) {
             {borrower.borrower_summary}
           </p>
         )}
+
+        <ExplainabilityPanel
+          explanation={borrower.explanation}
+          drivers={borrower.feature_drivers}
+          title="Why Borrower Risk Looks Like This"
+        />
       </CardContent>
     </Card>
   );

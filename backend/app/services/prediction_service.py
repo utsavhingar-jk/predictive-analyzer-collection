@@ -49,7 +49,7 @@ class PredictionService:
                 ml_result.prediction_source = "ml"
                 ml_result.llm_refined = False
                 ml_result.used_fallback = False
-                ml_result.explanation = (
+                ml_result.explanation = ml_result.explanation or (
                     f"Phase 1 ML output ({ml_result.model_version}) generated directly from invoice features."
                 )
 
@@ -70,6 +70,7 @@ class PredictionService:
                         llm_refined=True,
                         used_fallback=False,
                         explanation=refined["explanation"],
+                        feature_drivers_by_horizon=ml_result.feature_drivers_by_horizon,
                     )
                 return ml_result
         except Exception as exc:
@@ -117,7 +118,7 @@ class PredictionService:
                 ml_result.prediction_source = "ml"
                 ml_result.llm_refined = False
                 ml_result.used_fallback = False
-                ml_result.explanation = (
+                ml_result.explanation = ml_result.explanation or (
                     f"Phase 1 ML output ({ml_result.model_version}) generated from invoice and borrower risk features."
                 )
 
@@ -138,6 +139,7 @@ class PredictionService:
                         llm_refined=True,
                         used_fallback=False,
                         explanation=refined["explanation"],
+                        feature_drivers=ml_result.feature_drivers,
                     )
                 return ml_result
         except Exception as exc:

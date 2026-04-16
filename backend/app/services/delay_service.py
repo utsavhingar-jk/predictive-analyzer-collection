@@ -68,7 +68,7 @@ class DelayService:
                 result.used_fallback = False
                 result.prediction_source = "ml"
                 result.llm_refined = False
-                result.explanation = (
+                result.explanation = data.get("explanation") or (
                     f"Phase 1 ML output ({result.model_version}) generated from invoice + behavior signals."
                 )
 

@@ -9,6 +9,7 @@ import {
 import { PageLayout } from "@/components/layout/PageLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { RiskBadge } from "@/components/dashboard/RiskBadge";
 import { PaymentBehaviorCard } from "@/components/dashboard/PaymentBehaviorCard";
 import { DelayPredictionCard } from "@/components/dashboard/DelayPredictionCard";
@@ -24,6 +25,7 @@ import { ConfidenceIndicator } from "@/components/dashboard/ConfidenceIndicator"
 import { InteractionTimeline } from "@/components/dashboard/InteractionTimeline";
 import { ActionEffectivenessCard } from "@/components/dashboard/ActionEffectivenessCard";
 import { BorrowerEnrichmentCard } from "@/components/dashboard/BorrowerEnrichmentCard";
+import { ExplainabilityPanel } from "@/components/dashboard/ExplainabilityPanel";
 import { api } from "@/lib/api";
 import { formatCurrency, formatPct, getPriorityColor } from "@/lib/utils";
 
@@ -67,6 +69,11 @@ export function InvoiceDetail() {
   const [borrowerPrediction, setBorrowerPrediction] = useState(null);
   const [interactions, setInteractions] = useState(null);
   const [error, setError] = useState(null);
+  const [paymentPrediction, setPaymentPrediction] = useState(null);
+  const [riskPrediction, setRiskPrediction] = useState(null);
+  const [behaviorPrediction, setBehaviorPrediction] = useState(null);
+  const [delayPrediction, setDelayPrediction] = useState(null);
+  const [optimizedStrategy, setOptimizedStrategy] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -101,19 +108,106 @@ export function InvoiceDetail() {
       .catch(() => {});
   }, [invoice]);
 
-  // Pre-populate agent result from mock data if present
   useEffect(() => {
     if (!invoice) return;
-    if (invoice.payment_behavior || invoice.delay_prediction || invoice.strategy) {
-      setAgentResult({
-        payment_behavior: invoice.payment_behavior,
-        delay_prediction: invoice.delay_prediction,
-        strategy: invoice.strategy,
-        business_summary: invoice.ai_recommendation?.reasoning,
-        recommended_action: invoice.ai_recommendation?.recommended_action || invoice.recommended_action,
-      });
+    let cancelled = false;
+
+    const basePredictionPayload = {
+      invoice_id: String(invoice.invoice_id),
+      invoice_amount: Number(invoice.amount) || 1,
+      days_overdue: Math.round(Number(invoice.days_overdue) || 0),
+      customer_credit_score: Math.round(Number(invoice.credit_score) || 650),
+      customer_avg_days_to_pay: Number(invoice.avg_days_to_pay) || 30,
+      payment_terms: Math.round(Number(invoice.payment_terms) || 30),
+      num_previous_invoices: Math.round(Number(invoice.num_previous_invoices) || 10),
+      num_late_payments: Math.round(Number(invoice.num_late_payments) || 0),
+      industry: invoice.industry || "unknown",
+      customer_total_overdue: Number(invoice.customer_total_overdue) || 0,
+    };
+
+    const behaviorPayload = {
+      customer_id: String(invoice.customer_id ?? invoice.customer_name),
+      customer_name: String(invoice.customer_name),
+      historical_on_time_ratio: Number(invoice.payment_behavior?.on_time_ratio ?? 70) / 100,
+      avg_delay_days: Number(invoice.payment_behavior?.avg_delay_days) || Math.max(4, Number(invoice.days_overdue) * 0.45 || 10),
+      repayment_consistency: 0.6,
+      partial_payment_frequency: 0.1,
+      prior_delayed_invoice_count: Math.round(Number(invoice.num_late_payments) || 0),
+      payment_after_followup_count: Math.round(Number(invoice.num_late_payments) || 0),
+      total_invoices: Math.round(Number(invoice.num_previous_invoices) || 10),
+      deterioration_trend: 0.0,
+      invoice_acknowledgement_behavior: "normal",
+      transaction_success_failure_pattern: 0.05,
+    };
+
+    async function loadPredictions() {
+      const [paymentRes, riskRes, behaviorRes] = await Promise.allSettled([
+        api.predictPayment(basePredictionPayload),
+        api.predictRisk(basePredictionPayload),
+        api.analyzePaymentBehavior(behaviorPayload),
+      ]);
+
+      const paymentData = paymentRes.status === "fulfilled" ? paymentRes.value : null;
+      const riskData = riskRes.status === "fulfilled" ? riskRes.value : null;
+      const behaviorData = behaviorRes.status === "fulfilled" ? behaviorRes.value : null;
+
+      if (!cancelled) {
+        setPaymentPrediction(paymentData);
+        setRiskPrediction(riskData);
+        setBehaviorPrediction(behaviorData);
+      }
+
+      const delayPayload = {
+        invoice_id: String(invoice.invoice_id),
+        invoice_amount: Number(invoice.amount) || 1,
+        days_overdue: Math.round(Number(invoice.days_overdue) || 0),
+        payment_terms: Math.round(Number(invoice.payment_terms) || 30),
+        customer_avg_invoice_amount: Number(invoice.amount) || 1,
+        customer_credit_score: Math.round(Number(invoice.credit_score) || 650),
+        customer_avg_days_to_pay: Number(invoice.avg_days_to_pay) || 30,
+        num_late_payments: Math.round(Number(invoice.num_late_payments) || 0),
+        num_previous_invoices: Math.round(Number(invoice.num_previous_invoices) || 10),
+        industry: invoice.industry || "unknown",
+        customer_total_overdue: Number(invoice.customer_total_overdue) || 0,
+        behavior_type: behaviorData?.behavior_type,
+        on_time_ratio: behaviorData?.on_time_ratio,
+        avg_delay_days_historical: behaviorData?.avg_delay_days,
+        behavior_risk_score: behaviorData?.behavior_risk_score,
+        deterioration_trend:
+          behaviorData?.trend === "Worsening"
+            ? 0.3
+            : behaviorData?.trend === "Improving"
+            ? -0.2
+            : 0.0,
+        followup_dependency: behaviorData?.followup_dependency,
+      };
+
+      const delayRes = await api.predictDelay(delayPayload).catch(() => null);
+      if (!cancelled) setDelayPrediction(delayRes);
+
+      const strategyInput = {
+        invoice_id: String(invoice.invoice_id),
+        customer_name: String(invoice.customer_name),
+        invoice_amount: Number(invoice.amount) || 1,
+        days_overdue: Math.round(Number(invoice.days_overdue) || 0),
+        delay_probability:
+          Number(delayRes?.delay_probability ?? invoice.delay_prediction?.delay_probability) || 0,
+        risk_tier:
+          String(delayRes?.risk_tier ?? invoice.delay_prediction?.risk_tier ?? riskData?.risk_label ?? "Medium"),
+        nach_applicable: Boolean(
+          behaviorData?.nach_recommended ?? borrowerPrediction?.nach_recommended ?? false,
+        ),
+        behavior_type: behaviorData?.behavior_type,
+        followup_dependency: behaviorData?.followup_dependency,
+      };
+
+      const strategyRes = await api.optimizeStrategy(strategyInput).catch(() => null);
+      if (!cancelled) setOptimizedStrategy(strategyRes);
     }
-  }, [invoice]);
+
+    loadPredictions();
+    return () => { cancelled = true; };
+  }, [invoice, borrowerPrediction]);
 
   async function runAgentAnalysis() {
     if (!invoice) return;
@@ -122,7 +216,8 @@ export function InvoiceDetail() {
       // Coerce all values to the exact types the backend schema requires.
       // customer_id MUST be a string (Pydantic v2 won't coerce int→str).
       // All numeric fields default-guarded so null/undefined never reaches the API.
-      const behaviorOnTimeRatio = invoice.payment_behavior?.on_time_ratio ?? 70;
+      const activeBehavior = behaviorPrediction || invoice.payment_behavior;
+      const behaviorOnTimeRatio = activeBehavior?.on_time_ratio ?? 70;
       const result = await api.analyzeCase({
         invoice_id: String(invoice.invoice_id),
         customer_id: String(invoice.customer_id ?? invoice.customer_name),
@@ -136,7 +231,7 @@ export function InvoiceDetail() {
         customer_total_overdue: Number(invoice.customer_total_overdue) || 0,
         industry: invoice.industry || "unknown",
         historical_on_time_ratio: Number(behaviorOnTimeRatio) / 100,
-        avg_delay_days: Number(invoice.payment_behavior?.avg_delay_days) || 10,
+        avg_delay_days: Number(activeBehavior?.avg_delay_days) || 10,
         repayment_consistency: 0.6,
         partial_payment_frequency: 0.1,
         payment_after_followup_count: Math.round(Number(invoice.num_late_payments) || 0),
@@ -177,7 +272,43 @@ export function InvoiceDetail() {
     );
   }
 
-  const recommendation = agentResult?.strategy || invoice.strategy || invoice.ai_recommendation;
+  const recommendation = agentResult?.strategy || optimizedStrategy || invoice.strategy || invoice.ai_recommendation;
+  const displayedPayment = paymentPrediction || invoice;
+  const displayedRisk = riskPrediction || invoice;
+  const displayedBehavior = agentResult?.payment_behavior || behaviorPrediction || invoice.payment_behavior;
+  const displayedDelay = agentResult?.delay_prediction || delayPrediction || invoice.delay_prediction;
+
+  const paymentStatus = displayedPayment?.used_fallback
+    ? { label: "Rule Fallback", variant: "warning" }
+    : displayedPayment?.llm_refined
+    ? { label: "ML + LLM", variant: "success" }
+    : paymentPrediction
+    ? { label: "ML Live", variant: "success" }
+    : { label: "Seeded", variant: "outline" };
+
+  const behaviorStatus = displayedBehavior?.used_fallback
+    ? { label: "Rule Fallback", variant: "warning" }
+    : displayedBehavior?.llm_refined
+    ? { label: "ML + LLM", variant: "success" }
+    : behaviorPrediction
+    ? { label: "ML Live", variant: "success" }
+    : { label: "Unavailable", variant: "outline" };
+
+  const delayStatus = displayedDelay?.used_fallback
+    ? { label: "Rule Fallback", variant: "warning" }
+    : displayedDelay?.llm_refined
+    ? { label: "ML + LLM", variant: "success" }
+    : delayPrediction
+    ? { label: "ML Live", variant: "success" }
+    : { label: "Seeded", variant: "outline" };
+
+  const strategyStatus = agentResult?.strategy
+    ? { label: "Agent Output", variant: "success", description: "GPT-4o synthesis over the latest model results" }
+    : optimizedStrategy
+    ? { label: "Pipeline Live", variant: "success", description: "Generated from live behavior + delay predictions" }
+    : invoice.strategy
+    ? { label: "Seeded Rule", variant: "warning", description: "Precomputed fallback from invoice context" }
+    : { label: "Unavailable", variant: "outline", description: "No strategy output available yet" };
 
   return (
     <PageLayout title="Invoice Detail" subtitle={`${invoice.invoice_number || invoice.invoice_id} · ${invoice.customer_name}`}>
@@ -189,6 +320,13 @@ export function InvoiceDetail() {
       >
         <ArrowLeft className="h-4 w-4" /> Back to Worklist
       </Button>
+
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <Badge variant={paymentStatus.variant}>Payment: {paymentStatus.label}</Badge>
+        <Badge variant={behaviorStatus.variant}>Behavior: {behaviorStatus.label}</Badge>
+        <Badge variant={delayStatus.variant}>Delay: {delayStatus.label}</Badge>
+        <Badge variant={strategyStatus.variant}>Strategy: {strategyStatus.label}</Badge>
+      </div>
 
       {/* Row 1 — Invoice info + Payment probability + AI rec */}
       <div className="grid grid-cols-3 gap-4 mb-4">
@@ -211,7 +349,14 @@ export function InvoiceDetail() {
             <InfoRow label="Status" value={invoice.status?.toUpperCase()} />
             <InfoRow label="Days Overdue" value={invoice.days_overdue > 0 ? `${invoice.days_overdue} days` : "Current"} />
             <div className="pt-3">
-              <RiskBadge risk={invoice.risk_label} />
+              <RiskBadge risk={displayedRisk.risk_label || invoice.risk_label} />
+            </div>
+            <div className="pt-3">
+              <ExplainabilityPanel
+                explanation={displayedRisk.explanation}
+                drivers={displayedRisk.feature_drivers}
+                title="Why The Risk Label Looks Like This"
+              />
             </div>
           </CardContent>
         </Card>
@@ -222,18 +367,39 @@ export function InvoiceDetail() {
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-primary" />
               Payment Probability
+              <Badge variant={paymentStatus.variant} className="ml-auto">
+                {paymentStatus.label}
+              </Badge>
             </CardTitle>
-            <CardDescription>ML model predictions per time horizon</CardDescription>
+            <CardDescription>
+              {paymentPrediction
+                ? "Live model predictions per time horizon"
+                : "Precomputed invoice probabilities shown until live model output arrives"}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5 pt-2">
-            <PaymentProbabilityBar label="Within 7 Days" value={invoice.pay_7_days ?? 0} />
-            <PaymentProbabilityBar label="Within 15 Days" value={invoice.pay_15_days ?? 0} />
-            <PaymentProbabilityBar label="Within 30 Days" value={invoice.pay_30_days ?? 0} />
+            <PaymentProbabilityBar label="Within 7 Days" value={displayedPayment.pay_7_days ?? invoice.pay_7_days ?? 0} />
+            <PaymentProbabilityBar label="Within 15 Days" value={displayedPayment.pay_15_days ?? invoice.pay_15_days ?? 0} />
+            <PaymentProbabilityBar label="Within 30 Days" value={displayedPayment.pay_30_days ?? invoice.pay_30_days ?? 0} />
             <div className="pt-2 text-xs text-muted-foreground space-y-1 border-t border-border">
               <p>Credit Score: <strong>{invoice.credit_score}</strong></p>
               <p>Avg. Days to Pay: <strong>{invoice.avg_days_to_pay}d</strong></p>
               <p>Late Payment History: <strong>{invoice.num_late_payments}</strong></p>
             </div>
+            <ExplainabilityPanel
+              explanation={displayedPayment.explanation}
+              sections={(displayedPayment.feature_drivers_by_horizon || []).map((section) => ({
+                title:
+                  section.output_name === "pay_7_days"
+                    ? "Within 7 Days"
+                    : section.output_name === "pay_15_days"
+                    ? "Within 15 Days"
+                    : "Within 30 Days",
+                valueText: formatPct(section.predicted_value),
+                drivers: section.drivers,
+              }))}
+              title="Why These Payment Probabilities Were Predicted"
+            />
           </CardContent>
         </Card>
 
@@ -248,9 +414,12 @@ export function InvoiceDetail() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bot className="h-4 w-4 text-primary" />
-              AI Recommendation
+              Collection Recommendation
+              <Badge variant={strategyStatus.variant} className="ml-auto">
+                {strategyStatus.label}
+              </Badge>
             </CardTitle>
-            <CardDescription>GPT-4o powered collection strategy</CardDescription>
+            <CardDescription>{strategyStatus.description}</CardDescription>
           </CardHeader>
           <CardContent>
             {recommendation ? (
@@ -310,10 +479,10 @@ export function InvoiceDetail() {
       {/* Row 2 — Behavior + Delay + Strategy + Borrower */}
       <div className="grid grid-cols-4 gap-4 mb-4">
         <PaymentBehaviorCard
-          behavior={agentResult?.payment_behavior || invoice.payment_behavior}
+          behavior={displayedBehavior}
         />
         <DelayPredictionCard
-          prediction={agentResult?.delay_prediction || invoice.delay_prediction}
+          prediction={displayedDelay}
         />
         <StrategyCard
           strategy={agentResult?.strategy || invoice.strategy}
@@ -322,10 +491,10 @@ export function InvoiceDetail() {
       </div>
 
       {/* Row 2b — Confidence Indicator + Candidate Actions */}
-      {(agentResult?.delay_prediction || invoice.delay_prediction) && (
+      {displayedDelay && (
         <div className="grid grid-cols-2 gap-4 mb-4">
           <ConfidenceIndicator
-            prediction={agentResult?.delay_prediction || invoice.delay_prediction}
+            prediction={displayedDelay}
             learningBoost={interactions?.learning_confidence_boost}
           />
           <CandidateActionsCard

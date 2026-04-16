@@ -3,6 +3,8 @@
 from typing import Optional
 from pydantic import BaseModel, Field
 
+from app.schemas.explainability import FeatureDriver
+
 
 class BorrowerInvoiceSummary(BaseModel):
     """Lightweight view of one invoice within a borrower's portfolio."""
@@ -89,6 +91,7 @@ class BorrowerPredictionResponse(BaseModel):
     llm_refined: bool = False
     used_fallback: bool = True
     explanation: Optional[str] = None
+    feature_drivers: list[FeatureDriver] = Field(default_factory=list)
 
 
 class BorrowerPortfolioItem(BaseModel):

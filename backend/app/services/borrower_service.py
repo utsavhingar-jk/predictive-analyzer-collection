@@ -82,7 +82,7 @@ class BorrowerService:
             ml_result.prediction_source = "ml"
             ml_result.llm_refined = False
             ml_result.used_fallback = False
-            ml_result.explanation = (
+            ml_result.explanation = ml_result.explanation or (
                 f"Phase 1 ML output ({ml_result.model_version}) generated from borrower exposure and invoice-level features."
             )
 
