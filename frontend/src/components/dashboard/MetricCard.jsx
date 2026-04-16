@@ -15,7 +15,7 @@ export function MetricCard({ title, value, subtitle, icon: Icon, trend, trendLab
     "text-muted-foreground";
 
   return (
-    <Card className={cn("relative overflow-hidden", className)}>
+    <Card className={cn("relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5 border-border/60 hover:border-primary/40 bg-gradient-to-br from-card to-muted/10", className)}>
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
@@ -24,8 +24,8 @@ export function MetricCard({ title, value, subtitle, icon: Icon, trend, trendLab
             {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
           </div>
           {Icon && (
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Icon className="h-5 w-5 text-primary" />
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors duration-300">
+              <Icon className="h-5 w-5 text-primary group-hover:scale-110 transition-transform duration-300" />
             </div>
           )}
         </div>

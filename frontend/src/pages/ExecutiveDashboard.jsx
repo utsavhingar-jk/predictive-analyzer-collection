@@ -146,9 +146,9 @@ export function ExecutiveDashboard() {
       <div className="grid grid-cols-2 gap-4">
         {/* Portfolio Health */}
         {!loading && summary && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
+          <Card className="hover:shadow-lg transition-all duration-300 border-border/60 hover:border-primary/20 overflow-hidden">
+            <CardHeader className="bg-muted/10 border-b border-border/50 pb-4">
+              <CardTitle className="flex items-center gap-2 text-base font-bold">
                 <Activity className="h-4 w-4 text-primary" />
                 Portfolio Health
               </CardTitle>
@@ -174,9 +174,9 @@ export function ExecutiveDashboard() {
         )}
 
         {/* Top Priority Cases */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
+        <Card className="hover:shadow-lg transition-all duration-300 border-border/60 hover:border-red-500/20 overflow-hidden">
+          <CardHeader className="bg-muted/10 border-b border-border/50 pb-4">
+            <CardTitle className="flex items-center gap-2 text-base font-bold">
               <Flame className="h-4 w-4 text-red-500" />
               Top Priority Cases
             </CardTitle>
@@ -196,11 +196,11 @@ export function ExecutiveDashboard() {
                 {topCases.map((inv, idx) => (
                   <tr
                     key={inv.invoice_id}
-                    className="border-b border-border hover:bg-muted/20 transition-colors cursor-pointer"
+                    className="border-b border-border hover:bg-muted/40 transition-colors duration-200 cursor-pointer group"
                     onClick={() => navigate(`/invoices/${inv.invoice_id}`)}
                   >
-                    <td className="px-4 py-2.5 text-muted-foreground font-mono text-xs">{idx + 1}</td>
-                    <td className="px-4 py-2.5 font-medium text-foreground text-xs">
+                    <td className="px-4 py-2.5 text-muted-foreground font-mono text-xs transition-colors group-hover:text-foreground">{idx + 1}</td>
+                    <td className="px-4 py-2.5 font-medium text-foreground text-xs group-hover:text-primary transition-colors">
                       <div>{inv.customer_name}</div>
                       <div className="text-muted-foreground font-mono text-xs">{inv.invoice_id}</div>
                     </td>

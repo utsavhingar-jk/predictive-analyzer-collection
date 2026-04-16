@@ -14,8 +14,6 @@ const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Executive Dashboard" },
   { to: "/worklist", icon: ListChecks, label: "Collector Worklist" },
   { to: "/borrowers", icon: Users, label: "Borrower Portfolio" },
-  { to: "/watchlist", icon: Radio, label: "Sentinel Watchlist", badge: "AI" },
-  { to: "/invoices", icon: FileText, label: "Invoice Detail" },
   { to: "/simulator", icon: FlaskConical, label: "Scenario Simulator" },
 ];
 

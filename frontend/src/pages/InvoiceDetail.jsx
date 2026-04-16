@@ -316,279 +316,266 @@ export function InvoiceDetail() {
         variant="ghost"
         size="sm"
         onClick={() => navigate("/worklist")}
-        className="mb-4 gap-2"
+        className="mb-4 gap-2 hover:-translate-x-1 transition-transform"
       >
         <ArrowLeft className="h-4 w-4" /> Back to Worklist
       </Button>
 
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      <div className="mb-6 flex flex-wrap items-center gap-2 border-b border-border/50 pb-4">
         <Badge variant={paymentStatus.variant}>Payment: {paymentStatus.label}</Badge>
         <Badge variant={behaviorStatus.variant}>Behavior: {behaviorStatus.label}</Badge>
         <Badge variant={delayStatus.variant}>Delay: {delayStatus.label}</Badge>
         <Badge variant={strategyStatus.variant}>Strategy: {strategyStatus.label}</Badge>
       </div>
 
-      {/* Row 1 — Invoice info + Payment probability + AI rec */}
-      <div className="grid grid-cols-3 gap-4 mb-4">
-        {/* Invoice Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-primary" />
-              Invoice Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <InfoRow label="Invoice ID" value={invoice.invoice_id} mono />
-            <InfoRow label="Customer" value={invoice.customer_name} />
-            <InfoRow label="Industry" value={invoice.industry || "—"} />
-            <InfoRow label="Amount" value={formatCurrency(invoice.amount)} />
-            <InfoRow label="Currency" value={invoice.currency || "INR"} />
-            <InfoRow label="Issue Date" value={invoice.issue_date} />
-            <InfoRow label="Due Date" value={invoice.due_date} />
-            <InfoRow label="Status" value={invoice.status?.toUpperCase()} />
-            <InfoRow label="Days Overdue" value={invoice.days_overdue > 0 ? `${invoice.days_overdue} days` : "Current"} />
-            <div className="pt-3">
-              <RiskBadge risk={displayedRisk.risk_label || invoice.risk_label} />
-            </div>
-            <div className="pt-3">
-              <ExplainabilityPanel
-                explanation={displayedRisk.explanation}
-                drivers={displayedRisk.feature_drivers}
-                title="Why The Risk Label Looks Like This"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Payment Probability */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-primary" />
-              Payment Probability
-              <Badge variant={paymentStatus.variant} className="ml-auto">
-                {paymentStatus.label}
-              </Badge>
-            </CardTitle>
-            <CardDescription>
-              {paymentPrediction
-                ? "Live model predictions per time horizon"
-                : "Precomputed invoice probabilities shown until live model output arrives"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-5 pt-2">
-            <PaymentProbabilityBar label="Within 7 Days" value={displayedPayment.pay_7_days ?? invoice.pay_7_days ?? 0} />
-            <PaymentProbabilityBar label="Within 15 Days" value={displayedPayment.pay_15_days ?? invoice.pay_15_days ?? 0} />
-            <PaymentProbabilityBar label="Within 30 Days" value={displayedPayment.pay_30_days ?? invoice.pay_30_days ?? 0} />
-            <div className="pt-2 text-xs text-muted-foreground space-y-1 border-t border-border">
-              <p>Credit Score: <strong>{invoice.credit_score}</strong></p>
-              <p>Avg. Days to Pay: <strong>{invoice.avg_days_to_pay}d</strong></p>
-              <p>Late Payment History: <strong>{invoice.num_late_payments}</strong></p>
-            </div>
-            <ExplainabilityPanel
-              explanation={displayedPayment.explanation}
-              sections={(displayedPayment.feature_drivers_by_horizon || []).map((section) => ({
-                title:
-                  section.output_name === "pay_7_days"
-                    ? "Within 7 Days"
-                    : section.output_name === "pay_15_days"
-                    ? "Within 15 Days"
-                    : "Within 30 Days",
-                valueText: formatPct(section.predicted_value),
-                drivers: section.drivers,
-              }))}
-              title="Why These Payment Probabilities Were Predicted"
-            />
-          </CardContent>
-        </Card>
-
-        {/* AI Recommendation / Strategy */}
-        <Card className={`border-l-4 ${
-          (recommendation?.urgency === "Critical" || recommendation?.priority === "Critical")
-            ? "border-l-red-500"
-            : (recommendation?.urgency === "High" || recommendation?.priority === "High")
-            ? "border-l-orange-500"
-            : "border-l-primary"
-        }`}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="h-4 w-4 text-primary" />
-              Collection Recommendation
-              <Badge variant={strategyStatus.variant} className="ml-auto">
-                {strategyStatus.label}
-              </Badge>
-            </CardTitle>
-            <CardDescription>{strategyStatus.description}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {recommendation ? (
-              <div className="space-y-4">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  <p className="text-xs text-muted-foreground mb-1">Recommended Action</p>
-                  <p className="font-semibold text-primary">
-                    {recommendation.recommended_action}
-                  </p>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Urgency / Priority</p>
-                    <p className={`font-semibold text-sm ${getPriorityColor(recommendation.urgency || recommendation.priority)}`}>
-                      {recommendation.urgency || recommendation.priority}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">SLA / Timeline</p>
-                    <p className="font-medium text-sm text-foreground">
-                      {recommendation.next_action_in_hours
-                        ? `${recommendation.next_action_in_hours}h`
-                        : recommendation.timeline}
-                    </p>
-                  </div>
-                </div>
-                {(recommendation.reason || recommendation.reasoning) && (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Reasoning</p>
-                    <p className="text-sm text-foreground leading-relaxed">
-                      {recommendation.reason || recommendation.reasoning}
-                    </p>
-                  </div>
-                )}
-                {invoice.ai_recommendation?.additional_notes && (
-                  <div className="p-3 rounded-lg bg-muted/50">
-                    <p className="text-xs text-muted-foreground">{invoice.ai_recommendation.additional_notes}</p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="animate-pulse h-4 bg-muted rounded" />
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Sentinel Alert — shown when external signals exist */}
-      <div className="mb-4">
+      <div className="mb-6">
         <SentinelAlert customerId={invoice.customer_id} />
       </div>
 
-      {/* Row 2 — Behavior + Delay + Strategy + Borrower */}
-      <div className="grid grid-cols-4 gap-4 mb-4">
-        <PaymentBehaviorCard
-          behavior={displayedBehavior}
-        />
-        <DelayPredictionCard
-          prediction={displayedDelay}
-        />
-        <StrategyCard
-          strategy={agentResult?.strategy || invoice.strategy}
-        />
-        <BorrowerRiskCard borrower={borrowerPrediction} />
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* -------------------- LEFT COLUMN: Main Content -------------------- */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Invoice Info */}
+          <Card className="hover:shadow-lg transition-all duration-300 border-border/60 hover:border-primary/20 bg-gradient-to-br from-card to-muted/10 overflow-hidden">
+            <CardHeader className="bg-muted/10 border-b border-border/50 pb-4">
+              <CardTitle className="flex items-center gap-2 text-base font-bold">
+                <DollarSign className="h-4 w-4 text-primary" />
+                Invoice Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                <div className="space-y-1">
+                  <InfoRow label="Invoice ID" value={invoice.invoice_id} mono />
+                  <InfoRow label="Customer" value={invoice.customer_name} />
+                  <InfoRow label="Industry" value={invoice.industry || "—"} />
+                  <InfoRow label="Amount" value={formatCurrency(invoice.amount)} />
+                  <InfoRow label="Currency" value={invoice.currency || "INR"} />
+                </div>
+                <div className="space-y-1">
+                  <InfoRow label="Issue Date" value={invoice.issue_date} />
+                  <InfoRow label="Due Date" value={invoice.due_date} />
+                  <InfoRow label="Status" value={invoice.status?.toUpperCase()} />
+                  <InfoRow label="Days Overdue" value={invoice.days_overdue > 0 ? `${invoice.days_overdue} days` : "Current"} />
+                  <div className="pt-2 pb-1">
+                    <RiskBadge risk={displayedRisk.risk_label || invoice.risk_label} />
+                  </div>
+                </div>
+              </div>
+              <div className="pt-4 mt-2 border-t border-border/50">
+                <ExplainabilityPanel
+                  explanation={displayedRisk.explanation}
+                  drivers={displayedRisk.feature_drivers}
+                  title="Why The Risk Label Looks Like This"
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Row 2b — Confidence Indicator + Candidate Actions */}
-      {displayedDelay && (
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <ConfidenceIndicator
-            prediction={displayedDelay}
-            learningBoost={interactions?.learning_confidence_boost}
-          />
-          <CandidateActionsCard
-            candidates={(agentResult?.strategy || invoice.strategy)?.candidate_actions}
-            selectionRationale={(agentResult?.strategy || invoice.strategy)?.selection_rationale}
-            urgency={(agentResult?.strategy || invoice.strategy)?.urgency}
-          />
-        </div>
-      )}
+          {/* AI Collection Recommendation */}
+          <Card className={`hover:shadow-lg transition-all duration-300 border-l-4 overflow-hidden ${
+            (recommendation?.urgency === "Critical" || recommendation?.priority === "Critical")
+              ? "border-l-red-500 hover:border-red-500/50"
+              : (recommendation?.urgency === "High" || recommendation?.priority === "High")
+              ? "border-l-orange-500 hover:border-orange-500/50"
+              : "border-l-primary hover:border-primary/50"
+          }`}>
+            <CardHeader className="bg-muted/10 border-b border-border/50 pb-4">
+              <CardTitle className="flex items-center gap-2 text-base font-bold">
+                <Bot className="h-4 w-4 text-primary" />
+                Collection Recommendation
+                <Badge variant={strategyStatus.variant} className="ml-auto">
+                  {strategyStatus.label}
+                </Badge>
+              </CardTitle>
+              <CardDescription>{strategyStatus.description}</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-5">
+              {recommendation ? (
+                <div className="space-y-5">
+                  <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Recommended Action</p>
+                    <p className="text-lg font-bold text-primary">
+                      {recommendation.recommended_action}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 bg-muted/30 p-4 rounded-xl border border-border/40">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Urgency / Priority</p>
+                      <p className={`font-bold text-sm ${getPriorityColor(recommendation.urgency || recommendation.priority)}`}>
+                        {recommendation.urgency || recommendation.priority}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">SLA / Timeline</p>
+                      <p className="font-bold text-sm text-foreground">
+                        {recommendation.next_action_in_hours
+                          ? `${recommendation.next_action_in_hours}h`
+                          : recommendation.timeline}
+                      </p>
+                    </div>
+                  </div>
+                  {(recommendation.reason || recommendation.reasoning) && (
+                    <div className="p-4 border border-border/50 rounded-xl bg-card">
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">Reasoning</p>
+                      <p className="text-sm text-foreground leading-relaxed">
+                        {recommendation.reason || recommendation.reasoning}
+                      </p>
+                    </div>
+                  )}
+                  {invoice.ai_recommendation?.additional_notes && (
+                    <div className="p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
+                      {invoice.ai_recommendation.additional_notes}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="animate-pulse h-4 bg-muted rounded-md" />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-      {/* Row 3 — Interaction history + action effectiveness + enrichment */}
-      <div className="grid grid-cols-3 gap-4 mb-4">
-        <div className="col-span-1">
-          <ActionEffectivenessCard
-            effectiveness={interactions?.action_effectiveness}
-            bestAction={interactions?.best_action}
-          />
+          {/* Interaction & Effectiveness */}
+          <div className="grid grid-cols-1 gap-6">
+            <ActionEffectivenessCard
+              effectiveness={interactions?.action_effectiveness}
+              bestAction={interactions?.best_action}
+            />
+            <InteractionTimeline invoiceId={invoice?.invoice_id} />
+          </div>
+
+          {/* AI Analysis Triggers & Ask Box */}
+          <div className="space-y-6">
+            {!agentResult?.reasoning_trace?.length && !agentLoading && (
+              <div className="relative rounded-2xl border border-primary/25 bg-gradient-to-r from-primary/10 via-primary/5 to-background p-5 flex items-center justify-between overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent pointer-events-none" />
+                <div className="relative flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center">
+                    <Bot className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-foreground">Run Full AI Analysis</p>
+                    <p className="text-xs text-muted-foreground">GPT-4o ReAct agent will analyze behavior, delays, and predict optimal strategies.</p>
+                  </div>
+                </div>
+                <Button onClick={runAgentAnalysis} disabled={agentLoading} className="relative gap-2 shrink-0 hover:scale-105 transition-transform">
+                  <Bot className="h-4 w-4" />
+                  Analyze Case
+                </Button>
+              </div>
+            )}
+
+            {agentResult?.reasoning_trace?.length > 0 && !agentLoading && (
+              <div className="flex justify-end">
+                <Button variant="outline" onClick={runAgentAnalysis} size="sm" className="gap-2 text-xs hover:bg-primary/10 transition-colors">
+                  <Bot className="h-3.5 w-3.5" />
+                  Re-run Analysis
+                </Button>
+              </div>
+            )}
+
+            {agentLoading && <AgentThinkingLoader />}
+
+            {!agentLoading && agentResult?.reasoning_trace?.length > 0 && (
+              <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <AgentReasoningTrace
+                  trace={agentResult.reasoning_trace}
+                  iterations={agentResult.agent_iterations}
+                  toolsCalled={agentResult.tools_called}
+                  summary={agentResult.business_summary}
+                />
+              </div>
+            )}
+
+            {!agentLoading && agentResult?.business_summary && !agentResult?.reasoning_trace?.length && (
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 hover:shadow-md transition-all">
+                <div className="flex items-center gap-2 mb-3">
+                  <Bot className="h-4 w-4 text-primary" />
+                  <p className="text-xs font-bold text-primary uppercase tracking-wide">Agent Summary</p>
+                </div>
+                <p className="text-sm text-foreground leading-relaxed">{agentResult.business_summary}</p>
+              </div>
+            )}
+
+            <div className="hover:shadow-md transition-all duration-300 rounded-xl overflow-hidden border border-border/50">
+              <AgentAskBox
+                invoiceId={invoice.invoice_id}
+                customerId={invoice.customer_id}
+              />
+            </div>
+          </div>
         </div>
-        <div className="col-span-1">
-          <InteractionTimeline invoiceId={invoice?.invoice_id} />
-        </div>
-        <div className="col-span-1">
+
+        {/* -------------------- RIGHT COLUMN: Analytics Sidebar -------------------- */}
+        <div className="lg:col-span-1 space-y-6">
+          {/* Payment Probability */}
+          <Card className="hover:shadow-lg transition-all duration-300 border-border/60 hover:border-primary/20 overflow-hidden">
+            <CardHeader className="bg-muted/10 border-b border-border/50 pb-3">
+              <CardTitle className="flex items-center gap-2 text-sm font-bold">
+                <Clock className="h-4 w-4 text-primary" />
+                Payment Probability
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5 pt-4">
+              <PaymentProbabilityBar label="Within 7 Days" value={displayedPayment.pay_7_days ?? invoice.pay_7_days ?? 0} />
+              <PaymentProbabilityBar label="Within 15 Days" value={displayedPayment.pay_15_days ?? invoice.pay_15_days ?? 0} />
+              <PaymentProbabilityBar label="Within 30 Days" value={displayedPayment.pay_30_days ?? invoice.pay_30_days ?? 0} />
+              
+              <div className="pt-3 text-xs text-muted-foreground space-y-1.5 border-t border-border/50 mt-4 outline-none">
+                <p className="flex justify-between"><span>Credit Score:</span> <strong className="text-foreground">{invoice.credit_score}</strong></p>
+                <p className="flex justify-between"><span>Avg. Days to Pay:</span> <strong className="text-foreground">{invoice.avg_days_to_pay}d</strong></p>
+                <p className="flex justify-between"><span>Late Payment History:</span> <strong className="text-foreground">{invoice.num_late_payments}</strong></p>
+              </div>
+              
+              <ExplainabilityPanel
+                explanation={displayedPayment.explanation}
+                sections={(displayedPayment.feature_drivers_by_horizon || []).map((section) => ({
+                  title:
+                    section.output_name === "pay_7_days"
+                      ? "Within 7 Days"
+                      : section.output_name === "pay_15_days"
+                      ? "Within 15 Days"
+                      : "Within 30 Days",
+                  valueText: formatPct(section.predicted_value),
+                  drivers: section.drivers,
+                }))}
+                title="Probability Drivers"
+              />
+            </CardContent>
+          </Card>
+
+          {/* Core Analytics Cards */}
+          <DelayPredictionCard prediction={displayedDelay} />
+          <PaymentBehaviorCard behavior={displayedBehavior} />
+          <StrategyCard strategy={agentResult?.strategy || invoice.strategy} />
+          <BorrowerRiskCard borrower={borrowerPrediction} />
+
+          {/* Conditional Analysis */}
+          {displayedDelay && (
+            <div className="space-y-6">
+              <ConfidenceIndicator
+                prediction={displayedDelay}
+                learningBoost={interactions?.learning_confidence_boost}
+              />
+              <CandidateActionsCard
+                candidates={(agentResult?.strategy || invoice.strategy)?.candidate_actions}
+                selectionRationale={(agentResult?.strategy || invoice.strategy)?.selection_rationale}
+                urgency={(agentResult?.strategy || invoice.strategy)?.urgency}
+              />
+            </div>
+          )}
+
           <BorrowerEnrichmentCard customerId={invoice?.customer_id} />
+          
+          <div className="pb-4">
+             <ShapBarChart explanation={invoice.shap_explanation} />
+          </div>
         </div>
-      </div>
-
-      {/* Agent Analysis button + Reasoning Trace */}
-      <div className="space-y-4 mb-4">
-        {/* Run button — full-width gradient when not yet run */}
-        {!agentResult?.reasoning_trace?.length && !agentLoading && (
-          <div className="relative rounded-xl border border-primary/25 bg-gradient-to-r from-primary/8 via-primary/5 to-background p-4 flex items-center justify-between overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/3 to-transparent pointer-events-none" />
-            <div className="relative flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center">
-                <Bot className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-foreground">Run Full AI Analysis</p>
-                <p className="text-xs text-muted-foreground">GPT-4o ReAct agent · behavior → delay → strategy → synthesis</p>
-              </div>
-            </div>
-            <Button onClick={runAgentAnalysis} disabled={agentLoading} className="relative gap-2 shrink-0">
-              <Bot className="h-4 w-4" />
-              Analyze with GPT-4o
-            </Button>
-          </div>
-        )}
-
-        {/* Re-run button (compact) when result already showing */}
-        {agentResult?.reasoning_trace?.length > 0 && !agentLoading && (
-          <div className="flex justify-end">
-            <Button variant="outline" onClick={runAgentAnalysis} size="sm" className="gap-2 text-xs">
-              <Bot className="h-3.5 w-3.5" />
-              Re-run Analysis
-            </Button>
-          </div>
-        )}
-
-        {/* Animated thinking loader */}
-        {agentLoading && <AgentThinkingLoader />}
-
-        {/* Reasoning trace — shows every tool GPT-4o called */}
-        {!agentLoading && agentResult?.reasoning_trace?.length > 0 && (
-          <AgentReasoningTrace
-            trace={agentResult.reasoning_trace}
-            iterations={agentResult.agent_iterations}
-            toolsCalled={agentResult.tools_called}
-            summary={agentResult.business_summary}
-          />
-        )}
-
-        {/* Fallback: plain summary when no trace (e.g. pre-computed mock data) */}
-        {!agentLoading && agentResult?.business_summary && !agentResult?.reasoning_trace?.length && (
-          <div className="p-4 rounded-xl bg-gradient-to-br from-primary/8 to-primary/3 border border-primary/20">
-            <div className="flex items-center gap-2 mb-2">
-              <Bot className="h-4 w-4 text-primary" />
-              <p className="text-xs font-bold text-primary uppercase tracking-wide">Agent Summary</p>
-            </div>
-            <p className="text-sm text-foreground leading-relaxed">{agentResult.business_summary}</p>
-          </div>
-        )}
-      </div>
-
-      {/* Free-form Agent Ask Box */}
-      <div className="mb-4">
-        <AgentAskBox
-          invoiceId={invoice.invoice_id}
-          customerId={invoice.customer_id}
-        />
-      </div>
-
-      {/* Row 3 — SHAP Explanation */}
-      <div>
-        <ShapBarChart explanation={invoice.shap_explanation} />
       </div>
     </PageLayout>
   );
