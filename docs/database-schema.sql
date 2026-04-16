@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS invoices (
 
     -- Financial
     amount                  NUMERIC(14,2)   NOT NULL CHECK (amount > 0),
-    currency                CHAR(3)         DEFAULT 'USD',
+    currency                CHAR(3)         DEFAULT 'INR',
     outstanding_amount      NUMERIC(14,2),  -- remaining unpaid (for partial payments)
 
     -- Dates
@@ -436,14 +436,14 @@ INSERT INTO invoices (
     issue_date, due_date, status, days_overdue, nach_applicable
 )
 VALUES
-    ('INV-2024-001', 1, 85000.00,  'USD', NOW()::DATE - 75, NOW()::DATE - 45, 'overdue', 45, TRUE),
-    ('INV-2024-002', 2, 42500.00,  'USD', NOW()::DATE - 50, NOW()::DATE - 20, 'overdue', 20, FALSE),
-    ('INV-2024-003', 3, 18750.00,  'USD', NOW()::DATE - 35, NOW()::DATE - 5,  'overdue', 5,  FALSE),
-    ('INV-2024-004', 4, 125000.00, 'USD', NOW()::DATE - 110,NOW()::DATE - 80, 'overdue', 80, TRUE),
-    ('INV-2024-005', 5, 67200.00,  'USD', NOW()::DATE - 45, NOW()::DATE + 15, 'open',    0,  FALSE),
-    ('INV-2024-006', 6, 31400.00,  'USD', NOW()::DATE - 60, NOW()::DATE - 30, 'overdue', 30, TRUE),
-    ('INV-2024-007', 7, 52800.00,  'USD', NOW()::DATE - 90, NOW()::DATE - 60, 'overdue', 60, TRUE),
-    ('INV-2024-008', 8, 9800.00,   'USD', NOW()::DATE - 20, NOW()::DATE + 10, 'open',    0,  FALSE)
+    ('INV-2024-001', 1,  8500000.00, 'INR', NOW()::DATE - 75,  NOW()::DATE - 45, 'overdue', 45, TRUE),
+    ('INV-2024-002', 2,  4250000.00, 'INR', NOW()::DATE - 50,  NOW()::DATE - 20, 'overdue', 20, FALSE),
+    ('INV-2024-003', 3,  1875000.00, 'INR', NOW()::DATE - 35,  NOW()::DATE - 5,  'overdue', 5,  FALSE),
+    ('INV-2024-004', 4, 12500000.00, 'INR', NOW()::DATE - 110, NOW()::DATE - 80, 'overdue', 80, TRUE),
+    ('INV-2024-005', 5,  6720000.00, 'INR', NOW()::DATE - 45,  NOW()::DATE + 15, 'open',    0,  FALSE),
+    ('INV-2024-006', 6,  3140000.00, 'INR', NOW()::DATE - 60,  NOW()::DATE - 30, 'overdue', 30, TRUE),
+    ('INV-2024-007', 7,  5280000.00, 'INR', NOW()::DATE - 90,  NOW()::DATE - 60, 'overdue', 60, TRUE),
+    ('INV-2024-008', 8,   980000.00, 'INR', NOW()::DATE - 20,  NOW()::DATE + 10, 'open',    0,  FALSE)
 ON CONFLICT (invoice_number) DO NOTHING;
 
 -- Invoice predictions (latest ML output)

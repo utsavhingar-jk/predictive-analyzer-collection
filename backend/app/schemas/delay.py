@@ -40,12 +40,21 @@ class DelayDriver(BaseModel):
 
 
 class DelayPredictionResponse(BaseModel):
-    """Enhanced delay prediction output with risk tier and top drivers."""
+    """Enhanced delay prediction output with risk tier, top drivers, and evidence confidence."""
 
     invoice_id: str
     delay_probability: float = Field(..., ge=0, le=1)
-    risk_score: int = Field(..., ge=0, le=100)  # 0–100 integer score
+    risk_score: int = Field(..., ge=0, le=100)
     risk_tier: str  # "High" | "Medium" | "Low"
-    top_drivers: list[str]  # human-readable driver strings
+    top_drivers: list[str]
     detailed_drivers: list[DelayDriver]
     model_version: str = "delay-v2"
+
+    # ── Evidence Confidence Layer ──────────────────────────────────────────────
+    confidence: float = Field(default=0.70, ge=0, le=1)
+    # 0–1: fraction of optional enrichment signals provided
+    evidence_score: float = Field(default=0.50, ge=0, le=1)
+    # Names of optional fields that were absent (lowers evidence quality)
+    missing_data_indicators: list[str] = []
+    # True when rule engine was used instead of ML model
+    used_fallback: bool = False

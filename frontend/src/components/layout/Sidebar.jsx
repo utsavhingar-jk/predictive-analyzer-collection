@@ -6,6 +6,7 @@ import {
   FlaskConical,
   Users,
   Zap,
+  Radio,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +14,7 @@ const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Executive Dashboard" },
   { to: "/worklist", icon: ListChecks, label: "Collector Worklist" },
   { to: "/borrowers", icon: Users, label: "Borrower Portfolio" },
+  { to: "/watchlist", icon: Radio, label: "Sentinel Watchlist", badge: "AI" },
   { to: "/invoices/INV-2024-001", icon: FileText, label: "Invoice Detail" },
   { to: "/simulator", icon: FlaskConical, label: "Scenario Simulator" },
 ];
@@ -36,7 +38,7 @@ export function Sidebar() {
         <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Analytics
         </p>
-        {navItems.map(({ to, icon: Icon, label }) => (
+        {navItems.map(({ to, icon: Icon, label, badge }) => (
           <NavLink
             key={to}
             to={to}
@@ -51,7 +53,12 @@ export function Sidebar() {
             }
           >
             <Icon className="h-4 w-4 flex-shrink-0" />
-            {label}
+            <span className="flex-1">{label}</span>
+            {badge && (
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/25">
+                {badge}
+              </span>
+            )}
           </NavLink>
         ))}
       </nav>

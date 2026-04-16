@@ -111,4 +111,25 @@ export const api = {
 
   getBorrowerPortfolio: () =>
     request("/predict/borrowers/portfolio"),
+
+  // ─── Sentinel External Signals ─────────────────────────────────────────────
+
+  getSentinelCheck: (customerId) =>
+    request(`/sentinel/check/${customerId}`),
+
+  getWatchlist: () =>
+    request("/sentinel/watchlist"),
+
+  // ─── Interaction History ────────────────────────────────────────────────────
+
+  getInteractions: (invoiceId) =>
+    request(`/interactions/${invoiceId}`),
+
+  getPortfolioEffectiveness: () =>
+    request("/interactions/portfolio/effectiveness"),
+
+  // ─── Borrower Enrichment (CredCheck) ───────────────────────────────────────
+
+  getBorrowerEnrichment: (customerId) =>
+    request(`/enrichment/${customerId}`),
 };

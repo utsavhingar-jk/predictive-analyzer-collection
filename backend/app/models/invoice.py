@@ -49,7 +49,7 @@ class Invoice(Base):
     invoice_number: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     customer_id: Mapped[int] = mapped_column(ForeignKey("customers.id"), nullable=False)
     amount: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
-    currency: Mapped[str] = mapped_column(String(3), default="USD")
+    currency: Mapped[str] = mapped_column(String(3), default="INR")
     issue_date: Mapped[date] = mapped_column(Date, nullable=False)
     due_date: Mapped[date] = mapped_column(Date, nullable=False)
     paid_date: Mapped[date | None] = mapped_column(Date, nullable=True)

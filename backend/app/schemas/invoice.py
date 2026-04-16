@@ -28,7 +28,7 @@ class InvoiceBase(BaseModel):
     invoice_number: str
     customer_id: int
     amount: Decimal
-    currency: str = "USD"
+    currency: str = "INR"
     issue_date: date
     due_date: date
     paid_date: Optional[date] = None

@@ -66,6 +66,18 @@ def get_portfolio_strategy() -> list[StrategyResponse]:
             behavior_type=behavior_type,
             followup_dependency=followup_dep,
         )
-        strategies.append(strategy_svc.optimize(req))
+        result = strategy_svc.optimize(req)
+
+        # Enrich with invoice fields needed for the worklist table
+        result.customer_name = inv["customer_name"]
+        result.amount = inv["amount"]
+        result.days_overdue = inv.get("days_overdue", 0)
+        result.risk_label = inv.get("risk_label", "Medium")
+        result.risk_tier = inv.get("risk_label", "Medium")
+        result.delay_probability = round(delay_prob, 4)
+        result.behavior_type = behavior_type
+        result.nach_recommended = nach
+
+        strategies.append(result)
 
     return strategy_svc.rank_portfolio(strategies)

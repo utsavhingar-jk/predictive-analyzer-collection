@@ -40,6 +40,9 @@ from app.services.behavior_service import BehaviorService
 from app.services.borrower_service import BorrowerService
 from app.services.cashflow_service import CashflowService
 from app.services.delay_service import DelayService
+from app.services.enrichment_service import EnrichmentService
+from app.services.interaction_service import InteractionService
+from app.services.sentinel_service import SentinelService
 from app.services.strategy_service import StrategyService
 from app.utils.mock_data import MOCK_INVOICES, get_portfolio_summary
 
@@ -57,9 +60,14 @@ How to behave:
 - Think step by step before calling any tool.
 - ALWAYS check payment behavior before predicting delay (behavior feeds the delay model).
 - ALWAYS predict delay before recommending collection strategy.
+- For HIGH or CRITICAL risk cases, ALWAYS call check_external_signals for external red flags.
+- ALWAYS call get_interaction_history to understand what actions have already been tried and what worked.
+- Use get_borrower_enrichment to check MCA/GST/EPFO/bureau/legal health when risk is High or Critical.
 - Use get_borrower_risk when the question is about a customer holistically.
 - Use get_portfolio_summary only when asked about the full portfolio.
-- After gathering data, synthesize a clear, direct, actionable recommendation.
+- If interaction history shows broken PTP + no answer pattern, escalate strategy severity.
+- If enrichment shows NCLT risk or GST suspension, escalate to Critical and recommend legal action.
+- After gathering data, synthesize a clear, direct, actionable recommendation grounded in evidence.
 - Be concise. No jargon. Speak like a senior analyst briefing a busy manager.
 
 When you have enough information, stop calling tools and write your final answer."""
@@ -133,7 +141,7 @@ TOOLS: list[dict] = [
                 "type": "object",
                 "properties": {
                     "invoice_id": {"type": "string", "description": "Invoice ID"},
-                    "invoice_amount": {"type": "number", "description": "Invoice amount in USD"},
+                    "invoice_amount": {"type": "number", "description": "Invoice amount in INR"},
                     "days_overdue": {"type": "integer", "description": "Days overdue (0 if current)"},
                     "payment_terms": {"type": "integer", "description": "Payment terms in days (e.g. 30, 60)"},
                     "customer_credit_score": {
@@ -274,6 +282,67 @@ TOOLS: list[dict] = [
             "parameters": {"type": "object", "properties": {}, "required": []},
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "check_external_signals",
+            "description": (
+                "Sentinel Engine: checks external risk signals for a customer. "
+                "Returns is_flagged, risk_level, overall_sentinel_score, and a list of signals "
+                "such as leadership changes, news alerts (NCLT/regulatory), AP contact failures, "
+                "email anomalies, and sector distress. "
+                "ALWAYS call this for High or Critical risk customers before finalizing strategy."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "customer_id": {"type": "string", "description": "Customer ID to check"},
+                    "customer_name": {"type": "string", "description": "Customer name"},
+                },
+                "required": ["customer_id"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_interaction_history",
+            "description": (
+                "Fetches the full collections interaction history for an invoice: "
+                "all calls made, emails sent, PTPs given and broken, field visits, legal notices. "
+                "Returns action_effectiveness (which actions worked best), best_action recommendation "
+                "derived from past outcomes, total amount recovered so far, and learning_confidence_boost. "
+                "ALWAYS call this to understand what has already been tried before recommending the next action."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "invoice_id": {"type": "string", "description": "Invoice ID to get history for"},
+                },
+                "required": ["invoice_id"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_borrower_enrichment",
+            "description": (
+                "Fetches CredCheck enrichment data for a borrower: "
+                "MCA compliance status, GST filing health, EPFO workforce stability, "
+                "bureau/credit health summary, legal profile, and data availability flags "
+                "(has_bureau_data, has_gst_data, has_legal_data). "
+                "Use when you need deeper borrower health signals beyond payment history."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "customer_id": {"type": "string", "description": "Customer ID"},
+                },
+                "required": ["customer_id"],
+            },
+        },
+    },
 ]
 
 
@@ -287,6 +356,9 @@ class AgentService:
         self.strategy_svc = StrategyService()
         self.borrower_svc = BorrowerService()
         self.cashflow_svc = CashflowService()
+        self.sentinel_svc = SentinelService()
+        self.interaction_svc = InteractionService()
+        self.enrichment_svc = EnrichmentService()
 
     # ── Public: structured case (backward compatible) ─────────────────────────
 
@@ -507,6 +579,12 @@ class AgentService:
                 return self._tool_invoice_details(args)
             if name == "get_portfolio_summary":
                 return get_portfolio_summary()
+            if name == "check_external_signals":
+                return self._tool_sentinel(args)
+            if name == "get_interaction_history":
+                return self._tool_interactions(args)
+            if name == "get_borrower_enrichment":
+                return self._tool_enrichment(args)
             return {"error": f"Unknown tool: {name}"}
         except Exception as exc:
             logger.error("Tool %s failed: %s", name, exc)
@@ -617,6 +695,89 @@ class AgentService:
                     "recommended_action": inv.get("recommended_action", ""),
                 }
         return {"error": f"Invoice {invoice_id} not found"}
+
+    def _tool_interactions(self, args: dict) -> dict:
+        invoice_id = str(args.get("invoice_id", ""))
+        result = self.interaction_svc.get_by_invoice(invoice_id)
+        return {
+            "invoice_id": result.invoice_id,
+            "total_interactions": result.total_interactions,
+            "total_recovered": result.total_recovered,
+            "has_broken_ptp": result.has_broken_ptp,
+            "open_ptp_amount": result.open_ptp_amount,
+            "best_action": result.best_action,
+            "learning_confidence_boost": result.learning_confidence_boost,
+            "action_effectiveness": [
+                {
+                    "action_type": e.action_type,
+                    "success_rate": e.success_rate,
+                    "total_attempts": e.total_attempts,
+                    "recommended": e.recommended,
+                }
+                for e in result.action_effectiveness
+            ],
+            "recent_interactions": [
+                {
+                    "date": i.date,
+                    "action_type": i.action_type,
+                    "outcome": i.outcome,
+                    "notes": i.notes,
+                    "broken_ptp": i.broken_ptp,
+                }
+                for i in result.interactions[-3:]  # last 3 touchpoints
+            ],
+        }
+
+    def _tool_enrichment(self, args: dict) -> dict:
+        customer_id = str(args.get("customer_id", ""))
+        result = self.enrichment_svc.get_enrichment(customer_id)
+        return {
+            "customer_id": result.customer_id,
+            "customer_name": result.customer_name,
+            "enrichment_score": result.enrichment_score,
+            "enrichment_label": result.enrichment_label,
+            "risk_flags": result.risk_flags,
+            "mca_status": result.mca.mca_status,
+            "mca_compliance_score": result.mca.compliance_score,
+            "gst_filing_score": result.gst.filing_score,
+            "gst_delay_band": result.gst.delay_band,
+            "bureau_score": result.bureau.bureau_score,
+            "credit_health": result.bureau.credit_health_label,
+            "dpd_classification": result.bureau.dpd_classification,
+            "legal_risk": result.legal.legal_risk_label,
+            "nclt_risk": result.legal.nclt_risk,
+            "epfo_trend": result.epfo.pf_trend,
+            "data_availability": {
+                "has_bureau_data": result.data_availability.has_bureau_data,
+                "has_gst_data": result.data_availability.has_gst_data,
+                "has_legal_data": result.data_availability.has_legal_data,
+                "has_mca_data": result.data_availability.has_mca_data,
+                "completeness_score": result.data_availability.completeness_score,
+            },
+        }
+
+    def _tool_sentinel(self, args: dict) -> dict:
+        customer_id = str(args.get("customer_id", ""))
+        result = self.sentinel_svc.check_customer(customer_id)
+        return {
+            "customer_id": result.customer_id,
+            "customer_name": result.customer_name,
+            "is_flagged": result.is_flagged,
+            "risk_level": result.risk_level,
+            "overall_sentinel_score": result.overall_sentinel_score,
+            "recommendation": result.recommendation,
+            "high_signal_count": result.high_signal_count,
+            "medium_signal_count": result.medium_signal_count,
+            "signals": [
+                {
+                    "signal_type": s.signal_type,
+                    "severity": s.severity,
+                    "description": s.description,
+                    "source": s.source,
+                }
+                for s in result.signals
+            ],
+        }
 
     # ── Helpers for extracting typed outputs from trace ───────────────────────
 

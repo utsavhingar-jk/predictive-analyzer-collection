@@ -42,9 +42,9 @@ Recommended action options (choose the most appropriate):
 - "Send Final Notice"
 
 Priority levels:
-- Critical: >$50k overdue OR >90 days OR high risk with >80% delay probability
-- High: >$20k OR >45 days OR high risk
-- Medium: >$10k OR >15 days OR medium risk
+- Critical: >₹50L overdue OR >90 days OR high risk with >80% delay probability
+- High: >₹20L OR >45 days OR high risk
+- Medium: >₹5L OR >15 days OR medium risk
 - Low: recent invoice, low risk, good payment history
 """
 

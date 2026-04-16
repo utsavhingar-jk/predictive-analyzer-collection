@@ -15,8 +15,15 @@ import { DelayPredictionCard } from "@/components/dashboard/DelayPredictionCard"
 import { StrategyCard } from "@/components/dashboard/StrategyCard";
 import { BorrowerRiskCard } from "@/components/dashboard/BorrowerRiskCard";
 import { AgentReasoningTrace } from "@/components/agent/AgentReasoningTrace";
+import { AgentThinkingLoader } from "@/components/agent/AgentThinkingLoader";
 import { AgentAskBox } from "@/components/agent/AgentAskBox";
 import { ShapBarChart } from "@/components/charts/ShapBarChart";
+import { SentinelAlert } from "@/components/dashboard/SentinelAlert";
+import { CandidateActionsCard } from "@/components/dashboard/CandidateActionsCard";
+import { ConfidenceIndicator } from "@/components/dashboard/ConfidenceIndicator";
+import { InteractionTimeline } from "@/components/dashboard/InteractionTimeline";
+import { ActionEffectivenessCard } from "@/components/dashboard/ActionEffectivenessCard";
+import { BorrowerEnrichmentCard } from "@/components/dashboard/BorrowerEnrichmentCard";
 import { api } from "@/lib/api";
 import { mockInvoiceDetail } from "@/lib/mockData";
 import { formatCurrency, formatPct, getPriorityColor } from "@/lib/utils";
@@ -59,6 +66,7 @@ export function InvoiceDetail() {
   const [agentLoading, setAgentLoading] = useState(false);
   const [agentResult, setAgentResult] = useState(null);
   const [borrowerPrediction, setBorrowerPrediction] = useState(null);
+  const [interactions, setInteractions] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -80,13 +88,16 @@ export function InvoiceDetail() {
     return () => { cancelled = true; };
   }, [invoiceId]);
 
-  // Load borrower-level prediction when invoice loads
+  // Load borrower-level prediction and interaction history when invoice loads
   useEffect(() => {
     if (!invoice) return;
     const customerId = String(invoice.customer_id || "1");
     api.getBorrowerPrediction(customerId)
       .then(setBorrowerPrediction)
-      .catch(() => {/* borrower prediction unavailable — card stays hidden */});
+      .catch(() => {});
+    api.getInteractions(invoice.invoice_id)
+      .then(setInteractions)
+      .catch(() => {});
   }, [invoice]);
 
   // Pre-populate agent result from mock data if present
@@ -183,7 +194,7 @@ export function InvoiceDetail() {
             <InfoRow label="Customer" value={invoice.customer_name} />
             <InfoRow label="Industry" value={invoice.industry || "—"} />
             <InfoRow label="Amount" value={formatCurrency(invoice.amount)} />
-            <InfoRow label="Currency" value={invoice.currency || "USD"} />
+            <InfoRow label="Currency" value={invoice.currency || "INR"} />
             <InfoRow label="Issue Date" value={invoice.issue_date} />
             <InfoRow label="Due Date" value={invoice.due_date} />
             <InfoRow label="Status" value={invoice.status?.toUpperCase()} />
@@ -280,6 +291,11 @@ export function InvoiceDetail() {
         </Card>
       </div>
 
+      {/* Sentinel Alert — shown when external signals exist */}
+      <div className="mb-4">
+        <SentinelAlert customerId={invoice.customer_id} />
+      </div>
+
       {/* Row 2 — Behavior + Delay + Strategy + Borrower */}
       <div className="grid grid-cols-4 gap-4 mb-4">
         <PaymentBehaviorCard
@@ -294,22 +310,74 @@ export function InvoiceDetail() {
         <BorrowerRiskCard borrower={borrowerPrediction} />
       </div>
 
+      {/* Row 2b — Confidence Indicator + Candidate Actions */}
+      {(agentResult?.delay_prediction || invoice.delay_prediction) && (
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <ConfidenceIndicator
+            prediction={agentResult?.delay_prediction || invoice.delay_prediction}
+            learningBoost={interactions?.learning_confidence_boost}
+          />
+          <CandidateActionsCard
+            candidates={(agentResult?.strategy || invoice.strategy)?.candidate_actions}
+            selectionRationale={(agentResult?.strategy || invoice.strategy)?.selection_rationale}
+            urgency={(agentResult?.strategy || invoice.strategy)?.urgency}
+          />
+        </div>
+      )}
+
+      {/* Row 3 — Interaction history + action effectiveness + enrichment */}
+      <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="col-span-1">
+          <ActionEffectivenessCard
+            effectiveness={interactions?.action_effectiveness}
+            bestAction={interactions?.best_action}
+          />
+        </div>
+        <div className="col-span-1">
+          <InteractionTimeline invoiceId={invoice?.invoice_id} />
+        </div>
+        <div className="col-span-1">
+          <BorrowerEnrichmentCard customerId={invoice?.customer_id} />
+        </div>
+      </div>
+
       {/* Agent Analysis button + Reasoning Trace */}
       <div className="space-y-4 mb-4">
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground" />
-          <Button
-            onClick={runAgentAnalysis}
-            disabled={agentLoading}
-            className="gap-2"
-          >
-            <Bot className="h-4 w-4" />
-            {agentLoading ? "Agent Thinking…" : "Run Full AI Analysis"}
-          </Button>
-        </div>
+        {/* Run button — full-width gradient when not yet run */}
+        {!agentResult?.reasoning_trace?.length && !agentLoading && (
+          <div className="relative rounded-xl border border-primary/25 bg-gradient-to-r from-primary/8 via-primary/5 to-background p-4 flex items-center justify-between overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/3 to-transparent pointer-events-none" />
+            <div className="relative flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center">
+                <Bot className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Run Full AI Analysis</p>
+                <p className="text-xs text-muted-foreground">GPT-4o ReAct agent · behavior → delay → strategy → synthesis</p>
+              </div>
+            </div>
+            <Button onClick={runAgentAnalysis} disabled={agentLoading} className="relative gap-2 shrink-0">
+              <Bot className="h-4 w-4" />
+              Analyze with GPT-4o
+            </Button>
+          </div>
+        )}
+
+        {/* Re-run button (compact) when result already showing */}
+        {agentResult?.reasoning_trace?.length > 0 && !agentLoading && (
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={runAgentAnalysis} size="sm" className="gap-2 text-xs">
+              <Bot className="h-3.5 w-3.5" />
+              Re-run Analysis
+            </Button>
+          </div>
+        )}
+
+        {/* Animated thinking loader */}
+        {agentLoading && <AgentThinkingLoader />}
 
         {/* Reasoning trace — shows every tool GPT-4o called */}
-        {agentResult?.reasoning_trace?.length > 0 && (
+        {!agentLoading && agentResult?.reasoning_trace?.length > 0 && (
           <AgentReasoningTrace
             trace={agentResult.reasoning_trace}
             iterations={agentResult.agent_iterations}
@@ -319,11 +387,12 @@ export function InvoiceDetail() {
         )}
 
         {/* Fallback: plain summary when no trace (e.g. pre-computed mock data) */}
-        {agentResult?.business_summary && !agentResult?.reasoning_trace?.length && (
-          <div className="p-4 rounded-lg bg-muted/50 border border-border">
-            <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wide">
-              Agent Business Summary
-            </p>
+        {!agentLoading && agentResult?.business_summary && !agentResult?.reasoning_trace?.length && (
+          <div className="p-4 rounded-xl bg-gradient-to-br from-primary/8 to-primary/3 border border-primary/20">
+            <div className="flex items-center gap-2 mb-2">
+              <Bot className="h-4 w-4 text-primary" />
+              <p className="text-xs font-bold text-primary uppercase tracking-wide">Agent Summary</p>
+            </div>
             <p className="text-sm text-foreground leading-relaxed">{agentResult.business_summary}</p>
           </div>
         )}

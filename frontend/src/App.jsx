@@ -5,13 +5,13 @@ import { CollectorWorklist } from "@/pages/CollectorWorklist";
 import { InvoiceDetail } from "@/pages/InvoiceDetail";
 import { ScenarioSimulator } from "@/pages/ScenarioSimulator";
 import { BorrowerPortfolio } from "@/pages/BorrowerPortfolio";
+import { Watchlist } from "@/pages/Watchlist";
 
 export default function App() {
   return (
     <BrowserRouter>
       <div className="flex h-screen bg-background overflow-hidden">
         <Sidebar />
-        {/* Main content area offset by sidebar width */}
         <div className="flex-1 ml-64 flex flex-col min-h-0 overflow-hidden">
           <Routes>
             <Route path="/" element={<ExecutiveDashboard />} />
@@ -19,6 +19,7 @@ export default function App() {
             <Route path="/invoices/:invoiceId" element={<InvoiceDetail />} />
             <Route path="/simulator" element={<ScenarioSimulator />} />
             <Route path="/borrowers" element={<BorrowerPortfolio />} />
+            <Route path="/watchlist" element={<Watchlist />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>

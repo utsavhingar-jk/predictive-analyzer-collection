@@ -17,7 +17,7 @@ export function useWorklist() {
     async function load() {
       setLoading(true);
       try {
-        const data = await api.getPrioritizedWorklist();
+        const data = await api.getPortfolioStrategy();
         if (!cancelled) setWorklist(data);
       } catch {
         if (!cancelled) setWorklist(mockWorklist);

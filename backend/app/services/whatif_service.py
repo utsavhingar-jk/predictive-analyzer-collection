@@ -11,16 +11,16 @@ from app.utils.mock_data import MOCK_INVOICES
 
 class WhatIfService:
     # Baseline assumptions derived from mock portfolio
-    BASELINE_RECOVERY_PCT: float = 68.0   # % of outstanding recovered in 30 days
+    BASELINE_RECOVERY_PCT: float = 68.0    # % of outstanding recovered in 30 days
     BASELINE_DSO: float = 48.5
-    BASELINE_CASHFLOW: float = 320_000.0  # $ 30-day inflow
+    BASELINE_CASHFLOW: float = 22_000_000.0  # ₹ 30-day expected inflow (68% of ~₹3.2Cr portfolio)
 
     def simulate(self, request: WhatIfRequest) -> WhatIfResponse:
         """
         Apply scenario levers to baseline metrics and return projected impact.
 
         Modelling assumptions:
-        - Each 1% efficiency gain → +0.8% recovery and +$2,560 cashflow
+        - Each 1% efficiency gain → +0.8% recovery and +₹1,76,000 cashflow
         - Each 1% discount offered → +1.2% recovery but −1% cashflow (net)
         - Each day earlier follow-up → −0.5 DSO days, +0.4% recovery
         """
@@ -31,7 +31,7 @@ class WhatIfService:
         # Efficiency lever
         eff = request.recovery_improvement_pct
         recovery += eff * 0.8
-        cashflow += eff * 2_560
+        cashflow += eff * 176_000
 
         # Discount lever — attracts faster payment but reduces top-line
         disc = request.discount_pct

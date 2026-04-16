@@ -7,7 +7,7 @@
  */
 
 import { useState } from "react";
-import { Bot, Send, Loader2, Sparkles } from "lucide-react";
+import { Bot, Send, Loader2, Sparkles, Brain } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AgentReasoningTrace } from "./AgentReasoningTrace";
 import { api } from "@/lib/api";
@@ -96,6 +96,24 @@ export function AgentAskBox({ invoiceId, customerId }) {
             </button>
           ))}
         </div>
+
+        {/* Thinking indicator */}
+        {loading && (
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/8 border border-primary/20">
+            <div className="w-7 h-7 rounded-lg bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+              <Brain className="h-3.5 w-3.5 text-primary animate-pulse" />
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-medium text-primary">Agent is reasoning autonomously…</p>
+              <p className="text-xs text-muted-foreground">Calling tools and analyzing data</p>
+            </div>
+            <div className="flex gap-1">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: `${i * 150}ms` }} />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Error */}
         {error && (

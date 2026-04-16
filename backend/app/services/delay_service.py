@@ -21,8 +21,34 @@ class DelayService:
         self.ml_base = settings.ML_SERVICE_URL
         self.timeout = 10.0
 
+    # Optional fields that enrich evidence quality
+    _OPTIONAL_EVIDENCE_FIELDS = [
+        "behavior_type",
+        "on_time_ratio",
+        "avg_delay_days_historical",
+        "behavior_risk_score",
+        "deterioration_trend",
+        "followup_dependency",
+    ]
+    # Minimum ML confidence threshold — below this we fall back to rules
+    _ML_CONFIDENCE_THRESHOLD = 0.55
+
+    def _compute_evidence(self, request: DelayPredictionRequest) -> tuple[float, list[str]]:
+        """Return (evidence_score 0-1, list of missing field names)."""
+        missing = [
+            f for f in self._OPTIONAL_EVIDENCE_FIELDS
+            if getattr(request, f, None) is None
+        ]
+        score = round(1.0 - len(missing) / len(self._OPTIONAL_EVIDENCE_FIELDS), 2)
+        return score, missing
+
     async def predict(self, request: DelayPredictionRequest) -> DelayPredictionResponse:
-        """Call ML service; fall back to enriched rule engine."""
+        """
+        Call ML service; fall back to enriched rule engine if unavailable or low confidence.
+        Always attaches evidence_score, confidence, missing_data_indicators, used_fallback.
+        """
+        evidence_score, missing = self._compute_evidence(request)
+
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 resp = await client.post(
@@ -30,12 +56,37 @@ class DelayService:
                     json=request.model_dump(),
                 )
                 resp.raise_for_status()
-                return DelayPredictionResponse(**resp.json())
+                data = resp.json()
+                ml_confidence = float(data.get("confidence", 0.80))
+
+                # ML Fallback Logic: if confidence too low, prefer rule engine
+                if ml_confidence < self._ML_CONFIDENCE_THRESHOLD:
+                    logger.info(
+                        "ML confidence %.2f below threshold %.2f — using rule engine",
+                        ml_confidence, self._ML_CONFIDENCE_THRESHOLD,
+                    )
+                    result = self._rule_based_delay(request, evidence_score, missing)
+                    result.used_fallback = True
+                    result.confidence = round(0.45 + evidence_score * 0.20, 2)
+                    return result
+
+                result = DelayPredictionResponse(**data)
+                result.confidence = ml_confidence
+                result.evidence_score = evidence_score
+                result.missing_data_indicators = missing
+                result.used_fallback = False
+                return result
+
         except Exception as exc:
             logger.warning("ML delay service unavailable (%s) — using rule engine", exc)
-            return self._rule_based_delay(request)
+            return self._rule_based_delay(request, evidence_score, missing)
 
-    def _rule_based_delay(self, req: DelayPredictionRequest) -> DelayPredictionResponse:
+    def _rule_based_delay(
+        self,
+        req: DelayPredictionRequest,
+        evidence_score: float = 0.5,
+        missing: list[str] | None = None,
+    ) -> DelayPredictionResponse:
         """
         Enriched rule-based delay prediction.
 
@@ -154,6 +205,8 @@ class DelayService:
         detailed_drivers = [d[1] for d in top_5]
         top_driver_strings = [d[2] for d in top_5]
 
+        rule_confidence = round(0.45 + evidence_score * 0.20, 2)
+
         return DelayPredictionResponse(
             invoice_id=req.invoice_id,
             delay_probability=delay_prob,
@@ -162,4 +215,8 @@ class DelayService:
             top_drivers=top_driver_strings,
             detailed_drivers=detailed_drivers,
             model_version="rule-engine-v2",
+            confidence=rule_confidence,
+            evidence_score=evidence_score,
+            missing_data_indicators=missing or [],
+            used_fallback=True,
         )
