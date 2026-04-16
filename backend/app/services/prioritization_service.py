@@ -5,16 +5,21 @@ Priority Score = invoice_amount × delay_probability
 Invoices are sorted descending so collectors tackle highest-impact items first.
 """
 
+import logging
+
 from sqlalchemy import text
 
 from app.core.database import SessionLocal
 from app.schemas.prediction import PrioritizedInvoice
+from app.services.json_data import load_invoices_from_json
 from app.services.risk_scoring import (
     build_amount_reference,
     delay_probability_from_score,
     risk_score,
     risk_tier_from_score,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class PrioritizationService:
@@ -23,22 +28,27 @@ class PrioritizationService:
         Build the collector worklist by computing priority scores for all
         open invoices and sorting them from highest to lowest.
         """
-        with SessionLocal() as db:
-            rows = db.execute(
-                text(
-                    """
-                    SELECT
-                        i.invoice_number AS invoice_id,
-                        c.name AS customer_name,
-                        COALESCE(i.outstanding_amount, i.amount) AS amount,
-                        i.days_overdue,
-                        i.status
-                    FROM invoices i
-                    LEFT JOIN customers c ON c.id = i.customer_id
-                    WHERE i.status IN ('open', 'overdue')
-                    """
-                )
-            ).mappings().all()
+        try:
+            with SessionLocal() as db:
+                db_rows = db.execute(
+                    text(
+                        """
+                        SELECT
+                            i.invoice_number AS invoice_id,
+                            c.name AS customer_name,
+                            COALESCE(i.outstanding_amount, i.amount) AS amount,
+                            i.days_overdue,
+                            i.status
+                        FROM invoices i
+                        LEFT JOIN customers c ON c.id = i.customer_id
+                        WHERE i.status IN ('open', 'overdue')
+                        """
+                    )
+                ).mappings().all()
+            rows = [dict(r) for r in db_rows]
+        except Exception as exc:
+            logger.warning("PrioritizationService: DB unavailable (%s) — using JSON fallback", exc)
+            rows = load_invoices_from_json()
         amount_reference = build_amount_reference(float(r["amount"] or 0) for r in rows)
         worklist: list[PrioritizedInvoice] = []
         for row in rows:
