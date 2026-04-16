@@ -29,6 +29,10 @@ class PaymentPredictionResponse(BaseModel):
     pay_15_days: float = Field(..., ge=0, le=1)
     pay_30_days: float = Field(..., ge=0, le=1)
     model_version: str = "xgboost-v1"
+    prediction_source: str = "ml"  # "ml" | "ml+llm" | "rule-based"
+    llm_refined: bool = False
+    used_fallback: bool = False
+    explanation: Optional[str] = None
 
 
 # ─── Risk Classification ──────────────────────────────────────────────────────
@@ -50,6 +54,10 @@ class RiskClassificationResponse(BaseModel):
     risk_score: float = Field(..., ge=0, le=1)
     confidence: float = Field(..., ge=0, le=1)
     model_version: str = "lgbm-v1"
+    prediction_source: str = "ml"  # "ml" | "ml+llm" | "rule-based"
+    llm_refined: bool = False
+    used_fallback: bool = False
+    explanation: Optional[str] = None
 
 
 # ─── DSO Prediction ──────────────────────────────────────────────────────────

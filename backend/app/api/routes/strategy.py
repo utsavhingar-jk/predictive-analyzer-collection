@@ -7,10 +7,17 @@ Endpoints:
 """
 
 from fastapi import APIRouter
+from sqlalchemy import text
 
+from app.core.database import SessionLocal
 from app.schemas.strategy import StrategyRequest, StrategyResponse
+from app.services.risk_scoring import (
+    build_amount_reference,
+    delay_probability_from_score,
+    risk_score,
+    risk_tier_from_score,
+)
 from app.services.strategy_service import StrategyService
-from app.utils.mock_data import MOCK_INVOICES, MOCK_BEHAVIOR_PROFILES
 
 router = APIRouter(prefix="/optimize", tags=["Collection Strategy"])
 
@@ -39,41 +46,53 @@ def optimize_strategy(request: StrategyRequest) -> StrategyResponse:
 def get_portfolio_strategy() -> list[StrategyResponse]:
     strategies: list[StrategyResponse] = []
 
-    for inv in MOCK_INVOICES:
-        if inv["status"] not in ("open", "overdue"):
-            continue
+    with SessionLocal() as db:
+        rows = db.execute(
+            text(
+                """
+                SELECT
+                    i.invoice_number AS invoice_id,
+                    c.name AS customer_name,
+                    COALESCE(i.outstanding_amount, i.amount) AS amount,
+                    i.days_overdue,
+                    i.nach_applicable
+                FROM invoices i
+                LEFT JOIN customers c ON c.id = i.customer_id
+                WHERE i.status IN ('open', 'overdue')
+                ORDER BY i.days_overdue DESC, i.due_date ASC
+                """
+            )
+        ).mappings().all()
+    amount_reference = build_amount_reference(float(r["amount"] or 0) for r in rows)
 
-        # Fetch pre-computed behavior profile if available
-        behavior = next(
-            (b for b in MOCK_BEHAVIOR_PROFILES if b["customer_id"] == str(inv["customer_id"])),
-            None,
-        )
-        behavior_type = behavior["behavior_type"] if behavior else None
-        followup_dep = behavior.get("followup_dependency", False) if behavior else False
-        nach = behavior.get("nach_recommended", False) if behavior else False
-
-        delay_prob = 1.0 - inv.get("pay_30_days", 0.5)
-        risk_tier = inv.get("risk_label", "Medium")
+    for row in rows:
+        days_overdue = int(row["days_overdue"] or 0)
+        amount = float(row["amount"] or 0)
+        score = risk_score(days_overdue, amount, amount_reference)
+        delay_prob = delay_probability_from_score(score)
+        risk_tier = risk_tier_from_score(score)
+        behavior_type = "Chronic Delayed Payer" if risk_tier == "High" else "Occasional Late Payer"
+        nach = bool(row["nach_applicable"]) or risk_tier == "High"
 
         req = StrategyRequest(
-            invoice_id=inv["invoice_id"],
-            customer_name=inv["customer_name"],
-            invoice_amount=inv["amount"],
-            days_overdue=inv.get("days_overdue", 0),
+            invoice_id=str(row["invoice_id"]),
+            customer_name=str(row["customer_name"] or "Unknown Customer"),
+            invoice_amount=amount,
+            days_overdue=days_overdue,
             delay_probability=delay_prob,
             risk_tier=risk_tier,
             nach_applicable=nach,
             behavior_type=behavior_type,
-            followup_dependency=followup_dep,
+            followup_dependency=days_overdue >= 10,
         )
         result = strategy_svc.optimize(req)
 
-        # Enrich with invoice fields needed for the worklist table
-        result.customer_name = inv["customer_name"]
-        result.amount = inv["amount"]
-        result.days_overdue = inv.get("days_overdue", 0)
-        result.risk_label = inv.get("risk_label", "Medium")
-        result.risk_tier = inv.get("risk_label", "Medium")
+        # Enrich with row fields needed for collector table.
+        result.customer_name = req.customer_name
+        result.amount = req.invoice_amount
+        result.days_overdue = days_overdue
+        result.risk_label = risk_tier
+        result.risk_tier = risk_tier
         result.delay_probability = round(delay_prob, 4)
         result.behavior_type = behavior_type
         result.nach_recommended = nach

@@ -28,6 +28,7 @@ class SentinelCheckResponse(BaseModel):
     last_checked: str        # ISO date string
     high_signal_count: int = 0
     medium_signal_count: int = 0
+    primary_invoice_id: Optional[str] = None
 
 
 class WatchlistResponse(BaseModel):

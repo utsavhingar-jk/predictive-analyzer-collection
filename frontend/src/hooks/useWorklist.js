@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
-import { mockWorklist } from "@/lib/mockData";
 
 /**
  * Hook that loads the prioritized collector worklist.
@@ -20,7 +19,7 @@ export function useWorklist() {
         const data = await api.getPortfolioStrategy();
         if (!cancelled) setWorklist(data);
       } catch {
-        if (!cancelled) setWorklist(mockWorklist);
+        if (!cancelled) setWorklist([]);
       } finally {
         if (!cancelled) setLoading(false);
       }

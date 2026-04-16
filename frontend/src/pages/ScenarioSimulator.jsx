@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -8,7 +8,6 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
-  ReferenceLine,
 } from "recharts";
 import { FlaskConical, TrendingUp, TrendingDown, Minus, RefreshCw } from "lucide-react";
 import { PageLayout } from "@/components/layout/PageLayout";
@@ -16,7 +15,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
-import { mockWhatIfBaseline } from "@/lib/mockData";
 import { formatCurrency } from "@/lib/utils";
 
 function ImpactCard({ label, baseline, predicted, unit = "", invert = false }) {
@@ -55,11 +53,35 @@ export function ScenarioSimulator() {
   const [efficiency, setEfficiency] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [delay, setDelay] = useState(0);
-  const [result, setResult] = useState(mockWhatIfBaseline);
+  const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const loadBaseline = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await api.simulateWhatIf({
+        recovery_improvement_pct: 0,
+        discount_pct: 0,
+        delay_followup_days: 0,
+      });
+      setResult(data);
+    } catch (err) {
+      setResult(null);
+      setError(err?.message || "Failed to load scenario baseline.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadBaseline();
+  }, [loadBaseline]);
 
   const runSimulation = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await api.simulateWhatIf({
         recovery_improvement_pct: efficiency,
@@ -67,45 +89,33 @@ export function ScenarioSimulator() {
         delay_followup_days: delay,
       });
       setResult(data);
-    } catch {
-      // Calculate client-side approximation
-      let recovery = 68.0 + efficiency * 0.8 + discount * 1.2 + (-delay) * 0.4;
-      let cashflowShift = efficiency * 2560 - (320000 * discount) / 100;
-      let dsoShift = -delay * 0.5;
-      recovery = Math.min(100, Math.max(0, recovery));
-      setResult({
-        predicted_recovery_pct: parseFloat(recovery.toFixed(1)),
-        cashflow_shift: parseFloat(cashflowShift.toFixed(0)),
-        dso_shift: parseFloat(dsoShift.toFixed(1)),
-        baseline_recovery_pct: 68.0,
-        baseline_cashflow: 320000,
-        baseline_dso: 48.5,
-        scenario_summary:
-          efficiency > 0 || discount > 0 || delay !== 0
-            ? `Scenario: ${[
-                efficiency > 0 && `+${efficiency}% efficiency`,
-                discount > 0 && `${discount}% discount`,
-                delay !== 0 && `follow-up ${Math.abs(delay)}d ${delay < 0 ? "earlier" : "later"}`,
-              ]
-                .filter(Boolean)
-                .join(", ")}.`
-            : "Baseline scenario — no changes applied.",
-      });
+    } catch (err) {
+      setError(err?.message || "Failed to run simulation.");
     } finally {
       setLoading(false);
     }
   }, [efficiency, discount, delay]);
 
+  const safe = result || {
+    predicted_recovery_pct: 0,
+    cashflow_shift: 0,
+    dso_shift: 0,
+    baseline_recovery_pct: 0,
+    baseline_cashflow: 0,
+    baseline_dso: 0,
+    scenario_summary: "",
+  };
+
   const compareData = [
     {
       metric: "Recovery %",
-      Baseline: result.baseline_recovery_pct,
-      Scenario: result.predicted_recovery_pct,
+      Baseline: safe.baseline_recovery_pct,
+      Scenario: safe.predicted_recovery_pct,
     },
   ];
 
-  const cashflowDelta = result.cashflow_shift;
-  const dsoDelta = result.dso_shift;
+  const cashflowDelta = safe.cashflow_shift;
+  const dsoDelta = safe.dso_shift;
 
   return (
     <PageLayout
@@ -177,7 +187,7 @@ export function ScenarioSimulator() {
                 setEfficiency(0);
                 setDiscount(0);
                 setDelay(0);
-                setResult(mockWhatIfBaseline);
+                loadBaseline();
               }}
             >
               Reset to Baseline
@@ -188,10 +198,17 @@ export function ScenarioSimulator() {
         {/* Results Panel */}
         <div className="col-span-2 space-y-4">
           {/* Scenario Summary */}
-          {result.scenario_summary && (
+          {safe.scenario_summary && (
             <Card className="border-primary/40 bg-primary/5">
               <CardContent className="p-4">
-                <p className="text-sm font-medium text-primary">{result.scenario_summary}</p>
+                <p className="text-sm font-medium text-primary">{safe.scenario_summary}</p>
+              </CardContent>
+            </Card>
+          )}
+          {error && (
+            <Card className="border-red-500/40 bg-red-500/5">
+              <CardContent className="p-4">
+                <p className="text-sm font-medium text-red-600 dark:text-red-400">{error}</p>
               </CardContent>
             </Card>
           )}
@@ -200,20 +217,20 @@ export function ScenarioSimulator() {
           <div className="grid grid-cols-3 gap-4">
             <ImpactCard
               label="Recovery Rate"
-              baseline={result.baseline_recovery_pct}
-              predicted={result.predicted_recovery_pct}
+              baseline={safe.baseline_recovery_pct}
+              predicted={safe.predicted_recovery_pct}
               unit="%"
             />
             <ImpactCard
               label="30-Day Cashflow Impact"
-              baseline={result.baseline_cashflow}
-              predicted={result.baseline_cashflow + cashflowDelta}
+              baseline={safe.baseline_cashflow}
+              predicted={safe.baseline_cashflow + cashflowDelta}
               unit="$"
             />
             <ImpactCard
               label="DSO Impact"
-              baseline={result.baseline_dso}
-              predicted={result.baseline_dso + dsoDelta}
+              baseline={safe.baseline_dso}
+              predicted={safe.baseline_dso + dsoDelta}
               unit=" days"
               invert={true}
             />
@@ -242,7 +259,7 @@ export function ScenarioSimulator() {
                   <Bar dataKey="Scenario" radius={[4, 4, 0, 0]}>
                     <Cell
                       fill={
-                        result.predicted_recovery_pct > result.baseline_recovery_pct
+                        safe.predicted_recovery_pct > safe.baseline_recovery_pct
                           ? "#22c55e"
                           : "#ef4444"
                       }
@@ -271,25 +288,25 @@ export function ScenarioSimulator() {
                 <tbody className="text-foreground">
                   <tr className="border-b border-border">
                     <td className="py-2.5">Recovery Rate</td>
-                    <td className="text-right py-2.5">{result.baseline_recovery_pct.toFixed(1)}%</td>
-                    <td className="text-right py-2.5">{result.predicted_recovery_pct.toFixed(1)}%</td>
-                    <td className={`text-right py-2.5 font-semibold ${result.predicted_recovery_pct > result.baseline_recovery_pct ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
-                      {result.predicted_recovery_pct > result.baseline_recovery_pct ? "+" : ""}
-                      {(result.predicted_recovery_pct - result.baseline_recovery_pct).toFixed(1)}%
+                    <td className="text-right py-2.5">{safe.baseline_recovery_pct.toFixed(1)}%</td>
+                    <td className="text-right py-2.5">{safe.predicted_recovery_pct.toFixed(1)}%</td>
+                    <td className={`text-right py-2.5 font-semibold ${safe.predicted_recovery_pct > safe.baseline_recovery_pct ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                      {safe.predicted_recovery_pct > safe.baseline_recovery_pct ? "+" : ""}
+                      {(safe.predicted_recovery_pct - safe.baseline_recovery_pct).toFixed(1)}%
                     </td>
                   </tr>
                   <tr className="border-b border-border">
                     <td className="py-2.5">30-Day Cashflow</td>
-                    <td className="text-right py-2.5">{formatCurrency(result.baseline_cashflow)}</td>
-                    <td className="text-right py-2.5">{formatCurrency(result.baseline_cashflow + cashflowDelta)}</td>
+                    <td className="text-right py-2.5">{formatCurrency(safe.baseline_cashflow)}</td>
+                    <td className="text-right py-2.5">{formatCurrency(safe.baseline_cashflow + cashflowDelta)}</td>
                     <td className={`text-right py-2.5 font-semibold ${cashflowDelta >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
                       {cashflowDelta >= 0 ? "+" : ""}{formatCurrency(cashflowDelta)}
                     </td>
                   </tr>
                   <tr>
                     <td className="py-2.5">Days Sales Outstanding</td>
-                    <td className="text-right py-2.5">{result.baseline_dso.toFixed(1)}d</td>
-                    <td className="text-right py-2.5">{(result.baseline_dso + dsoDelta).toFixed(1)}d</td>
+                    <td className="text-right py-2.5">{safe.baseline_dso.toFixed(1)}d</td>
+                    <td className="text-right py-2.5">{(safe.baseline_dso + dsoDelta).toFixed(1)}d</td>
                     <td className={`text-right py-2.5 font-semibold ${dsoDelta <= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
                       {dsoDelta <= 0 ? "" : "+"}{dsoDelta.toFixed(1)}d
                     </td>

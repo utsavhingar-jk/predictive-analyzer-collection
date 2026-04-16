@@ -12,6 +12,7 @@ from typing import Optional
 import httpx
 
 from app.core.config import get_settings
+from app.services.llm_refiner import LLMRefiner
 from app.schemas.prediction import (
     PaymentPredictionRequest,
     PaymentPredictionResponse,
@@ -29,13 +30,14 @@ class PredictionService:
     def __init__(self) -> None:
         self.ml_base = settings.ML_SERVICE_URL
         self.timeout = 10.0
+        self.refiner = LLMRefiner()
 
     # ─── Payment Prediction ───────────────────────────────────────────────────
 
     async def predict_payment(
         self, request: PaymentPredictionRequest
     ) -> PaymentPredictionResponse:
-        """Call ML service for payment probability; fall back to heuristics."""
+        """3-phase pipeline: ML -> LLM refinement -> rule fallback."""
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 resp = await client.post(
@@ -43,15 +45,41 @@ class PredictionService:
                     json=request.model_dump(),
                 )
                 resp.raise_for_status()
-                return PaymentPredictionResponse(**resp.json())
+                ml_result = PaymentPredictionResponse(**resp.json())
+                ml_result.prediction_source = "ml"
+                ml_result.llm_refined = False
+                ml_result.used_fallback = False
+                ml_result.explanation = (
+                    f"Phase 1 ML output ({ml_result.model_version}) generated directly from invoice features."
+                )
+
+                refined = await self.refiner.refine_payment(
+                    {
+                        "model_input": request.model_dump(),
+                        "ml_output": ml_result.model_dump(),
+                    }
+                )
+                if refined:
+                    return PaymentPredictionResponse(
+                        invoice_id=request.invoice_id,
+                        pay_7_days=refined["pay_7_days"],
+                        pay_15_days=refined["pay_15_days"],
+                        pay_30_days=refined["pay_30_days"],
+                        model_version=f"{ml_result.model_version}+gpt-refiner-v1",
+                        prediction_source="ml+llm",
+                        llm_refined=True,
+                        used_fallback=False,
+                        explanation=refined["explanation"],
+                    )
+                return ml_result
         except Exception as exc:
-            logger.warning("ML service unavailable (%s) — using heuristic", exc)
+            logger.warning("ML payment pipeline failed (%s) — using heuristic fallback", exc)
             return self._heuristic_payment(request)
 
     def _heuristic_payment(
         self, req: PaymentPredictionRequest
     ) -> PaymentPredictionResponse:
-        """Rule-based fallback when ML service is unreachable."""
+        """Phase-3 fallback when ML/LLM path is unavailable."""
         base = max(0.0, 1.0 - (req.days_overdue / 90))
         credit_factor = req.customer_credit_score / 850
         late_penalty = req.num_late_payments * 0.05
@@ -66,6 +94,10 @@ class PredictionService:
             pay_15_days=round(p15, 4),
             pay_30_days=round(p30, 4),
             model_version="heuristic-fallback",
+            prediction_source="rule-based",
+            llm_refined=False,
+            used_fallback=True,
+            explanation="Phase 3 fallback: rule-based payment estimate using overdue days, credit score, and late-payment history.",
         )
 
     # ─── Risk Classification ──────────────────────────────────────────────────
@@ -73,7 +105,7 @@ class PredictionService:
     async def classify_risk(
         self, request: RiskClassificationRequest
     ) -> RiskClassificationResponse:
-        """Call ML service for risk classification; fall back to heuristics."""
+        """3-phase pipeline: ML -> LLM refinement -> rule fallback."""
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 resp = await client.post(
@@ -81,9 +113,35 @@ class PredictionService:
                     json=request.model_dump(),
                 )
                 resp.raise_for_status()
-                return RiskClassificationResponse(**resp.json())
+                ml_result = RiskClassificationResponse(**resp.json())
+                ml_result.prediction_source = "ml"
+                ml_result.llm_refined = False
+                ml_result.used_fallback = False
+                ml_result.explanation = (
+                    f"Phase 1 ML output ({ml_result.model_version}) generated from invoice and borrower risk features."
+                )
+
+                refined = await self.refiner.refine_risk(
+                    {
+                        "model_input": request.model_dump(),
+                        "ml_output": ml_result.model_dump(),
+                    }
+                )
+                if refined:
+                    return RiskClassificationResponse(
+                        invoice_id=request.invoice_id,
+                        risk_label=refined["risk_label"],
+                        risk_score=refined["risk_score"],
+                        confidence=refined["confidence"],
+                        model_version=f"{ml_result.model_version}+gpt-refiner-v1",
+                        prediction_source="ml+llm",
+                        llm_refined=True,
+                        used_fallback=False,
+                        explanation=refined["explanation"],
+                    )
+                return ml_result
         except Exception as exc:
-            logger.warning("ML service unavailable (%s) — using heuristic", exc)
+            logger.warning("ML risk pipeline failed (%s) — using heuristic fallback", exc)
             return self._heuristic_risk(request)
 
     def _heuristic_risk(
@@ -106,6 +164,10 @@ class PredictionService:
             risk_score=round(score, 4),
             confidence=0.75,
             model_version="heuristic-fallback",
+            prediction_source="rule-based",
+            llm_refined=False,
+            used_fallback=True,
+            explanation="Phase 3 fallback: weighted rule score from DPD, late-payment history, and credit-score stress.",
         )
 
     # ─── SHAP Explainability ──────────────────────────────────────────────────

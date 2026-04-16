@@ -1,0 +1,3 @@
+credit_score,avg_days_to_pay,payment_terms,num_late_payments,portfolio_total_outstanding,open_invoice_count,overdue_invoice_count,weighted_delay_probability,overdue_ratio,borrower_risk_score_target
+650,35.0,30,2,1250000.0,4,1,0.35,0.12,48
+580,52.0,45,5,890000.0,6,3,0.62,0.28,72

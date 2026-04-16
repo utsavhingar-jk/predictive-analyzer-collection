@@ -12,7 +12,6 @@ import {
 import { PageLayout } from "@/components/layout/PageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
-import { mockWatchlist } from "@/lib/mockData";
 
 // ── Signal type metadata ──────────────────────────────────────────────────────
 
@@ -153,8 +152,14 @@ function WatchlistRow({ customer, navigate }) {
         <td className="px-4 py-3">
           <div className="flex items-center gap-2">
             <button
-              onClick={(e) => { e.stopPropagation(); navigate(`/invoices/INV-2024-001`); }}
-              className="text-xs px-2.5 py-1 rounded border border-primary/30 text-primary hover:bg-primary/10 transition-colors font-medium"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (customer.primary_invoice_id) {
+                  navigate(`/invoices/${customer.primary_invoice_id}`);
+                }
+              }}
+              disabled={!customer.primary_invoice_id}
+              className="text-xs px-2.5 py-1 rounded border border-primary/30 text-primary hover:bg-primary/10 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               View Invoices
             </button>
@@ -220,7 +225,7 @@ export function Watchlist() {
   useEffect(() => {
     api.getWatchlist()
       .then(setData)
-      .catch(() => setData(mockWatchlist))
+      .catch(() => setData({ total_flagged: 0, critical_count: 0, high_count: 0, customers: [] }))
       .finally(() => setLoading(false));
   }, []);
 

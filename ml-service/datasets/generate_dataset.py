@@ -1,17 +1,19 @@
+from __future__ import annotations
+
 """
 Dataset Generator — AI Collector (INR, Indian B2B Lending)
 
-Generates 1,500 realistic invoice records for training XGBoost (payment predictor)
-and LightGBM (risk classifier).
+Generates a large invoice table for XGBoost (payment, risk, delay) + downstream
+borrower aggregation. Includes structured edge cases for boundary behaviour.
 
 Key design decisions:
-  - Amounts in INR (₹25,000 to ₹50,00,000)
+  - Amounts in INR (wide range including extremes)
   - CIBIL credit score range (300–900)
   - Indian industries with realistic payment behavior profiles
-  - Labels are derived from features with calibrated noise so models learn real patterns
-  - Class balance enforced: ~30% High, ~40% Medium, ~30% Low risk
+  - Labels derived from features with calibrated noise
+  - Extra EDGE_RECORDS cover: boundary amounts/DPD/credit/terms, zero-overdue, deep DPD
 
-Output: invoices.csv (replaces the existing 100-record file)
+Output: invoices.csv
 """
 
 import random
@@ -23,7 +25,10 @@ random.seed(42)
 np.random.seed(42)
 
 OUTPUT_PATH = Path(__file__).parent / "invoices.csv"
-N_RECORDS = 1500
+# Base random rows + deterministic edge rows (coverage for training)
+N_RECORDS = 10_000
+EDGE_RECORDS = 800
+N_UNIQUE_CUSTOMERS = 2000
 
 # ── Industry config ───────────────────────────────────────────────────────────
 # Each industry has a base delay tendency and typical invoice size range (INR)
@@ -59,6 +64,57 @@ PAYMENT_TERMS_OPTIONS = [30, 45, 60, 90]
 def pick_archetype():
     weights = [a[0] for a in ARCHETYPES]
     return random.choices(ARCHETYPES, weights=weights, k=1)[0]
+
+
+def _delay_prob_and_risk(
+    days_overdue: int,
+    payment_terms: int,
+    credit_score: int,
+    num_prev: int,
+    num_late: int,
+    customer_total_overdue: float,
+    invoice_amount: float,
+    industry_code: int,
+    label_bias: float,
+    noise_scale: float = 0.06,
+) -> tuple[float, int, int, int, int]:
+    """Shared label logic for payment (7/15/30), delay target, and risk_label."""
+    ind = INDUSTRIES[industry_code]
+    base_delay_prob = (
+        (days_overdue / max(payment_terms, 1)) * 0.35
+        + (1 - credit_score / 900) * 0.25
+        + (num_late / max(num_prev, 1)) * 0.20
+        + (customer_total_overdue / max(invoice_amount * 5, 1)) * 0.10
+        + ind["delay_bias"] * 0.10
+        + label_bias * 0.15
+    )
+    noise = np.random.normal(0, noise_scale)
+    delay_prob = float(np.clip(base_delay_prob + noise, 0.01, 0.99))
+
+    p7 = max(0.0, 0.95 - delay_prob * 2.2 - days_overdue * 0.02)
+    p15 = max(0.0, 0.90 - delay_prob * 1.5 - days_overdue * 0.01)
+    p30 = max(0.0, 0.85 - delay_prob * 0.90)
+    p7, p15, p30 = min(p7, 0.98), min(p15, 0.98), min(p30, 0.98)
+
+    paid_in_7 = int(random.random() < p7)
+    paid_in_15 = int(random.random() < p15)
+    paid_in_30 = int(random.random() < p30)
+    if paid_in_7:
+        paid_in_15 = 1
+        paid_in_30 = 1
+    if paid_in_15:
+        paid_in_30 = 1
+
+    if delay_prob >= 0.55:
+        risk_label = 2
+    elif delay_prob >= 0.28:
+        risk_label = 1
+    else:
+        risk_label = 0
+    if random.random() < 0.05:
+        risk_label = random.randint(0, 2)
+
+    return delay_prob, paid_in_7, paid_in_15, paid_in_30, risk_label
 
 
 def generate_record(i: int) -> dict:
@@ -102,54 +158,21 @@ def generate_record(i: int) -> dict:
     else:
         customer_total_overdue = invoice_amount if is_overdue else 0
 
-    # ── Compute delay probability score (0–1) ─────────────────────────────────
-    # This is the core signal that drives label generation
-    base_delay_prob = (
-        (days_overdue / max(payment_terms, 1)) * 0.35
-        + (1 - credit_score / 900) * 0.25
-        + (num_late / max(num_prev, 1)) * 0.20
-        + (customer_total_overdue / max(invoice_amount * 5, 1)) * 0.10
-        + ind["delay_bias"] * 0.10
-        + label_bias * 0.15
+    delay_prob, paid_in_7, paid_in_15, paid_in_30, risk_label = _delay_prob_and_risk(
+        days_overdue,
+        payment_terms,
+        credit_score,
+        num_prev,
+        num_late,
+        customer_total_overdue,
+        invoice_amount,
+        industry_code,
+        label_bias,
     )
-    # Add calibrated noise
-    noise = np.random.normal(0, 0.06)
-    delay_prob = float(np.clip(base_delay_prob + noise, 0.01, 0.99))
-
-    # ── Payment probability labels (what XGBoost is trained to predict) ───────
-    # paid_in_7: high only if very low delay prob and not overdue much
-    p7  = max(0.0, 0.95 - delay_prob * 2.2 - days_overdue * 0.02)
-    p15 = max(0.0, 0.90 - delay_prob * 1.5 - days_overdue * 0.01)
-    p30 = max(0.0, 0.85 - delay_prob * 0.90)
-    p7, p15, p30 = min(p7, 0.98), min(p15, 0.98), min(p30, 0.98)
-
-    paid_in_7  = int(random.random() < p7)
-    paid_in_15 = int(random.random() < p15)
-    paid_in_30 = int(random.random() < p30)
-
-    # Enforce monotonicity: if paid in 7 → paid in 15 and 30
-    if paid_in_7:
-        paid_in_15 = 1
-        paid_in_30 = 1
-    if paid_in_15:
-        paid_in_30 = 1
-
-    # ── Risk label (what LightGBM is trained to predict) ──────────────────────
-    # 0=Low, 1=Medium, 2=High — thresholds tuned for balanced distribution
-    if delay_prob >= 0.55:
-        risk_label = 2   # High
-    elif delay_prob >= 0.28:
-        risk_label = 1   # Medium
-    else:
-        risk_label = 0   # Low
-
-    # Add slight label noise (5%) to simulate real-world imperfection
-    if random.random() < 0.05:
-        risk_label = random.randint(0, 2)
 
     return {
         "invoice_id":               f"INV-{i:05d}",
-        "customer_id":              100 + (i % 300),   # 300 unique customers
+        "customer_id":              100 + (i % N_UNIQUE_CUSTOMERS),
         "invoice_amount":           invoice_amount,
         "days_overdue":             days_overdue,
         "customer_credit_score":    credit_score,
@@ -163,9 +186,114 @@ def generate_record(i: int) -> dict:
         "paid_in_15":              paid_in_15,
         "paid_in_30":              paid_in_30,
         "risk_label":              risk_label,
+        # Regression target for XGBoost delay model (same latent signal as rules in main.py)
+        "delay_probability_target": round(delay_prob, 6),
         # Extra context columns (used in behavior engine but not in ML features)
         "currency":                "INR",
         "industry_name":           ind["name"],
+    }
+
+
+def generate_edge_record(seq: int) -> dict:
+    """
+    Deterministic edge cases: boundary DPD, credit, amounts, terms, prev/late counts.
+    """
+    t = seq % 40
+    industry_code = seq % 10
+    ind = INDUSTRIES[industry_code]
+    label_bias = 0.0
+
+    # Preset grids (amount, days_overdue, credit, terms, num_prev, num_late)
+    presets = [
+        (25_000, 0, 900, 30, 5, 0),
+        (25_000, 0, 300, 30, 2, 0),
+        (50_000_000, 0, 750, 90, 40, 1),
+        (100_000, 1, 600, 30, 10, 2),
+        (500_000, 30, 520, 30, 20, 8),
+        (500_000, 31, 520, 45, 20, 9),
+        (800_000, 60, 480, 60, 25, 12),
+        (800_000, 61, 480, 60, 25, 12),
+        (1_200_000, 90, 400, 90, 30, 18),
+        (2_000_000, 120, 350, 90, 35, 22),
+        (3_500_000, 180, 320, 90, 50, 30),
+        (400_000, 0, 850, 15, 1, 0),
+        (400_000, 0, 305, 15, 1, 0),
+        (150_000, 45, 580, 30, 1, 0),
+        (150_000, 45, 580, 30, 60, 55),
+        (900_000, 75, 450, 60, 15, 14),
+        (2_500_000, 0, 780, 120, 8, 0),
+        (75_000, 10, 650, 30, 3, 1),
+        (75_000, 10, 650, 30, 3, 3),
+        (12_000_000, 95, 410, 90, 22, 20),
+        (300_000, 0, 720, 45, 12, 0),
+        (300_000, 200, 310, 60, 8, 7),
+        (600_000, 0, 880, 30, 50, 0),
+        (600_000, 5, 880, 30, 50, 25),
+        (950_000, 30, 600, 30, 1, 1),
+        (1_100_000, 60, 540, 60, 18, 17),
+        (4_000_000, 0, 690, 90, 6, 0),
+        (4_000_000, 30, 690, 90, 6, 5),
+        (220_000, 15, 700, 30, 4, 2),
+        (880_000, 90, 360, 60, 30, 28),
+        (1_500_000, 45, 500, 45, 14, 11),
+        (3_200_000, 0, 820, 60, 25, 0),
+        (450_000, 120, 340, 30, 9, 8),
+        (700_000, 0, 760, 30, 2, 0),
+        (700_000, 1, 760, 30, 2, 1),
+        (110_000, 0, 300, 90, 1, 0),
+        (20_000_000, 60, 420, 90, 12, 10),
+        (350_000, 30, 650, 1, 20, 5),
+        (650_000, 0, 900, 120, 100, 0),
+        (650_000, 50, 900, 120, 100, 40),
+        (990_000, 75, 400, 60, 40, 35),
+    ]
+    invoice_amount, days_overdue, credit_score, payment_terms, num_prev, num_late = presets[t]
+
+    payment_terms = max(1, payment_terms)
+    num_late = min(num_late, num_prev)
+    avg_days_to_pay = float(min(130.0, max(15.0, 25.0 + (700 - credit_score) * 0.08 + days_overdue * 0.15)))
+
+    is_overdue = days_overdue > 0
+    if is_overdue and random.random() < 0.55:
+        customer_total_overdue = round(invoice_amount * random.uniform(1.2, 3.5), -3)
+    else:
+        customer_total_overdue = round(invoice_amount, -3) if is_overdue else 0.0
+
+    delay_prob, paid_in_7, paid_in_15, paid_in_30, risk_label = _delay_prob_and_risk(
+        days_overdue,
+        payment_terms,
+        credit_score,
+        num_prev,
+        num_late,
+        customer_total_overdue,
+        invoice_amount,
+        industry_code,
+        label_bias,
+        noise_scale=0.04,
+    )
+
+    inv_id = f"INV-E{seq:05d}"
+    cid = 10_000 + (seq % max(N_UNIQUE_CUSTOMERS, 1))
+
+    return {
+        "invoice_id": inv_id,
+        "customer_id": cid,
+        "invoice_amount": invoice_amount,
+        "days_overdue": days_overdue,
+        "customer_credit_score": credit_score,
+        "customer_avg_days_to_pay": avg_days_to_pay,
+        "payment_terms": payment_terms,
+        "num_previous_invoices": num_prev,
+        "num_late_payments": num_late,
+        "industry_encoded": industry_code,
+        "customer_total_overdue": customer_total_overdue,
+        "paid_in_7": paid_in_7,
+        "paid_in_15": paid_in_15,
+        "paid_in_30": paid_in_30,
+        "risk_label": risk_label,
+        "delay_probability_target": round(delay_prob, 6),
+        "currency": "INR",
+        "industry_name": ind["name"],
     }
 
 
@@ -174,12 +302,12 @@ def print_stats(df: pd.DataFrame) -> None:
     print(f"  Dataset Summary — {len(df)} records")
     print(f"{'='*55}")
 
-    print(f"\n  Currency: INR (₹)")
+    print(f"\n  Currency: INR")
     print(f"  Invoice Amount:")
-    print(f"    Min:    ₹{df['invoice_amount'].min():>15,.0f}")
-    print(f"    Max:    ₹{df['invoice_amount'].max():>15,.0f}")
-    print(f"    Median: ₹{df['invoice_amount'].median():>15,.0f}")
-    print(f"    Mean:   ₹{df['invoice_amount'].mean():>15,.0f}")
+    print(f"    Min:    INR {df['invoice_amount'].min():>15,.0f}")
+    print(f"    Max:    INR {df['invoice_amount'].max():>15,.0f}")
+    print(f"    Median: INR {df['invoice_amount'].median():>15,.0f}")
+    print(f"    Mean:   INR {df['invoice_amount'].mean():>15,.0f}")
 
     print(f"\n  Credit Score (CIBIL):")
     print(f"    Min:  {df['customer_credit_score'].min()}")
@@ -194,7 +322,7 @@ def print_stats(df: pd.DataFrame) -> None:
     counts = df["risk_label"].value_counts().sort_index()
     labels = {0: "Low", 1: "Medium", 2: "High"}
     for k, v in counts.items():
-        bar = "█" * int(v / len(df) * 40)
+        bar = "#" * int(v / len(df) * 40)
         print(f"    {labels[k]:8s} ({k}): {v:4d}  {v/len(df):5.1%}  {bar}")
 
     print(f"\n  Payment Labels (% paid):")
@@ -212,17 +340,18 @@ def print_stats(df: pd.DataFrame) -> None:
 
 
 def main():
-    print("Generating 1,500-record INR dataset for AI Collector ML training...")
+    print(
+        f"Generating INR invoices: {N_RECORDS} random + {EDGE_RECORDS} edge rows "
+        f"({N_UNIQUE_CUSTOMERS} customer buckets)..."
+    )
     records = [generate_record(i + 1) for i in range(N_RECORDS)]
+    records.extend([generate_edge_record(i + 1) for i in range(EDGE_RECORDS)])
     df = pd.DataFrame(records)
 
-    # Print stats before saving
-    print_stats(df)
-
-    # Save — drop display-only columns that aren't model features
     df.to_csv(OUTPUT_PATH, index=False)
     print(f"Saved: {OUTPUT_PATH}")
     print(f"Rows: {len(df)}  |  Columns: {len(df.columns)}")
+    print_stats(df)
 
 
 if __name__ == "__main__":

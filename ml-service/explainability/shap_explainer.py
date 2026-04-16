@@ -7,30 +7,13 @@ payment probability predictions. Returns top-N features sorted by |SHAP value|.
 
 import pickle
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 import shap
 
-from inference.payment_predictor import build_features
+from inference.payment_predictor import FEATURE_ORDER, build_features
 
 MODEL_DIR = Path(__file__).parent.parent / "serialized_models"
-
-FEATURE_NAMES = [
-    "invoice_amount",
-    "days_overdue",
-    "customer_credit_score",
-    "customer_avg_days_to_pay",
-    "payment_terms",
-    "num_previous_invoices",
-    "num_late_payments",
-    "industry_encoded",
-    "customer_total_overdue",
-    "overdue_ratio",
-    "late_payment_rate",
-    "log_amount",
-    "log_overdue_ar",
-]
 
 
 def _load_model(name: str):
@@ -58,9 +41,20 @@ def explain(data: dict, top_n: int = 5) -> dict:
     scaler = _load_scaler("payment_model_30d")
 
     if model is None or scaler is None:
-        return _mock_explanation(data, top_n)
+        return {**_mock_explanation(data, top_n), "model_version": "heuristic-fallback-v1"}
 
-    features = build_features(data)
+    try:
+        features = build_features(data)
+    except Exception:
+        return {**_mock_explanation(data, top_n), "model_version": "heuristic-fallback-v1"}
+
+    try:
+        return _shap_compute(model, scaler, features, top_n)
+    except Exception:
+        return {**_mock_explanation(data, top_n), "model_version": "heuristic-fallback-v1"}
+
+
+def _shap_compute(model, scaler, features, top_n: int) -> dict:
     scaled = scaler.transform(features)
 
     explainer = shap.TreeExplainer(model)
@@ -74,14 +68,15 @@ def explain(data: dict, top_n: int = 5) -> dict:
 
     raw_features = features[0]
 
+    n = min(len(FEATURE_ORDER), len(raw_features), len(sv))
     feature_data = [
         {
-            "feature_name": FEATURE_NAMES[i],
+            "feature_name": FEATURE_ORDER[i],
             "feature_value": float(raw_features[i]),
             "shap_value": float(sv[i]),
             "impact": "positive" if sv[i] >= 0 else "negative",
         }
-        for i in range(len(FEATURE_NAMES))
+        for i in range(n)
     ]
 
     # Sort by absolute SHAP value, take top N
@@ -94,6 +89,7 @@ def explain(data: dict, top_n: int = 5) -> dict:
         "top_features": top_features,
         "base_value": round(base_value, 4),
         "prediction_value": round(float(base_value + sum(sv)), 4),
+        "model_version": "xgboost-shap-v1",
     }
 
 

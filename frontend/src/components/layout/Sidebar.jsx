@@ -15,7 +15,7 @@ const navItems = [
   { to: "/worklist", icon: ListChecks, label: "Collector Worklist" },
   { to: "/borrowers", icon: Users, label: "Borrower Portfolio" },
   { to: "/watchlist", icon: Radio, label: "Sentinel Watchlist", badge: "AI" },
-  { to: "/invoices/INV-2024-001", icon: FileText, label: "Invoice Detail" },
+  { to: "/invoices", icon: FileText, label: "Invoice Detail" },
   { to: "/simulator", icon: FlaskConical, label: "Scenario Simulator" },
 ];
 

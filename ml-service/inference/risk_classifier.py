@@ -1,7 +1,7 @@
 """
 Risk Classification Inference Module — INR Edition.
 
-Loads the LightGBM classifier trained on 1500-record INR dataset.
+Loads XGBoost (preferred) or legacy LightGBM classifier.
 Builds the same 18-feature vector used during training.
 Falls back to heuristic if model not found.
 """
@@ -43,8 +43,9 @@ def _load(name: str):
         return pickle.load(f)
 
 
-_model  = _load("risk_classifier_lgbm.pkl")
-_scaler = _load("risk_classifier_lgbm_scaler.pkl")
+_USE_XGB_RISK = (MODEL_DIR / "risk_classifier_xgb.pkl").exists()
+_model = _load("risk_classifier_xgb.pkl") or _load("risk_classifier_lgbm.pkl")
+_scaler = _load("risk_classifier_xgb_scaler.pkl") or _load("risk_classifier_lgbm_scaler.pkl")
 
 
 def build_features(data: dict) -> np.ndarray:
@@ -104,35 +105,40 @@ def build_features(data: dict) -> np.ndarray:
     ]])
 
 
+def _heuristic_risk(data: dict) -> dict:
+    overdue = float(data.get("days_overdue", 0))
+    credit = float(data.get("customer_credit_score", 650))
+    late = float(data.get("num_late_payments", 0))
+    score = (overdue / 90) * 0.5 + (late / 10) * 0.3
+    score += max(0.0, (650 - credit) / 650) * 0.2
+    score = min(1.0, max(0.0, score))
+    label = "High" if score >= 0.55 else ("Medium" if score >= 0.28 else "Low")
+    return {
+        "risk_label": label,
+        "risk_score": round(score, 4),
+        "confidence": 0.70,
+        "model_version": "heuristic-fallback-v1",
+    }
+
+
 def classify(data: dict) -> dict:
-    """Return risk label, risk score (0–1), and confidence. Falls back to heuristic."""
+    """Return risk label, risk score (0–1), and confidence. ML first, then heuristic."""
     features = build_features(data)
 
     if _model is None or _scaler is None:
-        overdue = float(data.get("days_overdue", 0))
-        credit  = float(data.get("customer_credit_score", 650))
-        late    = float(data.get("num_late_payments", 0))
-        score   = (overdue / 90) * 0.5 + (late / 10) * 0.3
-        score  += max(0.0, (650 - credit) / 650) * 0.2
-        score   = min(1.0, max(0.0, score))
-        label   = "High" if score >= 0.55 else ("Medium" if score >= 0.28 else "Low")
+        return _heuristic_risk(data)
+
+    try:
+        scaled = _scaler.transform(features)
+        proba = _model.predict_proba(scaled)[0]
+        class_idx = int(np.argmax(proba))
+        confidence = float(proba[class_idx])
+        risk_score = float(proba[2] * 1.0 + proba[1] * 0.5)
         return {
-            "risk_label":    label,
-            "risk_score":    round(score, 4),
-            "confidence":    0.70,
-            "model_version": "heuristic-fallback",
+            "risk_label": LABEL_MAP[class_idx],
+            "risk_score": round(min(1.0, risk_score), 4),
+            "confidence": round(confidence, 4),
+            "model_version": "xgboost-v1-inr" if _USE_XGB_RISK else "lgbm-v2-inr",
         }
-
-    scaled     = _scaler.transform(features)
-    proba      = _model.predict_proba(scaled)[0]  # [p_low, p_medium, p_high]
-    class_idx  = int(np.argmax(proba))
-    confidence = float(proba[class_idx])
-    # Weighted severity: High contributes 1.0, Medium 0.5
-    risk_score = float(proba[2] * 1.0 + proba[1] * 0.5)
-
-    return {
-        "risk_label":    LABEL_MAP[class_idx],
-        "risk_score":    round(min(1.0, risk_score), 4),
-        "confidence":    round(confidence, 4),
-        "model_version": "lgbm-v2-inr",
-    }
+    except Exception:
+        return _heuristic_risk(data)

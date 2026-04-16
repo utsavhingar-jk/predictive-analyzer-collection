@@ -140,34 +140,57 @@ def build_features(data: dict) -> np.ndarray:
     ]])
 
 
+def _heuristic_payment_probs(data: dict) -> tuple[float, float, float]:
+    """Rule-based payment probabilities when a horizon model is missing or errors."""
+    credit = float(data.get("customer_credit_score", 650))
+    overdue = float(data.get("days_overdue", 0))
+    late = float(data.get("num_late_payments", 0))
+    base = max(0.0, 1.0 - overdue / 90)
+    cf = credit / 900
+    pen = late * 0.05
+    p7 = round(max(0.0, min(1.0, base * cf * 0.5 - pen)), 4)
+    p15 = round(max(0.0, min(1.0, base * cf * 0.7 - pen)), 4)
+    p30 = round(max(0.0, min(1.0, base * cf * 0.9 - pen)), 4)
+    return p7, p15, p30
+
+
 def predict(data: dict) -> dict:
     """
     Return payment probabilities for 7, 15, and 30-day horizons.
-    Falls back to heuristic if models are not available.
+    Uses XGBoost per horizon when available; otherwise heuristic for that horizon only.
     """
     features = build_features(data)
 
     def safe_predict(model, scaler) -> Optional[float]:
         if model is None or scaler is None:
             return None
-        scaled = scaler.transform(features)
-        proba  = model.predict_proba(scaled)[0][1]
-        return float(round(proba, 4))
+        try:
+            scaled = scaler.transform(features)
+            proba = model.predict_proba(scaled)[0][1]
+            return float(round(proba, 4))
+        except Exception:
+            return None
 
-    p7  = safe_predict(_model_7d,  _scaler_7d)
-    p15 = safe_predict(_model_15d, _scaler_15d)
-    p30 = safe_predict(_model_30d, _scaler_30d)
+    u7 = safe_predict(_model_7d, _scaler_7d)
+    u15 = safe_predict(_model_15d, _scaler_15d)
+    u30 = safe_predict(_model_30d, _scaler_30d)
+    h7, h15, h30 = _heuristic_payment_probs(data)
 
-    if p7 is None:
-        # Heuristic fallback
-        credit  = float(data.get("customer_credit_score", 650))
-        overdue = float(data.get("days_overdue", 0))
-        late    = float(data.get("num_late_payments", 0))
-        base    = max(0.0, 1.0 - overdue / 90)
-        cf      = credit / 900   # CIBIL max is 900
-        pen     = late * 0.05
-        p7  = round(max(0.0, min(1.0, base * cf * 0.5 - pen)), 4)
-        p15 = round(max(0.0, min(1.0, base * cf * 0.7 - pen)), 4)
-        p30 = round(max(0.0, min(1.0, base * cf * 0.9 - pen)), 4)
+    p7 = u7 if u7 is not None else h7
+    p15 = u15 if u15 is not None else h15
+    p30 = u30 if u30 is not None else h30
 
-    return {"pay_7_days": p7, "pay_15_days": p15, "pay_30_days": p30}
+    ml_count = sum(1 for x in (u7, u15, u30) if x is not None)
+    if ml_count == 3:
+        model_version = "xgboost-v1"
+    elif ml_count == 0:
+        model_version = "heuristic-fallback-v1"
+    else:
+        model_version = "xgboost-partial-v1"
+
+    return {
+        "pay_7_days": p7,
+        "pay_15_days": p15,
+        "pay_30_days": p30,
+        "model_version": model_version,
+    }

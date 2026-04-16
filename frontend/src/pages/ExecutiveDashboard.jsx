@@ -16,7 +16,6 @@ import { RiskBadge } from "@/components/dashboard/RiskBadge";
 import { useDashboard } from "@/hooks/useDashboard";
 import { formatCurrency, formatNumber, getPriorityColor } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockWorklist } from "@/lib/mockData";
 
 function Skeleton({ className }) {
   return <div className={`animate-pulse rounded-lg bg-muted ${className}`} />;
@@ -30,14 +29,14 @@ const URGENCY_DOT = {
 };
 
 export function ExecutiveDashboard() {
-  const { summary, dso, cashflow, loading } = useDashboard();
+  const { summary, dso, cashflow, worklist, loading } = useDashboard();
   const navigate = useNavigate();
 
   const dsoTrendDir =
     dso?.dso_trend === "improving" ? "down" : dso?.dso_trend === "worsening" ? "up" : "neutral";
 
-  // Top 3 priority cases from mock worklist
-  const topCases = mockWorklist.slice(0, 5);
+  // Top priority cases from API worklist
+  const topCases = (worklist || []).slice(0, 5);
 
   return (
     <PageLayout

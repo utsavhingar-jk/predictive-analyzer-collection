@@ -1,0 +1,322 @@
+[
+    {
+        "_id": {
+            "": "69de3d8ce94d10217e7d15b2"
+        },
+        "clientId": "CIF2600000001",
+        "finfluxId": null,
+        "finfluxSavingAccountId": null,
+        "businessName": "Anchor A Retail Limited",
+        "legalName": "Anchor A Retail Limited",
+        "sameAsAbove": false,
+        "panNumber": "AAJCP4268K",
+        "gstNumber": "02AAJCP4268K1Z7",
+        "contactNumber": "9461360575",
+        "businessEmail": "anchor.a@demo.example",
+        "createdBy": "0f7995b1-dc69-436e-839c-96860d459356",
+        "updatedBy": "7b606f91-3a68-4a06-8673-78c153aea1a4",
+        "isTempClient": false,
+        "createdByName": "shashank shekhar",
+        "updatedByName": "",
+        "src": "account_receivables",
+        "anchor": {
+            "anchorId": {
+                "": "69b7fbe327082e3d5f558827"
+            }
+        },
+        "corporateRefId": "CP-A",
+        "isFormalised": false,
+        "treasuryEnabled": false,
+        "isLender": false,
+        "createdAt": {
+            "": "2026-04-14T13:13:48.038Z"
+        },
+        "updatedAt": {
+            "": "2026-04-14T13:13:55.687Z"
+        },
+        "__v": 0,
+        "kyc": {
+            "status": "APPROVED"
+        }
+    },
+    {
+        "_id": {
+            "": "69de3d8ce94d10217e7d15c1"
+        },
+        "clientId": "CIF2600000002",
+        "finfluxId": null,
+        "finfluxSavingAccountId": null,
+        "businessName": "Borrower B Chemicals Private Limited",
+        "legalName": "Borrower B Chemicals Private Limited",
+        "sameAsAbove": false,
+        "panNumber": "AAACI9988A",
+        "gstNumber": "29AAACI9988A1Z5",
+        "contactNumber": "9700235055",
+        "businessEmail": "finance@borrowerb.example",
+        "createdBy": "0f7995b1-dc69-436e-839c-96860d459356",
+        "updatedBy": "7b606f91-3a68-4a06-8673-78c153aea1a4",
+        "isTempClient": false,
+        "createdByName": "shashank shekhar",
+        "updatedByName": "",
+        "src": "account_receivables",
+        "anchor": {
+            "anchorId": {
+                "": "69b7fbe327082e3d5f558827"
+            }
+        },
+        "corporateRefId": "CP-AB",
+        "isFormalised": false,
+        "treasuryEnabled": false,
+        "isLender": false,
+        "createdAt": {
+            "": "2026-01-15T09:30:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-02-20T11:10:00.000Z"
+        },
+        "__v": 0,
+        "kyc": {
+            "status": "APPROVED"
+        }
+    },
+    {
+        "_id": {
+            "": "69de3d8ce94d10217e7d15c2"
+        },
+        "clientId": "CIF2600000003",
+        "finfluxId": null,
+        "finfluxSavingAccountId": null,
+        "businessName": "Borrower C Agro Traders LLP",
+        "legalName": "Borrower C Agro Traders LLP",
+        "sameAsAbove": false,
+        "panNumber": "AALFR1201H",
+        "gstNumber": "27AALFR1201H1ZX",
+        "contactNumber": "9123456780",
+        "businessEmail": "accounts@borrowerc.example",
+        "createdBy": "0f7995b1-dc69-436e-839c-96860d459356",
+        "updatedBy": "7b606f91-3a68-4a06-8673-78c153aea1a4",
+        "isTempClient": false,
+        "createdByName": "shashank shekhar",
+        "updatedByName": "",
+        "src": "account_receivables",
+        "anchor": {
+            "anchorId": {
+                "": "69b7fbe327082e3d5f558827"
+            }
+        },
+        "corporateRefId": "CP-AC",
+        "isFormalised": false,
+        "treasuryEnabled": false,
+        "isLender": false,
+        "createdAt": {
+            "": "2026-02-18T08:20:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-03-02T07:55:00.000Z"
+        },
+        "__v": 0,
+        "kyc": {
+            "status": "IN_PROCESS"
+        }
+    },
+    {
+        "_id": {
+            "": "69de3d8ce94d10217e7d15c3"
+        },
+        "clientId": "CIF2600000004",
+        "finfluxId": null,
+        "finfluxSavingAccountId": null,
+        "businessName": "Anchor D Manufacturing Limited",
+        "legalName": "Anchor D Manufacturing Limited",
+        "sameAsAbove": false,
+        "panNumber": "AACCD1122L",
+        "gstNumber": "07AACCD1122L1Z2",
+        "contactNumber": "9811001100",
+        "businessEmail": "anchor.d@demo.example",
+        "createdBy": "0f7995b1-dc69-436e-839c-96860d459356",
+        "updatedBy": "7b606f91-3a68-4a06-8673-78c153aea1a4",
+        "isTempClient": false,
+        "createdByName": "shashank shekhar",
+        "updatedByName": "",
+        "src": "account_receivables",
+        "anchor": {
+            "anchorId": {
+                "": "69b7fbe327082e3d5f558828"
+            }
+        },
+        "corporateRefId": "CP-D",
+        "isFormalised": false,
+        "treasuryEnabled": false,
+        "isLender": false,
+        "createdAt": {
+            "": "2026-02-01T09:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-02-01T09:00:00.000Z"
+        },
+        "__v": 0,
+        "kyc": {
+            "status": "APPROVED"
+        }
+    },
+    {
+        "_id": {
+            "": "69de3d8ce94d10217e7d15c4"
+        },
+        "clientId": "CIF2600000005",
+        "finfluxId": null,
+        "finfluxSavingAccountId": null,
+        "businessName": "Anchor E Infrastructure Limited",
+        "legalName": "Anchor E Infrastructure Limited",
+        "sameAsAbove": false,
+        "panNumber": "AACCE3344G",
+        "gstNumber": "19AACCE3344G1Z9",
+        "contactNumber": "9822002200",
+        "businessEmail": "anchor.e@demo.example",
+        "createdBy": "0f7995b1-dc69-436e-839c-96860d459356",
+        "updatedBy": "7b606f91-3a68-4a06-8673-78c153aea1a4",
+        "isTempClient": false,
+        "createdByName": "shashank shekhar",
+        "updatedByName": "",
+        "src": "account_receivables",
+        "anchor": {
+            "anchorId": {
+                "": "69b7fbe327082e3d5f558829"
+            }
+        },
+        "corporateRefId": "CP-E",
+        "isFormalised": false,
+        "treasuryEnabled": false,
+        "isLender": false,
+        "createdAt": {
+            "": "2026-02-03T09:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-02-03T09:00:00.000Z"
+        },
+        "__v": 0,
+        "kyc": {
+            "status": "APPROVED"
+        }
+    },
+    {
+        "_id": {
+            "": "69de3d8ce94d10217e7d15c5"
+        },
+        "clientId": "CIF2600000006",
+        "finfluxId": null,
+        "finfluxSavingAccountId": null,
+        "businessName": "Borrower F Components Private Limited",
+        "legalName": "Borrower F Components Private Limited",
+        "sameAsAbove": false,
+        "panNumber": "AAACF3344N",
+        "gstNumber": "27AAACF3344N1Z1",
+        "contactNumber": "9130011223",
+        "businessEmail": "finance@borrowerf.example",
+        "createdBy": "0f7995b1-dc69-436e-839c-96860d459356",
+        "updatedBy": "7b606f91-3a68-4a06-8673-78c153aea1a4",
+        "isTempClient": false,
+        "createdByName": "shashank shekhar",
+        "updatedByName": "",
+        "src": "account_receivables",
+        "anchor": {
+            "anchorId": {
+                "": "69b7fbe327082e3d5f558828"
+            }
+        },
+        "corporateRefId": "CP-DB",
+        "isFormalised": false,
+        "treasuryEnabled": false,
+        "isLender": false,
+        "createdAt": {
+            "": "2026-02-05T08:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-02-05T08:00:00.000Z"
+        },
+        "__v": 0,
+        "kyc": {
+            "status": "APPROVED"
+        }
+    },
+    {
+        "_id": {
+            "": "69de3d8ce94d10217e7d15c6"
+        },
+        "clientId": "CIF2600000007",
+        "finfluxId": null,
+        "finfluxSavingAccountId": null,
+        "businessName": "Borrower G Mobility LLP",
+        "legalName": "Borrower G Mobility LLP",
+        "sameAsAbove": false,
+        "panNumber": "AABCG7788Q",
+        "gstNumber": "24AABCG7788Q1ZR",
+        "contactNumber": "9140011223",
+        "businessEmail": "finance@borrowerg.example",
+        "createdBy": "0f7995b1-dc69-436e-839c-96860d459356",
+        "updatedBy": "7b606f91-3a68-4a06-8673-78c153aea1a4",
+        "isTempClient": false,
+        "createdByName": "shashank shekhar",
+        "updatedByName": "",
+        "src": "account_receivables",
+        "anchor": {
+            "anchorId": {
+                "": "69b7fbe327082e3d5f558828"
+            }
+        },
+        "corporateRefId": "CP-DC",
+        "isFormalised": false,
+        "treasuryEnabled": false,
+        "isLender": false,
+        "createdAt": {
+            "": "2026-02-06T08:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-02-06T08:00:00.000Z"
+        },
+        "__v": 0,
+        "kyc": {
+            "status": "IN_PROCESS"
+        }
+    },
+    {
+        "_id": {
+            "": "69de3d8ce94d10217e7d15c7"
+        },
+        "clientId": "CIF2600000008",
+        "finfluxId": null,
+        "finfluxSavingAccountId": null,
+        "businessName": "Borrower H Retail Stores",
+        "legalName": "Borrower H Retail Stores",
+        "sameAsAbove": false,
+        "panNumber": "AABCH8899K",
+        "gstNumber": "09AABCH8899K1Z0",
+        "contactNumber": "9150011223",
+        "businessEmail": "finance@borrowerh.example",
+        "createdBy": "0f7995b1-dc69-436e-839c-96860d459356",
+        "updatedBy": "7b606f91-3a68-4a06-8673-78c153aea1a4",
+        "isTempClient": false,
+        "createdByName": "shashank shekhar",
+        "updatedByName": "",
+        "src": "account_receivables",
+        "anchor": {
+            "anchorId": {
+                "": "69b7fbe327082e3d5f558829"
+            }
+        },
+        "corporateRefId": "CP-EB",
+        "isFormalised": false,
+        "treasuryEnabled": false,
+        "isLender": false,
+        "createdAt": {
+            "": "2026-02-07T08:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-02-07T08:00:00.000Z"
+        },
+        "__v": 0,
+        "kyc": {
+            "status": "APPROVED"
+        }
+    }
+]

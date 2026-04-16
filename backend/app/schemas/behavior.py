@@ -69,3 +69,7 @@ class PaymentBehaviorResponse(BaseModel):
 
     # Summary
     behavior_summary: str
+    model_version: str = "behavior-rule-v1"
+    prediction_source: str = "ml"  # "ml" | "ml+llm" | "rule-based"
+    llm_refined: bool = False
+    used_fallback: bool = False

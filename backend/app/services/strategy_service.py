@@ -218,14 +218,14 @@ class StrategyService:
 
         priority_score = int(min(100, base_score + amount_bonus + dpd_bonus + behavior_bonus))
 
-        # Urgency
+        # Urgency (driven by combined score signal, not DPD-only override)
         if request.urgency_override:
             urgency = request.urgency_override
-        elif priority_score >= 80 or request.days_overdue > 60:
+        elif priority_score >= 80 or (request.risk_tier == "High" and request.delay_probability >= 0.8):
             urgency = "Critical"
-        elif priority_score >= 55 or request.days_overdue > 30:
+        elif priority_score >= 55 or request.risk_tier == "High":
             urgency = "High"
-        elif priority_score >= 30:
+        elif priority_score >= 30 or request.risk_tier == "Medium":
             urgency = "Medium"
         else:
             urgency = "Low"

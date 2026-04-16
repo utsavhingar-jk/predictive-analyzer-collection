@@ -1,0 +1,185 @@
+{
+    "_id": {
+        "$oid": "6982e74ab40bbf8c73c7eade"
+    },
+    "client": {
+        "id": {
+            "$oid": "6981dacfeed75f6a34e6b9c3"
+        },
+        "name": "KUBOTA AGRICULTURAL MACHINERY INDIA PRIVATE LIMITED",
+        "clientPublicId": "CIF2600000471"
+    },
+    "publicId": "CP2600000339",
+    "product": {
+        "id": {
+            "$oid": "6708e411d05000e5a9088e21"
+        },
+        "name": "Supply Chain Financing",
+        "shortName": "SCF",
+        "productPublicId": "PROD002"
+    },
+    "subProduct": {
+        "id": {
+            "$oid": "6708e48fd05000e5a9088e29"
+        },
+        "name": "Dealer Finance",
+        "shortName": "DF",
+        "productId": "6708e411d05000e5a9088e21",
+        "subProductPublicId": "SUBPROD001"
+    },
+    "role": "Borrower",
+    "type": "Buyer",
+    "anchor": {
+        "id": {
+            "$oid": "6981d87ceed75f6a34e6b985"
+        },
+        "name": "Ministry of Railways",
+        "anchorPublicId": "CIF2600000469"
+    },
+    "lender": {
+        "id": {
+            "$oid": "6708c09639f6b054b12dbb7e"
+        },
+        "name": "Kushal finnovation capital private limited",
+        "shortName": "KFCPL",
+        "lenderPublicId": "LENDER001"
+    },
+    "anchorCreditPlan": {
+        "id": {
+            "$oid": "6981d8dd3f9ea8c31512ad89"
+        },
+        "anchorCreditPlanPublicId": "CP2600000336"
+    },
+    "lsp": {
+        "id": {
+            "$oid": "6708e384d05000e5a9088e19"
+        },
+        "name": "Jai Kisan",
+        "shortName": "JK",
+        "lspPublicId": "6708e384d05000e5a9088e19"
+    },
+    "creditPlanType": "DUAL_BORROWER",
+    "program": {
+        "id": {
+            "$oid": "68d14065932cf22adf9d1241"
+        },
+        "name": "DF_KFCPL_JK_553",
+        "shortName": "DF_KFCPL_JK_553",
+        "programPublicId": "LP2509553"
+    },
+    "loanRepaymentOrder": [],
+    "createdBy": "System User",
+    "updatedBy": "System User",
+    "src": "credserv-portal",
+    "planType": "AR",
+    "clientIds": [],
+    "createdAt": {
+        "$date": "2026-02-04T06:29:31.035Z"
+    },
+    "updatedAt": {
+        "$date": "2026-02-04T06:29:42.183Z"
+    },
+    "__v": 0,
+    "creditDetails": {
+        "creditPeriod": {
+            "value": 30,
+            "unit": "Days"
+        },
+        "borrowerCreditLimit": 50000,
+        "exposurePercentage": 100,
+        "startDate": {
+            "$date": "2026-02-04T00:00:00.000Z"
+        },
+        "endDate": {
+            "$date": "2027-02-04T00:00:00.000Z"
+        },
+        "invoiceRaisedBy": "Seller",
+        "creditPlanTenure": {
+            "value": 365,
+            "unit": "Days"
+        },
+        "_id": {
+            "$oid": "6982e74bb40bbf8c73c7eae2"
+        }
+    },
+    "disbursementDetails": {
+        "staleInvoicePeriod": {
+            "value": 30,
+            "unit": "Days"
+        },
+        "staleInvoiceDeviation": {
+            "value": 0,
+            "unit": "Days"
+        },
+        "interestCollection": "Front-Ended",
+        "interestCollectionMode": "Deduct",
+        "disbursementTo": "Buyer",
+        "partialFinanceAllowed": true,
+        "tranches": "MULTIPLE",
+        "limitUtilisation": "Cyclic",
+        "stopDisbursementOnDpd": true,
+        "stoDisbursementThreshold": {
+            "value": 1,
+            "unit": "Days"
+        },
+        "ltv": 100,
+        "invoiceTaxAmountIncluded": true,
+        "_id": {
+            "$oid": "6982e74bb40bbf8c73c7eae8"
+        }
+    },
+    "lenderProcessingFees": {
+        "onTime": {
+            "feeType": "PERCENTAGE",
+            "collectionType": "Collected on Sanction (Full)",
+            "feeValue": 1,
+            "deviationValue": 1,
+            "applicable": true,
+            "applicableTo": "Borrower"
+        },
+        "_id": {
+            "$oid": "6982e74bb40bbf8c73c7eaee"
+        }
+    },
+    "revenueSharing": "HURDLE_RATE",
+    "revenueSharingDeviation": 1,
+    "revenueSharingValue": 1,
+    "repaymentDetails": {
+        "repaymentType": "Bullet",
+        "repaymentFrom": "Borrower",
+        "foreclosureValue": true,
+        "coolOffPeriod": {
+            "value": 3,
+            "unit": "Days"
+        },
+        "gracePeriod": {
+            "value": 3,
+            "unit": "Days"
+        },
+        "isNachApplicable": true,
+        "nachType": "eNach",
+        "presentedBy": "LSP",
+        "documents": {
+            "nach": {
+                "fileName": "673c59a9a55ff383ba55eb56-1732008361917.pdf",
+                "documentId": "cc53b561-6a53-41e7-93a2-25ca2ad19981",
+                "createdBy": "System User",
+                "updatedBy": "System User",
+                "_id": {
+                    "$oid": "6982e74bb40bbf8c73c7eafe"
+                }
+            }
+        },
+        "_id": {
+            "$oid": "6982e74bb40bbf8c73c7eafd"
+        }
+    },
+    "remark": {
+        "lsp": {
+            "maker": "migrated from entity",
+            "_id": {
+                "$oid": "6982e756b40bbf8c73c7eb0f"
+            }
+        }
+    }
+}

@@ -12,8 +12,15 @@ Incorporates:
 
 from datetime import date, timedelta
 
+from sqlalchemy import text
+
+from app.core.database import SessionLocal
 from app.schemas.forecast import CashflowForecastResponse, DailyForecast
-from app.utils.mock_data import MOCK_INVOICES
+from app.services.risk_scoring import (
+    build_amount_reference,
+    delay_probability_from_score,
+    risk_score,
+)
 
 
 class CashflowService:
@@ -33,6 +40,42 @@ class CashflowService:
           - borrower_concentration_risk: top single borrower as % of outstanding
           - shortfall_signal: expected_30d < 70% of total outstanding
         """
+        with SessionLocal() as db:
+            rows = db.execute(
+                text(
+                    """
+                    SELECT
+                        i.invoice_number AS invoice_id,
+                        c.name AS customer_name,
+                        COALESCE(i.outstanding_amount, i.amount) AS amount,
+                        i.due_date,
+                        i.days_overdue,
+                        i.status
+                    FROM invoices i
+                    LEFT JOIN customers c ON c.id = i.customer_id
+                    WHERE i.status IN ('open', 'overdue')
+                    """
+                )
+            ).mappings().all()
+
+        invoices = []
+        for row in rows:
+            days_overdue = int(row["days_overdue"] or 0)
+            pay_30 = max(0.05, min(0.95, 1.0 - (days_overdue / 45.0)))
+            invoices.append(
+                {
+                    "invoice_id": row["invoice_id"],
+                    "customer_name": row["customer_name"] or "Unknown Customer",
+                    "amount": float(row["amount"] or 0),
+                    "due_date": row["due_date"],
+                    "status": row["status"],
+                    "days_overdue": days_overdue,
+                    "pay_30_days": pay_30,
+                }
+            )
+        return self._build_forecast_from_invoices(invoices)
+
+    def _build_forecast_from_invoices(self, invoices: list[dict]) -> CashflowForecastResponse:
         today = date.today()
         daily: dict[date, dict] = {}
 
@@ -44,15 +87,17 @@ class CashflowService:
         amount_at_risk = 0.0
         overdue_carry_forward = 0.0
         customer_amounts: dict[str, float] = {}
+        amount_reference = build_amount_reference(inv["amount"] for inv in invoices)
 
-        for inv in MOCK_INVOICES:
+        for inv in invoices:
             if inv["status"] not in ("open", "overdue"):
                 continue
 
             due = inv["due_date"]
             amount = inv["amount"]
-            pay_prob = inv.get("pay_30_days", 0.6)
-            delay_prob = 1.0 - pay_prob
+            combined_risk = risk_score(int(inv.get("days_overdue", 0) or 0), amount, amount_reference)
+            delay_prob = delay_probability_from_score(combined_risk)
+            pay_prob = max(0.05, min(0.95, 1.0 - delay_prob))
             customer = inv["customer_name"]
 
             total_outstanding += amount
@@ -64,6 +109,10 @@ class CashflowService:
 
             # Overdue carry-forward: expected uncollected in 30 days
             overdue_carry_forward += amount * delay_prob
+
+            # For overdue invoices, spread expected recovery over near-term horizon.
+            if due < today:
+                due = today + timedelta(days=min(max(inv.get("days_overdue", 0) // 3, 1), 10))
 
             # Distribute expected inflow across forecast window
             for offset in range(-3, 4):

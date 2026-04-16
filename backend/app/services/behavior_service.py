@@ -11,6 +11,7 @@ import logging
 import httpx
 
 from app.core.config import get_settings
+from app.services.llm_refiner import LLMRefiner
 from app.schemas.behavior import PaymentBehaviorRequest, PaymentBehaviorResponse
 
 logger = logging.getLogger(__name__)
@@ -21,12 +22,13 @@ class BehaviorService:
     def __init__(self) -> None:
         self.ml_base = settings.ML_SERVICE_URL
         self.timeout = 10.0
+        self.refiner = LLMRefiner()
 
     async def analyze(self, request: PaymentBehaviorRequest) -> PaymentBehaviorResponse:
         """
         Classify borrower payment behavior.
 
-        Attempts ml-service first; falls back to deterministic rule engine.
+        3-phase pipeline: ML -> LLM refinement -> deterministic rule engine.
         """
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
@@ -35,9 +37,31 @@ class BehaviorService:
                     json=request.model_dump(),
                 )
                 resp.raise_for_status()
-                return PaymentBehaviorResponse(**resp.json())
+                ml_result = PaymentBehaviorResponse(**resp.json())
+                ml_result.prediction_source = "ml"
+                ml_result.llm_refined = False
+                ml_result.used_fallback = False
+
+                refined = await self.refiner.refine_behavior(
+                    {
+                        "model_input": request.model_dump(),
+                        "ml_output": ml_result.model_dump(),
+                    }
+                )
+                if refined:
+                    ml_result.behavior_type = refined["behavior_type"]
+                    ml_result.trend = refined["trend"]
+                    ml_result.behavior_risk_score = refined["behavior_risk_score"]
+                    ml_result.followup_dependency = refined["followup_dependency"]
+                    ml_result.nach_recommended = refined["nach_recommended"]
+                    ml_result.behavior_summary = refined["behavior_summary"]
+                    ml_result.model_version = f"{ml_result.model_version}+gpt-refiner-v1"
+                    ml_result.prediction_source = "ml+llm"
+                    ml_result.llm_refined = True
+                    ml_result.used_fallback = False
+                return ml_result
         except Exception as exc:
-            logger.warning("ML behavior service unavailable (%s) — using rule engine", exc)
+            logger.warning("ML behavior pipeline failed (%s) — using rule engine", exc)
             return self._rule_based_classify(request)
 
     def _rule_based_classify(self, req: PaymentBehaviorRequest) -> PaymentBehaviorResponse:
@@ -139,4 +163,8 @@ class BehaviorService:
             followup_dependency=followup_dependency,
             nach_recommended=nach_recommended,
             behavior_summary=summary,
+            model_version="behavior-rule-v1",
+            prediction_source="rule-based",
+            llm_refined=False,
+            used_fallback=True,
         )

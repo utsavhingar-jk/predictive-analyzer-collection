@@ -84,6 +84,11 @@ class BorrowerPredictionResponse(BaseModel):
 
     # ── Summary ───────────────────────────────────────────────────────────────
     borrower_summary: str
+    model_version: str = "borrower-rule-v1"
+    prediction_source: str = "rule-based"  # "ml" | "ml+llm" | "rule-based"
+    llm_refined: bool = False
+    used_fallback: bool = True
+    explanation: Optional[str] = None
 
 
 class BorrowerPortfolioItem(BaseModel):

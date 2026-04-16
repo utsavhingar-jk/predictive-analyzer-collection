@@ -1,0 +1,2118 @@
+[
+    {
+        "_id": {
+            "": "69846e85d1b216d18386673f"
+        },
+        "creditPlanId": "CP-A",
+        "channelPartnerId": "CIF2600000002",
+        "transactionAmount": 4000,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-02-05T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260205-001",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower B Chemicals Private Limited",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260205-001",
+        "partner": "CIF2600000001",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower B Chemicals Private Limited",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR20261770286464199493"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR20261770286464199493",
+                "principalAmount": 4000,
+                "transactionAmount": 4000,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-02-05T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-02-05T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183866740"
+        },
+        "creditPlanId": "CP-AB",
+        "channelPartnerId": "CIF2600000002",
+        "transactionAmount": 3000,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-03-01T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260301-002",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower B Chemicals Private Limited",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260301-002",
+        "partner": "CIF2600000001",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower B Chemicals Private Limited",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR20261770286464199494"
+        ],
+        "childTransactions": [
+            {
+                "arId": null,
+                "principalAmount": 3000,
+                "transactionAmount": 3000,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-03-01T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-03-01T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183866741"
+        },
+        "creditPlanId": "CP-AC",
+        "channelPartnerId": "CIF2600000003",
+        "transactionAmount": 12000,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-03-15T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260315-003",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower C Agro Traders LLP",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260315-003",
+        "partner": "CIF2600000001",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower C Agro Traders LLP",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR20261770286464199495"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR20261770286464199495",
+                "principalAmount": 12000,
+                "transactionAmount": 12000,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-03-15T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-03-15T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183866742"
+        },
+        "creditPlanId": "CP-AC",
+        "channelPartnerId": "CIF2600000003",
+        "transactionAmount": 2000,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-03-25T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260325-004",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower C Agro Traders LLP",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260325-004",
+        "partner": "CIF2600000001",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower C Agro Traders LLP",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR20261770286464199496"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR20261770286464199496",
+                "principalAmount": 2000,
+                "transactionAmount": 2000,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-03-25T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-03-25T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183866743"
+        },
+        "creditPlanId": "CP-D",
+        "channelPartnerId": "CIF2600000006",
+        "transactionAmount": 2500,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-03-20T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260320-005",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower F Components Private Limited",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260320-005",
+        "partner": "CIF2600000004",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower F Components Private Limited",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [],
+        "childTransactions": [
+            {
+                "arId": null,
+                "principalAmount": 2500,
+                "transactionAmount": 2500,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-03-20T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-03-20T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183866744"
+        },
+        "creditPlanId": "CP-DB",
+        "channelPartnerId": "CIF2600000006",
+        "transactionAmount": 4100,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-04-01T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260401-006",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower F Components Private Limited",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260401-006",
+        "partner": "CIF2600000004",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower F Components Private Limited",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR20261770286464199498"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR20261770286464199498",
+                "principalAmount": 4100,
+                "transactionAmount": 4100,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-04-01T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-04-01T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183866745"
+        },
+        "creditPlanId": "CP-DC",
+        "channelPartnerId": "CIF2600000007",
+        "transactionAmount": 3300,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-04-10T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260410-007",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower G Mobility LLP",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260410-007",
+        "partner": "CIF2600000004",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower G Mobility LLP",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR20261770286464199499"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR20261770286464199499",
+                "principalAmount": 1800,
+                "transactionAmount": 1800,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            },
+            {
+                "arId": "AR20261770286464199499",
+                "principalAmount": 1500,
+                "transactionAmount": 1500,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-04-10T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-04-10T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183866746"
+        },
+        "creditPlanId": "CP-EB",
+        "channelPartnerId": "CIF2600000008",
+        "transactionAmount": 2100,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-04-15T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260415-008",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower H Retail Stores",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260415-008",
+        "partner": "CIF2600000005",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower H Retail Stores",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR20261770286464199500"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR20261770286464199500",
+                "principalAmount": 2100,
+                "transactionAmount": 2100,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-04-15T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-04-15T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183866747"
+        },
+        "creditPlanId": "CP-EB",
+        "channelPartnerId": "CIF2600000008",
+        "transactionAmount": 900,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-04-20T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260420-009",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower H Retail Stores",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260420-009",
+        "partner": "CIF2600000005",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower H Retail Stores",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [],
+        "childTransactions": [
+            {
+                "arId": null,
+                "principalAmount": 900,
+                "transactionAmount": 900,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-04-20T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-04-20T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183866748"
+        },
+        "creditPlanId": "CP-NOT-MAPPED",
+        "channelPartnerId": "CIF2600000007",
+        "transactionAmount": 600,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-04-18T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260418-010",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower G Mobility LLP",
+        "anchorCreditPlanId": "CP-D",
+        "repaymentId": "AR-REP-20260418-010",
+        "partner": "CIF2600000004",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower G Mobility LLP",
+        "paymentCreatedOn": {
+            "": "2026-04-18T10:00:00.000Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR20261770286464199499"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR20261770286464199499",
+                "principalAmount": 600,
+                "transactionAmount": 600,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-04-18T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-04-18T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867000"
+        },
+        "creditPlanId": "CP-AB",
+        "channelPartnerId": "CIF2600000002",
+        "transactionAmount": 1600.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-02-25T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260225-100",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower B Chemicals Private Limited",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260225-2000",
+        "partner": "CIF2600000001",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower B Chemicals Private Limited",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR202617702864641995001"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR202617702864641995001",
+                "principalAmount": 1600.0,
+                "transactionAmount": 1600.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-02-25T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-02-25T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867001"
+        },
+        "creditPlanId": "CP-AC",
+        "channelPartnerId": "CIF2600000003",
+        "transactionAmount": 3400.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-01-19T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260119-101",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower C Agro Traders LLP",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260119-2001",
+        "partner": "CIF2600000001",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower C Agro Traders LLP",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR202617702864641995002"
+        ],
+        "childTransactions": [
+            {
+                "arId": null,
+                "principalAmount": 3400.0,
+                "transactionAmount": 3400.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-01-19T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-01-19T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867002"
+        },
+        "creditPlanId": "CP-DB",
+        "channelPartnerId": "CIF2600000006",
+        "transactionAmount": 3570.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-03-13T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260313-102",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower F Components Private Limited",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260313-2002",
+        "partner": "CIF2600000004",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower F Components Private Limited",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [],
+        "childTransactions": [
+            {
+                "arId": "AR202617702864641995003",
+                "principalAmount": 2142.0,
+                "transactionAmount": 2142.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            },
+            {
+                "arId": "AR202617702864641995003",
+                "principalAmount": 1428.0,
+                "transactionAmount": 1428.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-03-13T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-03-13T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867003"
+        },
+        "creditPlanId": "CP-DC",
+        "channelPartnerId": "CIF2600000007",
+        "transactionAmount": 3750.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-03-06T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260306-103",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower G Mobility LLP",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260306-2003",
+        "partner": "CIF2600000004",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower G Mobility LLP",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [],
+        "childTransactions": [
+            {
+                "arId": null,
+                "principalAmount": 3750.0,
+                "transactionAmount": 3750.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-03-06T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-03-06T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867004"
+        },
+        "creditPlanId": "CP-EB",
+        "channelPartnerId": "CIF2600000008",
+        "transactionAmount": 4500.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-03-29T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260329-104",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower H Retail Stores",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260329-2004",
+        "partner": "CIF2600000005",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower H Retail Stores",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR202617702864641995005"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR202617702864641995005",
+                "principalAmount": 4500.0,
+                "transactionAmount": 4500.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-03-29T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-03-29T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867005"
+        },
+        "creditPlanId": "CP-AB",
+        "channelPartnerId": "CIF2600000002",
+        "transactionAmount": 1600.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-04-06T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260406-105",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower B Chemicals Private Limited",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260406-2005",
+        "partner": "CIF2600000001",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower B Chemicals Private Limited",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR202617702864641995006"
+        ],
+        "childTransactions": [
+            {
+                "arId": null,
+                "principalAmount": 1600.0,
+                "transactionAmount": 1600.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-04-06T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-04-06T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867006"
+        },
+        "creditPlanId": "CP-AC",
+        "channelPartnerId": "CIF2600000003",
+        "transactionAmount": 2250.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-04-14T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260414-106",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower C Agro Traders LLP",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260414-2006",
+        "partner": "CIF2600000001",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower C Agro Traders LLP",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [],
+        "childTransactions": [
+            {
+                "arId": "AR202617702864641995007",
+                "principalAmount": 1350.0,
+                "transactionAmount": 1350.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            },
+            {
+                "arId": "AR202617702864641995007",
+                "principalAmount": 900.0,
+                "transactionAmount": 900.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-04-14T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-04-14T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867007"
+        },
+        "creditPlanId": "CP-DB",
+        "channelPartnerId": "CIF2600000006",
+        "transactionAmount": 2720.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-03-08T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260308-107",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower F Components Private Limited",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260308-2007",
+        "partner": "CIF2600000004",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower F Components Private Limited",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [],
+        "childTransactions": [
+            {
+                "arId": null,
+                "principalAmount": 2720.0,
+                "transactionAmount": 2720.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-03-08T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-03-08T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867008"
+        },
+        "creditPlanId": "CP-DC",
+        "channelPartnerId": "CIF2600000007",
+        "transactionAmount": 4500.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-03-26T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260326-108",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower G Mobility LLP",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260326-2008",
+        "partner": "CIF2600000004",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower G Mobility LLP",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR202617702864641995009"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR202617702864641995009",
+                "principalAmount": 4500.0,
+                "transactionAmount": 4500.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-03-26T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-03-26T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867009"
+        },
+        "creditPlanId": "CP-EB",
+        "channelPartnerId": "CIF2600000008",
+        "transactionAmount": 6250.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-03-24T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260324-109",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower H Retail Stores",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260324-2009",
+        "partner": "CIF2600000005",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower H Retail Stores",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR202617702864641995010"
+        ],
+        "childTransactions": [
+            {
+                "arId": null,
+                "principalAmount": 6250.0,
+                "transactionAmount": 6250.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-03-24T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-03-24T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867010"
+        },
+        "creditPlanId": "CP-AB",
+        "channelPartnerId": "CIF2600000002",
+        "transactionAmount": 5000.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-04-01T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260401-110",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower B Chemicals Private Limited",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260401-2010",
+        "partner": "CIF2600000001",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower B Chemicals Private Limited",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [],
+        "childTransactions": [
+            {
+                "arId": "AR202617702864641995011",
+                "principalAmount": 3000.0,
+                "transactionAmount": 3000.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            },
+            {
+                "arId": "AR202617702864641995011",
+                "principalAmount": 2000.0,
+                "transactionAmount": 2000.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-04-01T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-04-01T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867011"
+        },
+        "creditPlanId": "CP-AC",
+        "channelPartnerId": "CIF2600000003",
+        "transactionAmount": 4760.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-04-29T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260429-111",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower C Agro Traders LLP",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260429-2011",
+        "partner": "CIF2600000001",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower C Agro Traders LLP",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [],
+        "childTransactions": [
+            {
+                "arId": null,
+                "principalAmount": 4760.0,
+                "transactionAmount": 4760.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-04-29T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-04-29T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867012"
+        },
+        "creditPlanId": "CP-DB",
+        "channelPartnerId": "CIF2600000006",
+        "transactionAmount": 10500.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-05-07T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260507-112",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower F Components Private Limited",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260507-2012",
+        "partner": "CIF2600000004",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower F Components Private Limited",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR202617702864641995013"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR202617702864641995013",
+                "principalAmount": 10500.0,
+                "transactionAmount": 10500.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-05-07T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-05-07T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867013"
+        },
+        "creditPlanId": "CP-DC",
+        "channelPartnerId": "CIF2600000007",
+        "transactionAmount": 1280.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-05-15T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260515-113",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower G Mobility LLP",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260515-2013",
+        "partner": "CIF2600000004",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower G Mobility LLP",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR202617702864641995014"
+        ],
+        "childTransactions": [
+            {
+                "arId": null,
+                "principalAmount": 1280.0,
+                "transactionAmount": 1280.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-05-15T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-05-15T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867014"
+        },
+        "creditPlanId": "CP-EB",
+        "channelPartnerId": "CIF2600000008",
+        "transactionAmount": 4700.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-05-13T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260513-114",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower H Retail Stores",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260513-2014",
+        "partner": "CIF2600000005",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower H Retail Stores",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [],
+        "childTransactions": [
+            {
+                "arId": "AR202617702864641995015",
+                "principalAmount": 2820.0,
+                "transactionAmount": 2820.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            },
+            {
+                "arId": "AR202617702864641995015",
+                "principalAmount": 1880.0,
+                "transactionAmount": 1880.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-05-13T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-05-13T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867015"
+        },
+        "creditPlanId": "CP-AB",
+        "channelPartnerId": "CIF2600000002",
+        "transactionAmount": 3600.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-05-11T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260511-115",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower B Chemicals Private Limited",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260511-2015",
+        "partner": "CIF2600000001",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower B Chemicals Private Limited",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [],
+        "childTransactions": [
+            {
+                "arId": null,
+                "principalAmount": 3600.0,
+                "transactionAmount": 3600.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-05-11T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-05-11T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867016"
+        },
+        "creditPlanId": "CP-AC",
+        "channelPartnerId": "CIF2600000003",
+        "transactionAmount": 6800.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-05-29T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260529-116",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower C Agro Traders LLP",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260529-2016",
+        "partner": "CIF2600000001",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower C Agro Traders LLP",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR202617702864641995017"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR202617702864641995017",
+                "principalAmount": 6800.0,
+                "transactionAmount": 6800.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-05-29T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-05-29T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867017"
+        },
+        "creditPlanId": "CP-DB",
+        "channelPartnerId": "CIF2600000006",
+        "transactionAmount": 4500.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-06-06T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260606-117",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower F Components Private Limited",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260606-2017",
+        "partner": "CIF2600000004",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower F Components Private Limited",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR202617702864641995018"
+        ],
+        "childTransactions": [
+            {
+                "arId": null,
+                "principalAmount": 4500.0,
+                "transactionAmount": 4500.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-06-06T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-06-06T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867018"
+        },
+        "creditPlanId": "CP-DC",
+        "channelPartnerId": "CIF2600000007",
+        "transactionAmount": 3760.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-07-04T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260704-118",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower G Mobility LLP",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260704-2018",
+        "partner": "CIF2600000004",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower G Mobility LLP",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [],
+        "childTransactions": [
+            {
+                "arId": "AR202617702864641995019",
+                "principalAmount": 2256.0,
+                "transactionAmount": 2256.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            },
+            {
+                "arId": "AR202617702864641995019",
+                "principalAmount": 1504.0,
+                "transactionAmount": 1504.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-07-04T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-07-04T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867019"
+        },
+        "creditPlanId": "CP-EB",
+        "channelPartnerId": "CIF2600000008",
+        "transactionAmount": 6020.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-07-02T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260702-119",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower H Retail Stores",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260702-2019",
+        "partner": "CIF2600000005",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower H Retail Stores",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [],
+        "childTransactions": [
+            {
+                "arId": null,
+                "principalAmount": 6020.0,
+                "transactionAmount": 6020.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-07-02T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-07-02T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867200"
+        },
+        "creditPlanId": "CP-AB",
+        "channelPartnerId": "CIF2600000002",
+        "transactionAmount": 1120.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-03-17T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260317-500",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower B Chemicals Private Limited",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260317-5000",
+        "partner": "CIF2600000001",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower B Chemicals Private Limited",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR202617702864641995001"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR202617702864641995001",
+                "principalAmount": 1120.0,
+                "transactionAmount": 1120.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-03-17T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-03-17T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867201"
+        },
+        "creditPlanId": "CP-AC",
+        "channelPartnerId": "CIF2600000003",
+        "transactionAmount": 1360.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-03-25T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260325-501",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower C Agro Traders LLP",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260325-5001",
+        "partner": "CIF2600000001",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower C Agro Traders LLP",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR202617702864641995002"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR202617702864641995002",
+                "principalAmount": 1360.0,
+                "transactionAmount": 1360.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-03-25T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-03-25T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867202"
+        },
+        "creditPlanId": "CP-DB",
+        "channelPartnerId": "CIF2600000006",
+        "transactionAmount": 1275.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-04-02T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260402-502",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower F Components Private Limited",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260402-5002",
+        "partner": "CIF2600000004",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower F Components Private Limited",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR202617702864641995003"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR202617702864641995003",
+                "principalAmount": 1275.0,
+                "transactionAmount": 1275.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-04-02T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-04-02T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867203"
+        },
+        "creditPlanId": "CP-DC",
+        "channelPartnerId": "CIF2600000007",
+        "transactionAmount": 2500.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-03-16T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260316-503",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower G Mobility LLP",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260316-5003",
+        "partner": "CIF2600000004",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower G Mobility LLP",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR202617702864641995004"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR202617702864641995004",
+                "principalAmount": 2500.0,
+                "transactionAmount": 2500.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-03-16T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-03-16T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867204"
+        },
+        "creditPlanId": "CP-EB",
+        "channelPartnerId": "CIF2600000008",
+        "transactionAmount": 3750.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-03-24T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260324-504",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower H Retail Stores",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260324-5004",
+        "partner": "CIF2600000005",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower H Retail Stores",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR202617702864641995005"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR202617702864641995005",
+                "principalAmount": 3750.0,
+                "transactionAmount": 3750.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-03-24T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-03-24T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867205"
+        },
+        "creditPlanId": "CP-AB",
+        "channelPartnerId": "CIF2600000002",
+        "transactionAmount": 800.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-04-16T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260416-505",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower B Chemicals Private Limited",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260416-5005",
+        "partner": "CIF2600000001",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower B Chemicals Private Limited",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR202617702864641995006"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR202617702864641995006",
+                "principalAmount": 800.0,
+                "transactionAmount": 800.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-04-16T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-04-16T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867206"
+        },
+        "creditPlanId": "CP-AC",
+        "channelPartnerId": "CIF2600000003",
+        "transactionAmount": 900.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-04-09T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260409-506",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower C Agro Traders LLP",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260409-5006",
+        "partner": "CIF2600000001",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower C Agro Traders LLP",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR202617702864641995007"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR202617702864641995007",
+                "principalAmount": 900.0,
+                "transactionAmount": 900.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-04-09T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-04-09T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867207"
+        },
+        "creditPlanId": "CP-DB",
+        "channelPartnerId": "CIF2600000006",
+        "transactionAmount": 2380.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-05-12T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260512-507",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower F Components Private Limited",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260512-5007",
+        "partner": "CIF2600000004",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower F Components Private Limited",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR202617702864641995008"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR202617702864641995008",
+                "principalAmount": 2380.0,
+                "transactionAmount": 2380.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-05-12T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-05-12T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867208"
+        },
+        "creditPlanId": "CP-DC",
+        "channelPartnerId": "CIF2600000007",
+        "transactionAmount": 3000.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-05-10T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260510-508",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower G Mobility LLP",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260510-5008",
+        "partner": "CIF2600000004",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower G Mobility LLP",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR202617702864641995009"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR202617702864641995009",
+                "principalAmount": 3000.0,
+                "transactionAmount": 3000.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-05-10T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-05-10T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    },
+    {
+        "_id": {
+            "": "69846e85d1b216d183867209"
+        },
+        "creditPlanId": "CP-EB",
+        "channelPartnerId": "CIF2600000008",
+        "transactionAmount": 3125.0,
+        "paymentMethod": "MANUAL_UPDATE",
+        "status": "SUCCESS",
+        "processing": false,
+        "settled": true,
+        "transactionDate": {
+            "": "2026-05-28T00:00:00.000Z"
+        },
+        "transactionUtr": "UTR-260528-509",
+        "customerEmail": "ops@demo.example",
+        "customerName": "Borrower H Retail Stores",
+        "anchorCreditPlanId": "CP-A",
+        "repaymentId": "AR-REP-20260528-5009",
+        "partner": "CIF2600000005",
+        "creditPlanType": "DUAL_BORROWER",
+        "paymentCreatedBy": "Borrower H Retail Stores",
+        "paymentCreatedOn": {
+            "": "2026-02-05T10:18:45.974Z"
+        },
+        "repaymentInitiator": "channel_partner",
+        "customerContactNumber": "9700235055",
+        "src": "credserv-portal",
+        "arIds": [
+            "AR202617702864641995010"
+        ],
+        "childTransactions": [
+            {
+                "arId": "AR202617702864641995010",
+                "principalAmount": 3125.0,
+                "transactionAmount": 3125.0,
+                "interestAmount": 0,
+                "transactionStatus": "SUCCESS",
+                "transactionType": "REPAYMENT",
+                "overpaidAmount": 0,
+                "penaltyAmount": 0
+            }
+        ],
+        "createdAt": {
+            "": "2026-05-28T10:00:00.000Z"
+        },
+        "updatedAt": {
+            "": "2026-05-28T10:00:00.000Z"
+        },
+        "__v": 0,
+        "approvalRemarks": "yes"
+    }
+]

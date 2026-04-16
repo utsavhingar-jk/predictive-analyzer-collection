@@ -13,7 +13,6 @@ import { PageLayout } from "@/components/layout/PageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RiskBadge } from "@/components/dashboard/RiskBadge";
 import { api } from "@/lib/api";
-import { mockBorrowerPortfolio } from "@/lib/mockData";
 import { formatCurrency, formatPct } from "@/lib/utils";
 
 // ─── Subcomponents ────────────────────────────────────────────────────────────
@@ -160,7 +159,7 @@ export function BorrowerPortfolio() {
         const data = await api.getBorrowerPortfolio();
         if (!cancelled) setBorrowers(data);
       } catch {
-        if (!cancelled) setBorrowers(mockBorrowerPortfolio);
+        if (!cancelled) setBorrowers([]);
       } finally {
         if (!cancelled) setLoading(false);
       }

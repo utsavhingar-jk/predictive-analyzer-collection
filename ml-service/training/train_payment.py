@@ -56,7 +56,6 @@ XGB_PARAMS = {
     "colsample_bytree": 0.85,
     "eval_metric":      "logloss",
     "random_state":     42,
-    "use_label_encoder": False,
 }
 
 

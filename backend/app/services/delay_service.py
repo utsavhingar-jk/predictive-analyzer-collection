@@ -10,6 +10,7 @@ import logging
 import httpx
 
 from app.core.config import get_settings
+from app.services.llm_refiner import LLMRefiner
 from app.schemas.delay import DelayDriver, DelayPredictionRequest, DelayPredictionResponse
 
 logger = logging.getLogger(__name__)
@@ -20,6 +21,7 @@ class DelayService:
     def __init__(self) -> None:
         self.ml_base = settings.ML_SERVICE_URL
         self.timeout = 10.0
+        self.refiner = LLMRefiner()
 
     # Optional fields that enrich evidence quality
     _OPTIONAL_EVIDENCE_FIELDS = [
@@ -44,7 +46,7 @@ class DelayService:
 
     async def predict(self, request: DelayPredictionRequest) -> DelayPredictionResponse:
         """
-        Call ML service; fall back to enriched rule engine if unavailable or low confidence.
+        3-phase pipeline: ML -> LLM refinement -> enriched rule fallback.
         Always attaches evidence_score, confidence, missing_data_indicators, used_fallback.
         """
         evidence_score, missing = self._compute_evidence(request)
@@ -59,26 +61,47 @@ class DelayService:
                 data = resp.json()
                 ml_confidence = float(data.get("confidence", 0.80))
 
-                # ML Fallback Logic: if confidence too low, prefer rule engine
-                if ml_confidence < self._ML_CONFIDENCE_THRESHOLD:
-                    logger.info(
-                        "ML confidence %.2f below threshold %.2f — using rule engine",
-                        ml_confidence, self._ML_CONFIDENCE_THRESHOLD,
-                    )
-                    result = self._rule_based_delay(request, evidence_score, missing)
-                    result.used_fallback = True
-                    result.confidence = round(0.45 + evidence_score * 0.20, 2)
-                    return result
-
                 result = DelayPredictionResponse(**data)
                 result.confidence = ml_confidence
                 result.evidence_score = evidence_score
                 result.missing_data_indicators = missing
                 result.used_fallback = False
+                result.prediction_source = "ml"
+                result.llm_refined = False
+                result.explanation = (
+                    f"Phase 1 ML output ({result.model_version}) generated from invoice + behavior signals."
+                )
+
+                refined = await self.refiner.refine_delay(
+                    {
+                        "model_input": request.model_dump(),
+                        "ml_output": result.model_dump(),
+                    }
+                )
+                if refined:
+                    result.delay_probability = refined["delay_probability"]
+                    result.risk_score = refined["risk_score"]
+                    result.risk_tier = refined["risk_tier"]
+                    if refined["top_drivers"]:
+                        result.top_drivers = refined["top_drivers"]
+                    result.confidence = max(result.confidence, refined["confidence"])
+                    result.model_version = f"{result.model_version}+gpt-refiner-v1"
+                    result.prediction_source = "ml+llm"
+                    result.llm_refined = True
+                    result.used_fallback = False
+                    result.explanation = refined["explanation"]
+                    return result
+
+                # ML succeeded but is low-confidence and no LLM refinement was available.
+                if ml_confidence < self._ML_CONFIDENCE_THRESHOLD:
+                    logger.info(
+                        "ML confidence %.2f below threshold %.2f and LLM refinement unavailable",
+                        ml_confidence, self._ML_CONFIDENCE_THRESHOLD,
+                    )
                 return result
 
         except Exception as exc:
-            logger.warning("ML delay service unavailable (%s) — using rule engine", exc)
+            logger.warning("ML delay pipeline failed (%s) — using rule engine", exc)
             return self._rule_based_delay(request, evidence_score, missing)
 
     def _rule_based_delay(
@@ -219,4 +242,7 @@ class DelayService:
             evidence_score=evidence_score,
             missing_data_indicators=missing or [],
             used_fallback=True,
+            prediction_source="rule-based",
+            llm_refined=False,
+            explanation="Phase 3 fallback: rule-engine delay score from DPD, behavior signals, exposure, and credit stress.",
         )

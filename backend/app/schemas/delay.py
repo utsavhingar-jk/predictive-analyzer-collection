@@ -58,3 +58,6 @@ class DelayPredictionResponse(BaseModel):
     missing_data_indicators: list[str] = []
     # True when rule engine was used instead of ML model
     used_fallback: bool = False
+    prediction_source: str = "ml"  # "ml" | "ml+llm" | "rule-based"
+    llm_refined: bool = False
+    explanation: Optional[str] = None

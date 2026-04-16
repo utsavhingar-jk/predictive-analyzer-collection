@@ -1,0 +1,2438 @@
+[
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-02-05 10:14:24",
+            "updatedAt": "2026-02-05 10:15:46"
+        },
+        "creditDetails": {
+            "creditPeriod": 30,
+            "actualCreditPeriod": 30,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "161bf9ed-00e1-4a6e-9c3a-7e7d3992412f",
+        "invoiceNumber": "AR20261770286464199493",
+        "invoiceDate": "2026-01-27",
+        "invoiceDueDate": "2026-02-26",
+        "invoiceAmount": 5000,
+        "loanAmount": 5000,
+        "invoiceRefNumber": "ref-AR20261770286464199493",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor A Retail Limited",
+            "publicId": "CIF2600000001"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower B Chemicals Private Limited",
+            "publicId": "CIF2600000002"
+        },
+        "anchor": {
+            "name": "Anchor A Retail Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-A",
+            "publicId": "CIF2600000001"
+        },
+        "borrower": {
+            "name": "Borrower B Chemicals Private Limited",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-A",
+            "publicId": "CIF2600000002"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_553",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower B Chemicals Private Limited",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000002"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower B Chemicals Private Limited",
+            "amountToBeDisbursed": 5000
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-02-05 10:14:24",
+            "updatedAt": "2026-02-05 10:15:46"
+        },
+        "creditDetails": {
+            "creditPeriod": 30,
+            "actualCreditPeriod": 30,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "161bf9ed-00e1-4a6e-9c3a-7e7d39924130",
+        "invoiceNumber": "AR20261770286464199494",
+        "invoiceDate": "2026-02-10",
+        "invoiceDueDate": "2026-03-10",
+        "invoiceAmount": 7500,
+        "loanAmount": 7500,
+        "invoiceRefNumber": "ref-AR20261770286464199494",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor A Retail Limited",
+            "publicId": "CIF2600000001"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower B Chemicals Private Limited",
+            "publicId": "CIF2600000002"
+        },
+        "anchor": {
+            "name": "Anchor A Retail Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-A",
+            "publicId": "CIF2600000001"
+        },
+        "borrower": {
+            "name": "Borrower B Chemicals Private Limited",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-AB",
+            "creditPlanPublicId": "CP-AB",
+            "publicId": "CIF2600000002"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_553",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower B Chemicals Private Limited",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000002"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower B Chemicals Private Limited",
+            "amountToBeDisbursed": 7500
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-02-05 10:14:24",
+            "updatedAt": "2026-02-05 10:15:46"
+        },
+        "creditDetails": {
+            "creditPeriod": 30,
+            "actualCreditPeriod": 30,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "261bf9ed-00e1-4a6e-9c3a-7e7d39924140",
+        "invoiceNumber": "AR20261770286464199495",
+        "invoiceDate": "2026-02-14",
+        "invoiceDueDate": "2026-03-15",
+        "invoiceAmount": 12000,
+        "loanAmount": 12000,
+        "invoiceRefNumber": "ref-AR20261770286464199495",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor A Retail Limited",
+            "publicId": "CIF2600000001"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower C Agro Traders LLP",
+            "publicId": "CIF2600000003"
+        },
+        "anchor": {
+            "name": "Anchor A Retail Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-A",
+            "publicId": "CIF2600000001"
+        },
+        "borrower": {
+            "name": "Borrower C Agro Traders LLP",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-AC",
+            "creditPlanPublicId": "CP-AC",
+            "publicId": "CIF2600000003"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_553",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower C Agro Traders LLP",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000003"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower C Agro Traders LLP",
+            "amountToBeDisbursed": 12000
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-02-05 10:14:24",
+            "updatedAt": "2026-02-05 10:15:46"
+        },
+        "creditDetails": {
+            "creditPeriod": 30,
+            "actualCreditPeriod": 30,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "261bf9ed-00e1-4a6e-9c3a-7e7d39924141",
+        "invoiceNumber": "AR20261770286464199496",
+        "invoiceDate": "2026-03-05",
+        "invoiceDueDate": "2026-04-05",
+        "invoiceAmount": 6000,
+        "loanAmount": 6000,
+        "invoiceRefNumber": "ref-AR20261770286464199496",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor A Retail Limited",
+            "publicId": "CIF2600000001"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower C Agro Traders LLP",
+            "publicId": "CIF2600000003"
+        },
+        "anchor": {
+            "name": "Anchor A Retail Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-A",
+            "publicId": "CIF2600000001"
+        },
+        "borrower": {
+            "name": "Borrower C Agro Traders LLP",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-AC",
+            "creditPlanPublicId": "CP-AC",
+            "publicId": "CIF2600000003"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_553",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower C Agro Traders LLP",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000003"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower C Agro Traders LLP",
+            "amountToBeDisbursed": 6000
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-02-05 10:14:24",
+            "updatedAt": "2026-02-05 10:15:46"
+        },
+        "creditDetails": {
+            "creditPeriod": 30,
+            "actualCreditPeriod": 30,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "361bf9ed-00e1-4a6e-9c3a-7e7d39924142",
+        "invoiceNumber": "AR20261770286464199497",
+        "invoiceDate": "2026-02-12",
+        "invoiceDueDate": "2026-03-14",
+        "invoiceAmount": 9100,
+        "loanAmount": 9100,
+        "invoiceRefNumber": "ref-AR20261770286464199497",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor D Manufacturing Limited",
+            "publicId": "CIF2600000004"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower F Components Private Limited",
+            "publicId": "CIF2600000006"
+        },
+        "anchor": {
+            "name": "Anchor D Manufacturing Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-D",
+            "creditPlanPublicId": "CP-D",
+            "publicId": "CIF2600000004"
+        },
+        "borrower": {
+            "name": "Borrower F Components Private Limited",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-D",
+            "creditPlanPublicId": "CP-D",
+            "publicId": "CIF2600000006"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_701",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower F Components Private Limited",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000006"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower F Components Private Limited",
+            "amountToBeDisbursed": 9100
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-02-05 10:14:24",
+            "updatedAt": "2026-02-05 10:15:46"
+        },
+        "creditDetails": {
+            "creditPeriod": 30,
+            "actualCreditPeriod": 30,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "361bf9ed-00e1-4a6e-9c3a-7e7d39924143",
+        "invoiceNumber": "AR20261770286464199498",
+        "invoiceDate": "2026-03-01",
+        "invoiceDueDate": "2026-04-01",
+        "invoiceAmount": 8300,
+        "loanAmount": 8300,
+        "invoiceRefNumber": "ref-AR20261770286464199498",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor D Manufacturing Limited",
+            "publicId": "CIF2600000004"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower F Components Private Limited",
+            "publicId": "CIF2600000006"
+        },
+        "anchor": {
+            "name": "Anchor D Manufacturing Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-D",
+            "creditPlanPublicId": "CP-D",
+            "publicId": "CIF2600000004"
+        },
+        "borrower": {
+            "name": "Borrower F Components Private Limited",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-DB",
+            "creditPlanPublicId": "CP-DB",
+            "publicId": "CIF2600000006"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_701",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower F Components Private Limited",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000006"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower F Components Private Limited",
+            "amountToBeDisbursed": 8300
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-02-05 10:14:24",
+            "updatedAt": "2026-02-05 10:15:46"
+        },
+        "creditDetails": {
+            "creditPeriod": 30,
+            "actualCreditPeriod": 30,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "361bf9ed-00e1-4a6e-9c3a-7e7d39924144",
+        "invoiceNumber": "AR20261770286464199499",
+        "invoiceDate": "2026-03-03",
+        "invoiceDueDate": "2026-04-12",
+        "invoiceAmount": 6700,
+        "loanAmount": 6700,
+        "invoiceRefNumber": "ref-AR20261770286464199499",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor D Manufacturing Limited",
+            "publicId": "CIF2600000004"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower G Mobility LLP",
+            "publicId": "CIF2600000007"
+        },
+        "anchor": {
+            "name": "Anchor D Manufacturing Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-D",
+            "creditPlanPublicId": "CP-D",
+            "publicId": "CIF2600000004"
+        },
+        "borrower": {
+            "name": "Borrower G Mobility LLP",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-DC",
+            "creditPlanPublicId": "CP-DC",
+            "publicId": "CIF2600000007"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_701",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower G Mobility LLP",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000007"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower G Mobility LLP",
+            "amountToBeDisbursed": 6700
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-02-05 10:14:24",
+            "updatedAt": "2026-02-05 10:15:46"
+        },
+        "creditDetails": {
+            "creditPeriod": 30,
+            "actualCreditPeriod": 30,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "461bf9ed-00e1-4a6e-9c3a-7e7d39924145",
+        "invoiceNumber": "AR20261770286464199500",
+        "invoiceDate": "2026-03-07",
+        "invoiceDueDate": "2026-04-22",
+        "invoiceAmount": 7300,
+        "loanAmount": 7300,
+        "invoiceRefNumber": "ref-AR20261770286464199500",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor E Infrastructure Limited",
+            "publicId": "CIF2600000005"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower H Retail Stores",
+            "publicId": "CIF2600000008"
+        },
+        "anchor": {
+            "name": "Anchor E Infrastructure Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-E",
+            "creditPlanPublicId": "CP-E",
+            "publicId": "CIF2600000005"
+        },
+        "borrower": {
+            "name": "Borrower H Retail Stores",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-EB",
+            "creditPlanPublicId": "CP-EB",
+            "publicId": "CIF2600000008"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_801",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower H Retail Stores",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000008"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower H Retail Stores",
+            "amountToBeDisbursed": 7300
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-02-05 10:14:24",
+            "updatedAt": "2026-02-05 10:15:46"
+        },
+        "creditDetails": {
+            "creditPeriod": 30,
+            "actualCreditPeriod": 30,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "461bf9ed-00e1-4a6e-9c3a-7e7d39924146",
+        "invoiceNumber": "AR20261770286464199501",
+        "invoiceDate": "2026-03-18",
+        "invoiceDueDate": "2026-05-02",
+        "invoiceAmount": 5400,
+        "loanAmount": 5400,
+        "invoiceRefNumber": "ref-AR20261770286464199501",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor E Infrastructure Limited",
+            "publicId": "CIF2600000005"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower H Retail Stores",
+            "publicId": "CIF2600000008"
+        },
+        "anchor": {
+            "name": "Anchor E Infrastructure Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-E",
+            "creditPlanPublicId": "CP-E",
+            "publicId": "CIF2600000005"
+        },
+        "borrower": {
+            "name": "Borrower H Retail Stores",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-EB",
+            "creditPlanPublicId": "CP-EB",
+            "publicId": "CIF2600000008"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_801",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower H Retail Stores",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000008"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower H Retail Stores",
+            "amountToBeDisbursed": 5400
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-01-01 09:00:00",
+            "updatedAt": "2026-01-01 09:00:00"
+        },
+        "creditDetails": {
+            "creditPeriod": 21,
+            "actualCreditPeriod": 21,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "auto-0001-1995001",
+        "invoiceNumber": "AR202617702864641995001",
+        "invoiceDate": "2026-01-01",
+        "invoiceDueDate": "2026-01-22",
+        "invoiceAmount": 3200,
+        "loanAmount": 3200,
+        "invoiceRefNumber": "ref-AR202617702864641995001",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor A Retail Limited",
+            "publicId": "CIF2600000001"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower B Chemicals Private Limited",
+            "publicId": "CIF2600000002"
+        },
+        "anchor": {
+            "name": "Anchor A Retail Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-A",
+            "publicId": "CIF2600000001"
+        },
+        "borrower": {
+            "name": "Borrower B Chemicals Private Limited",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-AB",
+            "publicId": "CIF2600000002"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_553",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower B Chemicals Private Limited",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000002"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower B Chemicals Private Limited",
+            "amountToBeDisbursed": 3200
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-01-09 09:00:00",
+            "updatedAt": "2026-01-09 09:00:00"
+        },
+        "creditDetails": {
+            "creditPeriod": 30,
+            "actualCreditPeriod": 30,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "auto-0002-1995002",
+        "invoiceNumber": "AR202617702864641995002",
+        "invoiceDate": "2026-01-09",
+        "invoiceDueDate": "2026-02-08",
+        "invoiceAmount": 6800,
+        "loanAmount": 6800,
+        "invoiceRefNumber": "ref-AR202617702864641995002",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor A Retail Limited",
+            "publicId": "CIF2600000001"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower C Agro Traders LLP",
+            "publicId": "CIF2600000003"
+        },
+        "anchor": {
+            "name": "Anchor A Retail Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-A",
+            "publicId": "CIF2600000001"
+        },
+        "borrower": {
+            "name": "Borrower C Agro Traders LLP",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-AC",
+            "publicId": "CIF2600000003"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_553",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower C Agro Traders LLP",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000003"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower C Agro Traders LLP",
+            "amountToBeDisbursed": 6800
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-01-17 09:00:00",
+            "updatedAt": "2026-01-17 09:00:00"
+        },
+        "creditDetails": {
+            "creditPeriod": 28,
+            "actualCreditPeriod": 28,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "auto-0003-1995003",
+        "invoiceNumber": "AR202617702864641995003",
+        "invoiceDate": "2026-01-17",
+        "invoiceDueDate": "2026-02-14",
+        "invoiceAmount": 5100,
+        "loanAmount": 5100,
+        "invoiceRefNumber": "ref-AR202617702864641995003",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor D Manufacturing Limited",
+            "publicId": "CIF2600000004"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower F Components Private Limited",
+            "publicId": "CIF2600000006"
+        },
+        "anchor": {
+            "name": "Anchor D Manufacturing Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-D",
+            "publicId": "CIF2600000004"
+        },
+        "borrower": {
+            "name": "Borrower F Components Private Limited",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-DB",
+            "publicId": "CIF2600000006"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_701",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower F Components Private Limited",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000006"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower F Components Private Limited",
+            "amountToBeDisbursed": 5100
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-01-25 09:00:00",
+            "updatedAt": "2026-01-25 09:00:00"
+        },
+        "creditDetails": {
+            "creditPeriod": 21,
+            "actualCreditPeriod": 21,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "auto-0004-1995004",
+        "invoiceNumber": "AR202617702864641995004",
+        "invoiceDate": "2026-01-25",
+        "invoiceDueDate": "2026-02-15",
+        "invoiceAmount": 12500,
+        "loanAmount": 12500,
+        "invoiceRefNumber": "ref-AR202617702864641995004",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor D Manufacturing Limited",
+            "publicId": "CIF2600000004"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower G Mobility LLP",
+            "publicId": "CIF2600000007"
+        },
+        "anchor": {
+            "name": "Anchor D Manufacturing Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-D",
+            "publicId": "CIF2600000004"
+        },
+        "borrower": {
+            "name": "Borrower G Mobility LLP",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-DC",
+            "publicId": "CIF2600000007"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_701",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower G Mobility LLP",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000007"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower G Mobility LLP",
+            "amountToBeDisbursed": 12500
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-02-02 09:00:00",
+            "updatedAt": "2026-02-02 09:00:00"
+        },
+        "creditDetails": {
+            "creditPeriod": 21,
+            "actualCreditPeriod": 21,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "auto-0005-1995005",
+        "invoiceNumber": "AR202617702864641995005",
+        "invoiceDate": "2026-02-02",
+        "invoiceDueDate": "2026-02-23",
+        "invoiceAmount": 15000,
+        "loanAmount": 15000,
+        "invoiceRefNumber": "ref-AR202617702864641995005",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor E Infrastructure Limited",
+            "publicId": "CIF2600000005"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower H Retail Stores",
+            "publicId": "CIF2600000008"
+        },
+        "anchor": {
+            "name": "Anchor E Infrastructure Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-E",
+            "publicId": "CIF2600000005"
+        },
+        "borrower": {
+            "name": "Borrower H Retail Stores",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-EB",
+            "publicId": "CIF2600000008"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_801",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower H Retail Stores",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000008"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower H Retail Stores",
+            "amountToBeDisbursed": 15000
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-02-10 09:00:00",
+            "updatedAt": "2026-02-10 09:00:00"
+        },
+        "creditDetails": {
+            "creditPeriod": 35,
+            "actualCreditPeriod": 35,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "auto-0006-1995006",
+        "invoiceNumber": "AR202617702864641995006",
+        "invoiceDate": "2026-02-10",
+        "invoiceDueDate": "2026-03-17",
+        "invoiceAmount": 3200,
+        "loanAmount": 3200,
+        "invoiceRefNumber": "ref-AR202617702864641995006",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor A Retail Limited",
+            "publicId": "CIF2600000001"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower B Chemicals Private Limited",
+            "publicId": "CIF2600000002"
+        },
+        "anchor": {
+            "name": "Anchor A Retail Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-A",
+            "publicId": "CIF2600000001"
+        },
+        "borrower": {
+            "name": "Borrower B Chemicals Private Limited",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-AB",
+            "publicId": "CIF2600000002"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_553",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower B Chemicals Private Limited",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000002"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower B Chemicals Private Limited",
+            "amountToBeDisbursed": 3200
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-02-18 09:00:00",
+            "updatedAt": "2026-02-18 09:00:00"
+        },
+        "creditDetails": {
+            "creditPeriod": 21,
+            "actualCreditPeriod": 21,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "auto-0007-1995007",
+        "invoiceNumber": "AR202617702864641995007",
+        "invoiceDate": "2026-02-18",
+        "invoiceDueDate": "2026-03-11",
+        "invoiceAmount": 4500,
+        "loanAmount": 4500,
+        "invoiceRefNumber": "ref-AR202617702864641995007",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor A Retail Limited",
+            "publicId": "CIF2600000001"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower C Agro Traders LLP",
+            "publicId": "CIF2600000003"
+        },
+        "anchor": {
+            "name": "Anchor A Retail Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-A",
+            "publicId": "CIF2600000001"
+        },
+        "borrower": {
+            "name": "Borrower C Agro Traders LLP",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-AC",
+            "publicId": "CIF2600000003"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_553",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower C Agro Traders LLP",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000003"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower C Agro Traders LLP",
+            "amountToBeDisbursed": 4500
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-02-26 09:00:00",
+            "updatedAt": "2026-02-26 09:00:00"
+        },
+        "creditDetails": {
+            "creditPeriod": 28,
+            "actualCreditPeriod": 28,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "auto-0008-1995008",
+        "invoiceNumber": "AR202617702864641995008",
+        "invoiceDate": "2026-02-26",
+        "invoiceDueDate": "2026-03-26",
+        "invoiceAmount": 6800,
+        "loanAmount": 6800,
+        "invoiceRefNumber": "ref-AR202617702864641995008",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor D Manufacturing Limited",
+            "publicId": "CIF2600000004"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower F Components Private Limited",
+            "publicId": "CIF2600000006"
+        },
+        "anchor": {
+            "name": "Anchor D Manufacturing Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-D",
+            "publicId": "CIF2600000004"
+        },
+        "borrower": {
+            "name": "Borrower F Components Private Limited",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-DB",
+            "publicId": "CIF2600000006"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_701",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower F Components Private Limited",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000006"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower F Components Private Limited",
+            "amountToBeDisbursed": 6800
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-03-06 09:00:00",
+            "updatedAt": "2026-03-06 09:00:00"
+        },
+        "creditDetails": {
+            "creditPeriod": 45,
+            "actualCreditPeriod": 45,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "auto-0009-1995009",
+        "invoiceNumber": "AR202617702864641995009",
+        "invoiceDate": "2026-03-06",
+        "invoiceDueDate": "2026-04-20",
+        "invoiceAmount": 15000,
+        "loanAmount": 15000,
+        "invoiceRefNumber": "ref-AR202617702864641995009",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor D Manufacturing Limited",
+            "publicId": "CIF2600000004"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower G Mobility LLP",
+            "publicId": "CIF2600000007"
+        },
+        "anchor": {
+            "name": "Anchor D Manufacturing Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-D",
+            "publicId": "CIF2600000004"
+        },
+        "borrower": {
+            "name": "Borrower G Mobility LLP",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-DC",
+            "publicId": "CIF2600000007"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_701",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower G Mobility LLP",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000007"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower G Mobility LLP",
+            "amountToBeDisbursed": 15000
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-03-14 09:00:00",
+            "updatedAt": "2026-03-14 09:00:00"
+        },
+        "creditDetails": {
+            "creditPeriod": 21,
+            "actualCreditPeriod": 21,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "auto-0010-1995010",
+        "invoiceNumber": "AR202617702864641995010",
+        "invoiceDate": "2026-03-14",
+        "invoiceDueDate": "2026-04-04",
+        "invoiceAmount": 12500,
+        "loanAmount": 12500,
+        "invoiceRefNumber": "ref-AR202617702864641995010",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor E Infrastructure Limited",
+            "publicId": "CIF2600000005"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower H Retail Stores",
+            "publicId": "CIF2600000008"
+        },
+        "anchor": {
+            "name": "Anchor E Infrastructure Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-E",
+            "publicId": "CIF2600000005"
+        },
+        "borrower": {
+            "name": "Borrower H Retail Stores",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-EB",
+            "publicId": "CIF2600000008"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_801",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower H Retail Stores",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000008"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower H Retail Stores",
+            "amountToBeDisbursed": 12500
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-03-22 09:00:00",
+            "updatedAt": "2026-03-22 09:00:00"
+        },
+        "creditDetails": {
+            "creditPeriod": 28,
+            "actualCreditPeriod": 28,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "auto-0011-1995011",
+        "invoiceNumber": "AR202617702864641995011",
+        "invoiceDate": "2026-03-22",
+        "invoiceDueDate": "2026-04-19",
+        "invoiceAmount": 12500,
+        "loanAmount": 12500,
+        "invoiceRefNumber": "ref-AR202617702864641995011",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor A Retail Limited",
+            "publicId": "CIF2600000001"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower B Chemicals Private Limited",
+            "publicId": "CIF2600000002"
+        },
+        "anchor": {
+            "name": "Anchor A Retail Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-A",
+            "publicId": "CIF2600000001"
+        },
+        "borrower": {
+            "name": "Borrower B Chemicals Private Limited",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-AB",
+            "publicId": "CIF2600000002"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_553",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower B Chemicals Private Limited",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000002"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower B Chemicals Private Limited",
+            "amountToBeDisbursed": 12500
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-03-30 09:00:00",
+            "updatedAt": "2026-03-30 09:00:00"
+        },
+        "creditDetails": {
+            "creditPeriod": 35,
+            "actualCreditPeriod": 35,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "auto-0012-1995012",
+        "invoiceNumber": "AR202617702864641995012",
+        "invoiceDate": "2026-03-30",
+        "invoiceDueDate": "2026-05-04",
+        "invoiceAmount": 6800,
+        "loanAmount": 6800,
+        "invoiceRefNumber": "ref-AR202617702864641995012",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor A Retail Limited",
+            "publicId": "CIF2600000001"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower C Agro Traders LLP",
+            "publicId": "CIF2600000003"
+        },
+        "anchor": {
+            "name": "Anchor A Retail Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-A",
+            "publicId": "CIF2600000001"
+        },
+        "borrower": {
+            "name": "Borrower C Agro Traders LLP",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-AC",
+            "publicId": "CIF2600000003"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_553",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower C Agro Traders LLP",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000003"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower C Agro Traders LLP",
+            "amountToBeDisbursed": 6800
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-04-07 09:00:00",
+            "updatedAt": "2026-04-07 09:00:00"
+        },
+        "creditDetails": {
+            "creditPeriod": 35,
+            "actualCreditPeriod": 35,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "auto-0013-1995013",
+        "invoiceNumber": "AR202617702864641995013",
+        "invoiceDate": "2026-04-07",
+        "invoiceDueDate": "2026-05-12",
+        "invoiceAmount": 15000,
+        "loanAmount": 15000,
+        "invoiceRefNumber": "ref-AR202617702864641995013",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor D Manufacturing Limited",
+            "publicId": "CIF2600000004"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower F Components Private Limited",
+            "publicId": "CIF2600000006"
+        },
+        "anchor": {
+            "name": "Anchor D Manufacturing Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-D",
+            "publicId": "CIF2600000004"
+        },
+        "borrower": {
+            "name": "Borrower F Components Private Limited",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-DB",
+            "publicId": "CIF2600000006"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_701",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower F Components Private Limited",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000006"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower F Components Private Limited",
+            "amountToBeDisbursed": 15000
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-04-15 09:00:00",
+            "updatedAt": "2026-04-15 09:00:00"
+        },
+        "creditDetails": {
+            "creditPeriod": 30,
+            "actualCreditPeriod": 30,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "auto-0014-1995014",
+        "invoiceNumber": "AR202617702864641995014",
+        "invoiceDate": "2026-04-15",
+        "invoiceDueDate": "2026-05-15",
+        "invoiceAmount": 3200,
+        "loanAmount": 3200,
+        "invoiceRefNumber": "ref-AR202617702864641995014",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor D Manufacturing Limited",
+            "publicId": "CIF2600000004"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower G Mobility LLP",
+            "publicId": "CIF2600000007"
+        },
+        "anchor": {
+            "name": "Anchor D Manufacturing Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-D",
+            "publicId": "CIF2600000004"
+        },
+        "borrower": {
+            "name": "Borrower G Mobility LLP",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-DC",
+            "publicId": "CIF2600000007"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_701",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower G Mobility LLP",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000007"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower G Mobility LLP",
+            "amountToBeDisbursed": 3200
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-04-23 09:00:00",
+            "updatedAt": "2026-04-23 09:00:00"
+        },
+        "creditDetails": {
+            "creditPeriod": 28,
+            "actualCreditPeriod": 28,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "auto-0015-1995015",
+        "invoiceNumber": "AR202617702864641995015",
+        "invoiceDate": "2026-04-23",
+        "invoiceDueDate": "2026-05-21",
+        "invoiceAmount": 9400,
+        "loanAmount": 9400,
+        "invoiceRefNumber": "ref-AR202617702864641995015",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor E Infrastructure Limited",
+            "publicId": "CIF2600000005"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower H Retail Stores",
+            "publicId": "CIF2600000008"
+        },
+        "anchor": {
+            "name": "Anchor E Infrastructure Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-E",
+            "publicId": "CIF2600000005"
+        },
+        "borrower": {
+            "name": "Borrower H Retail Stores",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-EB",
+            "publicId": "CIF2600000008"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_801",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower H Retail Stores",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000008"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower H Retail Stores",
+            "amountToBeDisbursed": 9400
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-05-01 09:00:00",
+            "updatedAt": "2026-05-01 09:00:00"
+        },
+        "creditDetails": {
+            "creditPeriod": 30,
+            "actualCreditPeriod": 30,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "auto-0016-1995016",
+        "invoiceNumber": "AR202617702864641995016",
+        "invoiceDate": "2026-05-01",
+        "invoiceDueDate": "2026-05-31",
+        "invoiceAmount": 7200,
+        "loanAmount": 7200,
+        "invoiceRefNumber": "ref-AR202617702864641995016",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor A Retail Limited",
+            "publicId": "CIF2600000001"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower B Chemicals Private Limited",
+            "publicId": "CIF2600000002"
+        },
+        "anchor": {
+            "name": "Anchor A Retail Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-A",
+            "publicId": "CIF2600000001"
+        },
+        "borrower": {
+            "name": "Borrower B Chemicals Private Limited",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-AB",
+            "publicId": "CIF2600000002"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_553",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower B Chemicals Private Limited",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000002"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower B Chemicals Private Limited",
+            "amountToBeDisbursed": 7200
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-05-09 09:00:00",
+            "updatedAt": "2026-05-09 09:00:00"
+        },
+        "creditDetails": {
+            "creditPeriod": 28,
+            "actualCreditPeriod": 28,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "auto-0017-1995017",
+        "invoiceNumber": "AR202617702864641995017",
+        "invoiceDate": "2026-05-09",
+        "invoiceDueDate": "2026-06-06",
+        "invoiceAmount": 6800,
+        "loanAmount": 6800,
+        "invoiceRefNumber": "ref-AR202617702864641995017",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor A Retail Limited",
+            "publicId": "CIF2600000001"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower C Agro Traders LLP",
+            "publicId": "CIF2600000003"
+        },
+        "anchor": {
+            "name": "Anchor A Retail Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-A",
+            "publicId": "CIF2600000001"
+        },
+        "borrower": {
+            "name": "Borrower C Agro Traders LLP",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-AC",
+            "publicId": "CIF2600000003"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_553",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower C Agro Traders LLP",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000003"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower C Agro Traders LLP",
+            "amountToBeDisbursed": 6800
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-05-17 09:00:00",
+            "updatedAt": "2026-05-17 09:00:00"
+        },
+        "creditDetails": {
+            "creditPeriod": 30,
+            "actualCreditPeriod": 30,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "auto-0018-1995018",
+        "invoiceNumber": "AR202617702864641995018",
+        "invoiceDate": "2026-05-17",
+        "invoiceDueDate": "2026-06-16",
+        "invoiceAmount": 4500,
+        "loanAmount": 4500,
+        "invoiceRefNumber": "ref-AR202617702864641995018",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor D Manufacturing Limited",
+            "publicId": "CIF2600000004"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower F Components Private Limited",
+            "publicId": "CIF2600000006"
+        },
+        "anchor": {
+            "name": "Anchor D Manufacturing Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-D",
+            "publicId": "CIF2600000004"
+        },
+        "borrower": {
+            "name": "Borrower F Components Private Limited",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-DB",
+            "publicId": "CIF2600000006"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_701",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower F Components Private Limited",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000006"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower F Components Private Limited",
+            "amountToBeDisbursed": 4500
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-05-25 09:00:00",
+            "updatedAt": "2026-05-25 09:00:00"
+        },
+        "creditDetails": {
+            "creditPeriod": 21,
+            "actualCreditPeriod": 21,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "auto-0019-1995019",
+        "invoiceNumber": "AR202617702864641995019",
+        "invoiceDate": "2026-05-25",
+        "invoiceDueDate": "2026-06-15",
+        "invoiceAmount": 9400,
+        "loanAmount": 9400,
+        "invoiceRefNumber": "ref-AR202617702864641995019",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor D Manufacturing Limited",
+            "publicId": "CIF2600000004"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower G Mobility LLP",
+            "publicId": "CIF2600000007"
+        },
+        "anchor": {
+            "name": "Anchor D Manufacturing Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-D",
+            "publicId": "CIF2600000004"
+        },
+        "borrower": {
+            "name": "Borrower G Mobility LLP",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-DC",
+            "publicId": "CIF2600000007"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_701",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower G Mobility LLP",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000007"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower G Mobility LLP",
+            "amountToBeDisbursed": 9400
+        }
+    },
+    {
+        "invoiceRaisedAs": "SELLER",
+        "addresses": {
+            "billingAddress": null,
+            "billedToGst": null,
+            "fromAddress": null,
+            "fromGst": null
+        },
+        "purchaseOrderNumber": null,
+        "remarks": null,
+        "meta": {
+            "createdBy": "6982e254dd5a951b67f6c53b",
+            "uploadedPlatform": "WEB",
+            "acknowledgedByUserId": null,
+            "acknowledgedByUserPublicId": null,
+            "acknowledgedAt": null,
+            "createdAt": "2026-06-02 09:00:00",
+            "updatedAt": "2026-06-02 09:00:00"
+        },
+        "creditDetails": {
+            "creditPeriod": 21,
+            "actualCreditPeriod": 21,
+            "creditPlanType": "DUAL_BORROWER"
+        },
+        "product": {
+            "productName": "Supply Chain Financing",
+            "subProductName": "Dealer Finance"
+        },
+        "status": {
+            "arInvoiceStatus": "APPROVED"
+        },
+        "financials": {
+            "interest": 0,
+            "roi": 0,
+            "anchorProcessingFees": 0,
+            "borrowerProcessingFees": 0,
+            "taxAmount": 0
+        },
+        "id": "auto-0020-1995020",
+        "invoiceNumber": "AR202617702864641995020",
+        "invoiceDate": "2026-06-02",
+        "invoiceDueDate": "2026-06-23",
+        "invoiceAmount": 8600,
+        "loanAmount": 8600,
+        "invoiceRefNumber": "ref-AR202617702864641995020",
+        "invoiceRaisedByUser": {
+            "id": "6982e254dd5a951b67f6c53b",
+            "name": "Anchor E Infrastructure Limited",
+            "publicId": "CIF2600000005"
+        },
+        "invoiceRaisedAgainstUser": {
+            "id": "698328048a598573955b3106",
+            "name": "Borrower H Retail Stores",
+            "publicId": "CIF2600000008"
+        },
+        "anchor": {
+            "name": "Anchor E Infrastructure Limited",
+            "id": "6982e254dd5a951b67f6c53b",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-E",
+            "publicId": "CIF2600000005"
+        },
+        "borrower": {
+            "name": "Borrower H Retail Stores",
+            "id": "698328048a598573955b3106",
+            "creditPlanId": "cpid-CP-A",
+            "creditPlanPublicId": "CP-EB",
+            "publicId": "CIF2600000008"
+        },
+        "program": {
+            "name": "DF_KFCPL_JK_801",
+            "id": "68d14065932cf22adf9d1241",
+            "publicId": "LP2509553"
+        },
+        "payee": {
+            "name": "Borrower H Retail Stores",
+            "id": "698328048a598573955b3106",
+            "publicId": "CIF2600000008"
+        },
+        "disbursement": {
+            "disbursedTo": "Borrower H Retail Stores",
+            "amountToBeDisbursed": 8600
+        }
+    }
+]

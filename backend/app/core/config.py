@@ -20,6 +20,11 @@ class Settings(BaseSettings):
     # ML Service
     ML_SERVICE_URL: str = "http://localhost:8001"
 
+    # Borrower portfolio (GET /predict/borrowers/portfolio)
+    BORROWER_PORTFOLIO_MAX_WORKERS: int = 8
+    # Blend ML service output with backend rule engine: 0 = rules only, 1 = ML only, 0.5 = equal mix
+    BORROWER_PORTFOLIO_HYBRID_ML_WEIGHT: float = 0.5
+
     # OpenAI
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4o"

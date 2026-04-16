@@ -25,11 +25,10 @@ import { InteractionTimeline } from "@/components/dashboard/InteractionTimeline"
 import { ActionEffectivenessCard } from "@/components/dashboard/ActionEffectivenessCard";
 import { BorrowerEnrichmentCard } from "@/components/dashboard/BorrowerEnrichmentCard";
 import { api } from "@/lib/api";
-import { mockInvoiceDetail } from "@/lib/mockData";
 import { formatCurrency, formatPct, getPriorityColor } from "@/lib/utils";
 
 function PaymentProbabilityBar({ label, value }) {
-  const pct = Math.round(value * 100);
+  const pct = Math.round((Number(value) || 0) * 100);
   const color = pct >= 70 ? "bg-green-500" : pct >= 40 ? "bg-amber-500" : "bg-red-500";
   return (
     <div className="space-y-1.5">
@@ -67,18 +66,20 @@ export function InvoiceDetail() {
   const [agentResult, setAgentResult] = useState(null);
   const [borrowerPrediction, setBorrowerPrediction] = useState(null);
   const [interactions, setInteractions] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       setLoading(true);
+      setError(null);
       try {
         const data = await api.getInvoice(invoiceId);
         if (!cancelled) setInvoice(data);
-      } catch {
+      } catch (err) {
         if (!cancelled) {
-          const fallback = mockInvoiceDetail[invoiceId] || mockInvoiceDetail["INV-2024-001"];
-          setInvoice(fallback);
+          setInvoice(null);
+          setError(err?.message || "Failed to load invoice detail");
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -164,7 +165,17 @@ export function InvoiceDetail() {
     );
   }
 
-  if (!invoice) return null;
+  if (!invoice) {
+    return (
+      <PageLayout title="Invoice Detail" subtitle="Unavailable">
+        <Card>
+          <CardContent className="py-10 text-center text-sm text-muted-foreground">
+            {error || "Invoice not found."}
+          </CardContent>
+        </Card>
+      </PageLayout>
+    );
+  }
 
   const recommendation = agentResult?.strategy || invoice.strategy || invoice.ai_recommendation;
 
@@ -215,9 +226,9 @@ export function InvoiceDetail() {
             <CardDescription>ML model predictions per time horizon</CardDescription>
           </CardHeader>
           <CardContent className="space-y-5 pt-2">
-            <PaymentProbabilityBar label="Within 7 Days" value={invoice.pay_7_days} />
-            <PaymentProbabilityBar label="Within 15 Days" value={invoice.pay_15_days} />
-            <PaymentProbabilityBar label="Within 30 Days" value={invoice.pay_30_days} />
+            <PaymentProbabilityBar label="Within 7 Days" value={invoice.pay_7_days ?? 0} />
+            <PaymentProbabilityBar label="Within 15 Days" value={invoice.pay_15_days ?? 0} />
+            <PaymentProbabilityBar label="Within 30 Days" value={invoice.pay_30_days ?? 0} />
             <div className="pt-2 text-xs text-muted-foreground space-y-1 border-t border-border">
               <p>Credit Score: <strong>{invoice.credit_score}</strong></p>
               <p>Avg. Days to Pay: <strong>{invoice.avg_days_to_pay}d</strong></p>
