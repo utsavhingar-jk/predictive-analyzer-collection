@@ -19,7 +19,6 @@ import { AgentReasoningTrace } from "@/components/agent/AgentReasoningTrace";
 import { AgentThinkingLoader } from "@/components/agent/AgentThinkingLoader";
 import { AgentAskBox } from "@/components/agent/AgentAskBox";
 import { ShapBarChart } from "@/components/charts/ShapBarChart";
-import { SentinelAlert } from "@/components/dashboard/SentinelAlert";
 import { CandidateActionsCard } from "@/components/dashboard/CandidateActionsCard";
 import { ConfidenceIndicator } from "@/components/dashboard/ConfidenceIndicator";
 import { InteractionTimeline } from "@/components/dashboard/InteractionTimeline";
@@ -283,10 +282,6 @@ export function InvoiceDetail() {
       </div>
 
 
-      {/* Sentinel Alert — shown when external signals exist */}
-      <div className="mb-6">
-        <SentinelAlert customerId={invoice.customer_id} />
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* -------------------- LEFT COLUMN: Main Content -------------------- */}
