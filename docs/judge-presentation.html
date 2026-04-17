@@ -480,9 +480,9 @@
 
     <div class="pillar p2 no-break">
       <div class="pillar-num">Pillar 02</div>
-      <div class="pillar-title">Delay Prediction Engine</div>
-      <p>XGBoost binary classifier trained on 1,500 INR invoices. Features: invoice amount, DPD, credit score, historical delay, behavior signals. Returns delay probability, risk score, risk tier, SHAP-style top drivers, model confidence, evidence score, and fallback flag.</p>
-      <div class="pillar-output">delay_probability: 0.82 | risk_tier: "High"<br>confidence: 0.71 | evidence_score: 0.67<br>top_drivers: ["45 DPD", "Chronic payer", "₹42.5L invoice"]</div>
+      <div class="pillar-title">Live Machine Learning Engines: Delay & Default Prediction</div>
+      <p>Dual XGBoost prediction pipelines trained on 1,500+ INR invoices simulating exact probabilities for 7/15/30-day delays and absolute 30-day defaults. Returns probability metrics, risk tiers, SHAP-style drivers, model confidence, evidence scores, and structured fallback flags.</p>
+      <div class="pillar-output">delay_probability: 0.82 | default_risk_tier: "High"<br>confidence: 0.71 | evidence_score: 0.67<br>top_drivers: ["45 DPD", "Chronic payer", "₹42.5L invoice"]</div>
     </div>
 
     <div class="pillar p3 no-break">
@@ -736,8 +736,9 @@
   <table style="margin-top:10px;">
     <tr><th>Model</th><th>Type</th><th>Task</th><th>Training Data</th><th>Fallback</th></tr>
     <tr><td><strong>payment_model_7d/15d/30d</strong></td><td>XGBoost Binary</td><td>Payment probability per horizon</td><td>1,500 INR invoices, 18 features</td><td>Heuristic rule engine</td></tr>
+    <tr><td><strong>default_prediction_model</strong></td><td>XGBoost Binary</td><td>Absolute default probability &gt;30 days</td><td>1,500 INR invoices</td><td>Heuristic rule engine</td></tr>
     <tr><td><strong>risk_classifier_xgb</strong></td><td>XGBoost Multi-class</td><td>High/Medium/Low risk classification</td><td>Same dataset, class-balanced</td><td>Score-based thresholds</td></tr>
-    <tr><td><strong>Delay prediction</strong></td><td>Rule + ML hybrid</td><td>Delay probability with behavior enrichment</td><td>18-feature vector + behavior signals</td><td>Evidence-scored rule engine</td></tr>
+    <tr><td><strong>Delay prediction</strong></td><td>Rule + ML hybrid</td><td>Delay probability with behavior enrichment</td><td>18-feature var + agent portfolio flags</td><td>Evidence-scored rule engine</td></tr>
   </table>
 </div>
 
@@ -876,8 +877,8 @@
     </div>
     <div class="timeline-item no-break">
       <div class="timeline-dot"></div>
-      <div class="timeline-label">Invoice Deep Dive</div>
-      <div class="timeline-desc">Sentinel alert banner, confidence indicator, candidate actions card, interaction timeline, CredCheck enrichment, "Run AI Analysis" button.</div>
+      <div class="timeline-label">Invoice Deep Dive — Asymmetric Premium UI</div>
+      <div class="timeline-desc">Showcases the clean 2-column aesthetic isolating Invoice History and Recommendations on the left, pushing deep probability analytics to the elegant right sidebar.</div>
     </div>
     <div class="timeline-item no-break">
       <div class="timeline-dot"></div>
