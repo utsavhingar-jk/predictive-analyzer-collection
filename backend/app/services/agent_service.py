@@ -10,8 +10,9 @@ Tools exposed to the agent:
   2. predict_invoice_delay      → DelayService
   3. optimize_collection_strategy → StrategyService
   4. get_borrower_risk          → BorrowerService
-  5. get_portfolio_summary      → CashflowService / mock_data
-  6. get_invoice_details        → mock_data lookup
+  5. get_portfolio_summary      → PortfolioIntelligenceService
+  6. get_invoice_details        → canonical portfolio lookup
+  7. get_portfolio_worklist     → prioritized escalation candidates
 
 Max iterations: 8 (safety guard against infinite loops)
 Falls back to rule-based pipeline if OpenAI is unavailable.
@@ -42,14 +43,31 @@ from app.services.cashflow_service import CashflowService
 from app.services.delay_service import DelayService
 from app.services.enrichment_service import EnrichmentService
 from app.services.interaction_service import InteractionService
+from app.services.portfolio_intelligence_service import PortfolioIntelligenceService
 from app.services.sentinel_service import SentinelService
 from app.services.strategy_service import StrategyService
-from app.utils.mock_data import MOCK_INVOICES, get_portfolio_summary
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
 MAX_ITERATIONS = 8
+PORTFOLIO_SCOPE_MARKERS = (
+    "portfolio",
+    "worklist",
+    "which cases",
+    "which invoices",
+    "which borrowers",
+    "which customers",
+    "top cases",
+    "highest risk",
+    "all invoices",
+    "all borrowers",
+    "all customers",
+    "across the portfolio",
+    "need escalation today",
+    "cases need escalation",
+    "collectors do in the next",
+)
 
 # ── System prompt ─────────────────────────────────────────────────────────────
 
@@ -65,6 +83,7 @@ How to behave:
 - Use get_borrower_enrichment to check MCA/GST/EPFO/bureau/legal health when risk is High or Critical.
 - Use get_borrower_risk when the question is about a customer holistically.
 - Use get_portfolio_summary only when asked about the full portfolio.
+- Use get_portfolio_worklist when asked which cases need escalation, prioritization, or collector action today.
 - If interaction history shows broken PTP + no answer pattern, escalate strategy severity.
 - If enrichment shows NCLT risk or GST suspension, escalate to Critical and recommend legal action.
 - After gathering data, synthesize a clear, direct, actionable recommendation grounded in evidence.
@@ -285,6 +304,32 @@ TOOLS: list[dict] = [
     {
         "type": "function",
         "function": {
+            "name": "get_portfolio_worklist",
+            "description": (
+                "Returns the prioritized collector worklist from the canonical portfolio. "
+                "Includes top escalation candidates with urgency, risk tier, delay probability, "
+                "priority score, and recommended action. "
+                "Use this for questions like 'Which cases need escalation today?'"
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "limit": {
+                        "type": "integer",
+                        "description": "How many cases to return. Default 5, max 20."
+                    },
+                    "only_escalation_candidates": {
+                        "type": "boolean",
+                        "description": "If true, return only High/Critical or clearly escalated cases."
+                    },
+                },
+                "required": [],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "check_external_signals",
             "description": (
                 "Sentinel Engine: checks external risk signals for a customer. "
@@ -356,6 +401,7 @@ class AgentService:
         self.strategy_svc = StrategyService()
         self.borrower_svc = BorrowerService()
         self.cashflow_svc = CashflowService()
+        self.portfolio_svc = PortfolioIntelligenceService()
         self.sentinel_svc = SentinelService()
         self.interaction_svc = InteractionService()
         self.enrichment_svc = EnrichmentService()
@@ -446,10 +492,11 @@ class AgentService:
         E.g. 'Which borrowers need escalation today?' or 'Analyze INV-2024-004'
         """
         context_parts = [req.question]
-        if req.invoice_id:
-            context_parts.append(f"(Focus on invoice: {req.invoice_id})")
-        if req.customer_id:
-            context_parts.append(f"(Customer ID: {req.customer_id})")
+        if not self._is_portfolio_question(req.question):
+            if req.invoice_id:
+                context_parts.append(f"(Focus on invoice: {req.invoice_id})")
+            if req.customer_id:
+                context_parts.append(f"(Customer ID: {req.customer_id})")
 
         prompt = " ".join(context_parts)
         trace, final_answer, iterations = await self._react_loop(prompt)
@@ -578,7 +625,9 @@ class AgentService:
             if name == "get_invoice_details":
                 return self._tool_invoice_details(args)
             if name == "get_portfolio_summary":
-                return get_portfolio_summary()
+                return await self._tool_portfolio_summary()
+            if name == "get_portfolio_worklist":
+                return await self._tool_portfolio_worklist(args)
             if name == "check_external_signals":
                 return self._tool_sentinel(args)
             if name == "get_interaction_history":
@@ -647,54 +696,132 @@ class AgentService:
         return result.model_dump()
 
     def _tool_borrower_risk(self, args: dict) -> dict:
-        # Look up customer info from MOCK_INVOICES
         customer_id = str(args.get("customer_id", ""))
+        rows = self.portfolio_svc.load_open_invoice_rows()
         customer_invoices = [
-            inv for inv in MOCK_INVOICES
-            if str(inv["customer_id"]) == customer_id
-            and inv["status"] in ("open", "overdue")
+            row for row in rows
+            if str(row.get("customer_id")) == customer_id
+            and str(row.get("status")) in ("open", "overdue")
         ]
         sample = customer_invoices[0] if customer_invoices else {}
 
         portfolio_total = sum(
-            inv["amount"] for inv in MOCK_INVOICES
-            if inv["status"] in ("open", "overdue")
+            float(row.get("amount") or 0.0)
+            for row in rows
+            if str(row.get("status")) in ("open", "overdue")
         )
         req = BorrowerPredictionRequest(
             customer_id=customer_id,
             customer_name=args.get("customer_name", sample.get("customer_name", "Unknown")),
             industry=sample.get("industry", "unknown"),
-            credit_score=sample.get("credit_score", 650),
-            avg_days_to_pay=sample.get("avg_days_to_pay", 30.0),
-            num_late_payments=sample.get("num_late_payments", 0),
+            credit_score=int(sample.get("credit_score", 650) or 650),
+            avg_days_to_pay=float(sample.get("avg_days_to_pay", 30.0) or 30.0),
+            payment_terms=int(sample.get("payment_terms", 30) or 30),
+            num_late_payments=int(sample.get("num_late_payments", 0) or 0),
         )
         result = self.borrower_svc.predict_borrower(req, portfolio_total=portfolio_total)
         return result.model_dump()
 
     def _tool_invoice_details(self, args: dict) -> dict:
-        invoice_id = args.get("invoice_id", "")
-        for inv in MOCK_INVOICES:
-            if inv["invoice_id"] == invoice_id:
+        invoice_id = str(args.get("invoice_id", ""))
+        results = self.portfolio_svc.build_portfolio_results_sync()
+        for result in results:
+            detail = result.as_invoice_detail()
+            if detail["invoice_id"] in {invoice_id, str(detail.get("invoice_number") or "")}:
                 return {
-                    "invoice_id": inv["invoice_id"],
-                    "customer_id": str(inv["customer_id"]),
-                    "customer_name": inv["customer_name"],
-                    "industry": inv.get("industry", "unknown"),
-                    "amount": inv["amount"],
-                    "status": inv["status"],
-                    "days_overdue": inv.get("days_overdue", 0),
-                    "risk_label": inv.get("risk_label", "Medium"),
-                    "credit_score": inv.get("credit_score", 650),
-                    "avg_days_to_pay": inv.get("avg_days_to_pay", 30),
-                    "num_late_payments": inv.get("num_late_payments", 0),
-                    "payment_terms": inv.get("payment_terms", 30),
-                    "customer_total_overdue": inv.get("customer_total_overdue", 0),
-                    "pay_7_days": inv.get("pay_7_days", 0),
-                    "pay_15_days": inv.get("pay_15_days", 0),
-                    "pay_30_days": inv.get("pay_30_days", 0),
-                    "recommended_action": inv.get("recommended_action", ""),
+                    "invoice_id": detail["invoice_id"],
+                    "invoice_number": detail["invoice_number"],
+                    "customer_id": detail["customer_id"],
+                    "customer_name": detail["customer_name"],
+                    "industry": detail["industry"],
+                    "amount": detail["amount"],
+                    "status": detail["status"],
+                    "days_overdue": detail["days_overdue"],
+                    "risk_label": detail["risk_label"],
+                    "risk_score": detail["risk_score"],
+                    "credit_score": detail["credit_score"],
+                    "avg_days_to_pay": detail["avg_days_to_pay"],
+                    "num_late_payments": detail["num_late_payments"],
+                    "payment_terms": detail["payment_terms"],
+                    "customer_total_overdue": detail["customer_total_overdue"],
+                    "pay_7_days": detail["pay_7_days"],
+                    "pay_15_days": detail["pay_15_days"],
+                    "pay_30_days": detail["pay_30_days"],
+                    "delay_probability": detail["delay_probability"],
+                    "urgency": detail["urgency"],
+                    "behavior_type": detail["behavior_type"],
+                    "recommended_action": detail["recommended_action"],
                 }
         return {"error": f"Invoice {invoice_id} not found"}
+
+    async def _tool_portfolio_summary(self) -> dict:
+        results = await self.portfolio_svc.build_portfolio_results()
+        total_outstanding = sum(float(result.invoice["amount"]) for result in results)
+        overdue_rows = [result for result in results if int(result.invoice["days_overdue"]) > 0]
+        risk_breakdown = {"High": 0, "Medium": 0, "Low": 0}
+        urgency_breakdown = {"Critical": 0, "High": 0, "Medium": 0, "Low": 0}
+        amount_at_risk = 0.0
+
+        for result in results:
+            risk_breakdown[result.delay.risk_tier] += 1
+            urgency_breakdown[result.strategy.urgency] += 1
+            if float(result.delay.delay_probability) > 0.60:
+                amount_at_risk += float(result.invoice["amount"])
+
+        return {
+            "total_invoices": len(results),
+            "total_outstanding": round(total_outstanding, 2),
+            "overdue_count": len(overdue_rows),
+            "overdue_amount": round(
+                sum(float(result.invoice["amount"]) for result in overdue_rows),
+                2,
+            ),
+            "amount_at_risk": round(amount_at_risk, 2),
+            "high_risk_count": risk_breakdown["High"],
+            "risk_breakdown": risk_breakdown,
+            "urgency_breakdown": urgency_breakdown,
+        }
+
+    async def _tool_portfolio_worklist(self, args: dict) -> dict:
+        limit = max(1, min(int(args.get("limit", 5) or 5), 20))
+        escalation_only = bool(args.get("only_escalation_candidates", True))
+        worklist = await self.portfolio_svc.get_prioritized_worklist()
+
+        if escalation_only:
+            filtered = [
+                item for item in worklist
+                if item.urgency in ("Critical", "High")
+                or float(item.delay_probability) >= 0.65
+                or str(item.risk_tier) == "High"
+            ]
+        else:
+            filtered = worklist
+
+        top_cases = filtered[:limit]
+        return {
+            "total_candidates": len(filtered),
+            "returned_candidates": len(top_cases),
+            "criteria": (
+                "Critical/High urgency or materially elevated delay risk."
+                if escalation_only
+                else "Top ranked invoices from the canonical collector worklist."
+            ),
+            "cases": [
+                {
+                    "invoice_id": item.invoice_id,
+                    "customer_name": item.customer_name,
+                    "amount": round(float(item.amount), 2),
+                    "days_overdue": int(item.days_overdue),
+                    "urgency": item.urgency,
+                    "risk_tier": item.risk_tier,
+                    "delay_probability": round(float(item.delay_probability), 4),
+                    "priority_score": int(item.priority_score),
+                    "recommended_action": item.recommended_action,
+                    "needs_escalation": item.urgency in ("Critical", "High"),
+                }
+                for item in top_cases
+            ],
+        }
 
     def _tool_interactions(self, args: dict) -> dict:
         invoice_id = str(args.get("invoice_id", ""))
@@ -788,6 +915,10 @@ class AgentService:
             if step.tool_name == tool_name and "error" not in step.tool_output:
                 return step.tool_output
         return None
+
+    def _is_portfolio_question(self, question: str) -> bool:
+        normalized = " ".join((question or "").lower().split())
+        return any(marker in normalized for marker in PORTFOLIO_SCOPE_MARKERS)
 
     # ── Rule-based fallbacks (used when OpenAI is unavailable) ────────────────
 

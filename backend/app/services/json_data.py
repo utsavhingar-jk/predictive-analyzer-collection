@@ -13,6 +13,34 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
+def _stable_customer_id(inv: dict) -> str:
+    """
+    Prefer business-facing borrower identifiers from the JSON payload.
+
+    The sample JSON can reuse internal Mongo-style `id` values across different
+    borrowers, which causes cross-borrower leakage in portfolio grouping and
+    agent context. Public IDs are stable across invoices and remain readable in
+    the UI/debug traces, so they are the safest fallback identifier here.
+    """
+    borrower = inv.get("borrower") or {}
+    raised_against = inv.get("invoiceRaisedAgainstUser") or {}
+    payee = inv.get("payee") or {}
+
+    for candidate in (
+        borrower.get("publicId"),
+        raised_against.get("publicId"),
+        payee.get("publicId"),
+        borrower.get("id"),
+        raised_against.get("id"),
+        payee.get("id"),
+        borrower.get("name"),
+        raised_against.get("name"),
+    ):
+        if candidate:
+            return str(candidate)
+    return str(inv.get("invoiceNumber") or inv.get("id") or "")
+
+
 def _find_invoices_json() -> Path | None:
     """Search multiple candidate paths for invoices.json."""
     this_file = Path(__file__).resolve()
@@ -75,7 +103,7 @@ def load_invoices_from_json() -> list[dict]:
             or "Unknown Customer"
         )
         invoice_id = inv.get("invoiceNumber") or inv.get("id") or ""
-        customer_id = (inv.get("borrower") or {}).get("id") or invoice_id
+        customer_id = _stable_customer_id(inv)
 
         rows.append({
             "invoice_id":       invoice_id,

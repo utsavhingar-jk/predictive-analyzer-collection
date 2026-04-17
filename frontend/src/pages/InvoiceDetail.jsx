@@ -91,6 +91,10 @@ export function InvoiceDetail() {
 
   useEffect(() => {
     let cancelled = false;
+    setInvoice(null);
+    setAgentResult(null);
+    setBorrowerPrediction(null);
+    setInteractions(null);
     async function load() {
       setLoading(true);
       setError(null);
