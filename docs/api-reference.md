@@ -63,7 +63,54 @@ Classify invoice risk level.
   "risk_label": "High",
   "risk_score": 0.82,
   "confidence": 0.91,
-  "model_version": "lgbm-v1"
+  "model_version": "xgboost-v1-inr"
+}
+```
+
+---
+
+### POST /predict/delay
+Predict invoice-level late-payment probability with behavior-aware enrichment.
+
+**Request body:**
+```json
+{
+  "invoice_id": "INV-2024-001",
+  "invoice_amount": 85000,
+  "days_overdue": 45,
+  "payment_terms": 30,
+  "customer_avg_invoice_amount": 27000,
+  "industry": "manufacturing",
+  "customer_credit_score": 580,
+  "customer_avg_days_to_pay": 52.0,
+  "num_previous_invoices": 5,
+  "num_late_payments": 5,
+  "customer_total_overdue": 145000,
+  "behavior_type": "Chronic Delayed Payer",
+  "on_time_ratio": 20,
+  "avg_delay_days_historical": 72,
+  "behavior_risk_score": 84,
+  "deterioration_trend": 0.7,
+  "followup_dependency": true
+}
+```
+
+**Response:**
+```json
+{
+  "invoice_id": "INV-2024-001",
+  "delay_probability": 0.91,
+  "risk_score": 89,
+  "risk_tier": "High",
+  "top_drivers": [
+    "8 prior late payments",
+    "Behavior: Chronic Delayed Payer",
+    "Credit score below 600"
+  ],
+  "model_version": "delay-v2",
+  "confidence": 0.88,
+  "evidence_score": 0.92,
+  "used_fallback": false
 }
 ```
 
@@ -104,6 +151,43 @@ SHAP feature explanation for a prediction.
   ],
   "base_value": 0.45,
   "prediction_value": 0.72
+}
+```
+
+## Behavior Analysis
+
+### POST /analyze/payment-behavior
+Classify borrower payment personality from historical signals.
+
+**Request body:**
+```json
+{
+  "customer_id": "CUST-001",
+  "customer_name": "Apex Manufacturing Inc.",
+  "historical_on_time_ratio": 0.2,
+  "avg_delay_days": 72,
+  "repayment_consistency": 0.35,
+  "partial_payment_frequency": 0.4,
+  "prior_delayed_invoice_count": 8,
+  "payment_after_followup_count": 5,
+  "total_invoices": 12,
+  "deterioration_trend": 0.7,
+  "invoice_acknowledgement_behavior": "delayed",
+  "transaction_success_failure_pattern": 0.3
+}
+```
+
+**Response:**
+```json
+{
+  "customer_id": "CUST-001",
+  "customer_name": "Apex Manufacturing Inc.",
+  "behavior_type": "Chronic Delayed Payer",
+  "trend": "Worsening",
+  "payment_style": "Reminder Driven",
+  "behavior_risk_score": 84,
+  "followup_dependency": true,
+  "nach_recommended": true
 }
 ```
 
@@ -172,11 +256,51 @@ Priority-sorted collector worklist.
     "days_overdue": 80,
     "risk_label": "High",
     "delay_probability": 0.82,
-    "priority_score": 102500,
+    "priority_score": 86,
     "recommended_action": "Escalate to Collections Agency"
   }
 ]
 ```
+
+---
+
+## Collection Strategy
+
+### POST /optimize/collection-strategy
+Return the exact next-best action, channel, urgency, and candidate actions for an invoice.
+
+**Request body:**
+```json
+{
+  "invoice_id": "INV-2024-001",
+  "customer_name": "Apex Manufacturing Inc.",
+  "invoice_amount": 85000,
+  "days_overdue": 45,
+  "delay_probability": 0.91,
+  "risk_tier": "High",
+  "nach_applicable": true,
+  "automation_feasible": false,
+  "behavior_type": "Chronic Delayed Payer",
+  "followup_dependency": true
+}
+```
+
+**Response:**
+```json
+{
+  "invoice_id": "INV-2024-001",
+  "priority_score": 86,
+  "recommended_action": "Call + NACH Mandate",
+  "urgency": "Critical",
+  "channel": "Call",
+  "reason": "Priority Critical: delay probability 91% + high risk tier + 45 DPD + chronic delayed payer behavior.",
+  "automation_flag": false,
+  "next_action_in_hours": 2
+}
+```
+
+### GET /optimize/portfolio-strategy
+Return a ranked list of strategy recommendations for the entire portfolio.
 
 ---
 

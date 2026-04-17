@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from inference.payment_predictor import predict as predict_payment
+from inference.default_predictor import predict_default as predict_default_probability
 from inference.risk_classifier import classify as classify_risk
 from inference.delay_predictor import predict_delay
 from inference.behavior_predictor import predict_behavior
@@ -42,10 +43,10 @@ class InvoiceFeatures(BaseModel):
     invoice_id: str
     invoice_amount: float = Field(..., gt=0)
     days_overdue: int = Field(..., ge=0)
-    customer_credit_score: int = Field(..., ge=300, le=850)
+    customer_credit_score: int = Field(..., ge=300, le=900)
     customer_avg_days_to_pay: float = Field(..., ge=0)
-    payment_terms: int = Field(default=30, ge=0)
-    num_previous_invoices: int = Field(default=0, ge=0)
+    payment_terms: int = Field(default=30, ge=1)
+    num_previous_invoices: int = Field(default=1, ge=1)
     num_late_payments: int = Field(default=0, ge=0)
     industry: str = "unknown"
     customer_total_overdue: float = 0.0
@@ -81,10 +82,10 @@ class DelayFeatures(BaseModel):
     days_overdue: int
     payment_terms: int = 30
     customer_avg_invoice_amount: float = 0.0
-    customer_credit_score: int = 650
+    customer_credit_score: int = Field(default=650, ge=300, le=900)
     customer_avg_days_to_pay: float = 30.0
     num_late_payments: int = 0
-    num_previous_invoices: int = 10
+    num_previous_invoices: int = Field(default=10, ge=1)
     industry: str = "unknown"
     customer_total_overdue: float = 0.0
     behavior_type: str | None = None
@@ -110,7 +111,7 @@ class BorrowerFeatures(BaseModel):
     customer_id: str
     customer_name: str
     industry: str = "unknown"
-    credit_score: int = 650
+    credit_score: int = Field(default=650, ge=300, le=900)
     avg_days_to_pay: float = 30.0
     payment_terms: int = 30
     num_late_payments: int = 0
@@ -467,6 +468,21 @@ def predict_delay_endpoint(request: DelayFeatures) -> dict:
         "model_version": version,
         "feature_drivers": feature_drivers,
         "explanation": explanation,
+    }
+
+
+@app.post("/predict/default", tags=["Predictions"])
+def predict_default_endpoint(request: InvoiceFeatures) -> dict:
+    """Default proxy probability: invoice remains unpaid after 30 days."""
+    result = predict_default_probability(request.model_dump())
+    return {
+        "invoice_id": request.invoice_id,
+        "default_probability": round(float(result["default_probability"]), 4),
+        "default_risk_tier": result["default_risk_tier"],
+        "confidence": round(float(result["confidence"]), 4),
+        "model_version": result["model_version"],
+        "feature_drivers": result.get("feature_drivers", []),
+        "explanation": result.get("explanation"),
     }
 
 

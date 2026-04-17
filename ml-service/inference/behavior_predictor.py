@@ -35,7 +35,15 @@ FEATURE_ORDER = [
     "invoice_acknowledgement_encoded",
 ]
 
-ACK_MAP = {"normal": 0, "slow": 1, "unresponsive": 2}
+ACK_MAP = {
+    "normal": 0,
+    "delayed": 1,
+    "ignored": 2,
+    "disputed": 3,
+    # Backward-compatible aliases for older synthetic rows / payloads
+    "slow": 1,
+    "unresponsive": 2,
+}
 FEATURE_LABELS = {
     "historical_on_time_ratio": "Historical On-Time Ratio",
     "avg_delay_days": "Average Delay Days",

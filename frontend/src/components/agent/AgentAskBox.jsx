@@ -6,7 +6,7 @@
  * Shows the reasoning trace after the agent answers.
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bot, Send, Loader2, Sparkles, Brain } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AgentReasoningTrace } from "./AgentReasoningTrace";
@@ -24,6 +24,13 @@ export function AgentAskBox({ invoiceId, customerId }) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    setQuestion("");
+    setResult(null);
+    setError(null);
+    setLoading(false);
+  }, [invoiceId, customerId]);
 
   async function handleAsk(q) {
     const text = q || question;

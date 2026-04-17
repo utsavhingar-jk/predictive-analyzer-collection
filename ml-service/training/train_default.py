@@ -1,11 +1,9 @@
 """
-XGBoost Risk Classification Training Pipeline — INR Edition.
+XGBoost default-proxy training pipeline.
 
-Trains a multi-class classifier:
-  0 = Low Risk, 1 = Medium Risk, 2 = High Risk
-
-Usage:
-    python training/train_risk.py
+Target:
+  probability the invoice remains unpaid after 30 days
+  -> trained as binary classification on (1 - paid_in_30)
 """
 
 import json
@@ -24,7 +22,7 @@ DATASET_PATH = ROOT / "datasets" / "invoices.csv"
 MODEL_DIR = ROOT / "serialized_models"
 MODEL_DIR.mkdir(exist_ok=True)
 
-MODEL_NAME = "risk_classifier_xgb"
+MODEL_NAME = "default_model_30d"
 
 FEATURE_COLS = [
     "invoice_amount",
@@ -37,41 +35,32 @@ FEATURE_COLS = [
     "customer_total_overdue",
 ]
 
-LGBM_PARAMS = {
-    "objective": "multi:softprob",
-    "num_class": 3,
-    "max_depth": 6,
-    "learning_rate": 0.06,
-    "n_estimators": 400,
+XGB_PARAMS = {
+    "max_depth": 5,
+    "learning_rate": 0.08,
+    "n_estimators": 300,
     "subsample": 0.85,
     "colsample_bytree": 0.85,
-    "eval_metric": "mlogloss",
+    "eval_metric": "logloss",
     "random_state": 42,
 }
-
-LABEL_MAP = {0: "Low", 1: "Medium", 2: "High"}
 
 
 def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     df["terms_gap_days"] = df["customer_avg_days_to_pay"] - df["payment_terms"]
     df["terms_stress"] = df["terms_gap_days"].clip(lower=0) / df["payment_terms"].clip(lower=1)
-    prev = df["num_previous_invoices"] if "num_previous_invoices" in df.columns else pd.Series([10] * len(df))
-    df["late_payment_rate"] = df["num_late_payments"] / prev.clip(lower=1).values
-
+    df["late_payment_rate"] = df["num_late_payments"] / df["num_previous_invoices"].clip(lower=1)
     df["log_amount"] = np.log1p(df["invoice_amount"])
     df["log_overdue_ar"] = np.log1p(df["customer_total_overdue"])
     df["credit_norm"] = (df["customer_credit_score"] - 300) / 600
-
     df["amount_tier"] = pd.cut(
         df["invoice_amount"],
         bins=[0, 100_000, 500_000, 2_000_000, 10_000_000, float("inf")],
         labels=[0, 1, 2, 3, 4],
     ).astype(int)
-
     df["exposure_ratio"] = df["customer_total_overdue"] / df["invoice_amount"].clip(lower=1)
     df["credit_x_terms_stress"] = df["credit_norm"] * df["terms_stress"]
-
     return df
 
 
@@ -90,20 +79,16 @@ ENGINEERED_COLS = [
 
 def main() -> None:
     print("=" * 60)
-    print("AI Collector — Risk Classification Training (XGBoost, INR)")
+    print("AI Collector — Default Probability Training")
     print("=" * 60)
 
     df = pd.read_csv(DATASET_PATH)
-    print(f"Loaded {len(df)} records | Currency: INR")
+    print(f"Loaded {len(df)} records")
     df = engineer_features(df)
-
-    counts = df["risk_label"].value_counts().sort_index()
-    for k, v in counts.items():
-        print(f"  {LABEL_MAP[k]:8s}: {v:4d}  ({v/len(df):.1%})")
 
     all_features = FEATURE_COLS + ENGINEERED_COLS
     X = df[all_features].fillna(0)
-    y = df["risk_label"]
+    y = 1 - df["paid_in_30"]
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.20, random_state=42, stratify=y
@@ -113,19 +98,17 @@ def main() -> None:
     X_train_s = scaler.fit_transform(X_train)
     X_test_s = scaler.transform(X_test)
 
-    model = xgb.XGBClassifier(**LGBM_PARAMS)
+    neg = (y_train == 0).sum()
+    pos = (y_train == 1).sum()
+    spw = neg / pos if pos > 0 else 1.0
+
+    model = xgb.XGBClassifier(**XGB_PARAMS, scale_pos_weight=spw)
     model.fit(X_train_s, y_train, eval_set=[(X_test_s, y_test)], verbose=False)
 
-    y_pred = model.predict(X_test_s)
-    print("\nClassification Report:")
-    print(classification_report(y_test, y_pred, target_names=["Low", "Medium", "High"]))
-
-    proba = model.predict_proba(X_test_s)
-    try:
-        auc = roc_auc_score(y_test, proba, multi_class="ovr", average="weighted")
-        print(f"Weighted OvR AUC: {auc:.4f}")
-    except Exception:
-        pass
+    y_pred_proba = model.predict_proba(X_test_s)[:, 1]
+    auc = roc_auc_score(y_test, y_pred_proba)
+    print(f"AUC-ROC: {auc:.4f}  |  scale_pos_weight: {spw:.2f}")
+    print(classification_report(y_test, model.predict(X_test_s)))
 
     with open(MODEL_DIR / f"{MODEL_NAME}.pkl", "wb") as f:
         pickle.dump(model, f)
@@ -134,20 +117,18 @@ def main() -> None:
 
     meta = {
         "model_name": MODEL_NAME,
-        "target": "risk_label",
-        "label_map": {str(k): v for k, v in LABEL_MAP.items()},
+        "target": "not_paid_in_30",
         "features": all_features,
-        "xgb_params": LGBM_PARAMS,
+        "auc_roc": round(auc, 4),
         "n_train": len(X_train),
         "n_test": len(X_test),
-        "currency": "INR",
         "dataset_rows": len(df),
+        "xgb_params": XGB_PARAMS,
     }
     with open(MODEL_DIR / f"{MODEL_NAME}_meta.json", "w") as f:
         json.dump(meta, f, indent=2)
 
-    print(f"\nSaved: {MODEL_DIR / MODEL_NAME}.pkl")
-    print("Risk classifier trained successfully.")
+    print(f"Saved: {MODEL_DIR / MODEL_NAME}.pkl")
 
 
 if __name__ == "__main__":

@@ -1,173 +1,93 @@
-"""
-Enhanced Cashflow Forecast Service.
+"""Predictive cashflow forecast built from portfolio payment and delay models."""
 
-Incorporates:
-- predicted pay probabilities
-- delay probabilities (1 - pay_30_days)
-- invoice amount concentration
-- borrower concentration risk
-- overdue carry-forward estimate
-- shortfall signal
-"""
-
-import logging
 from datetime import date, timedelta
 
-from sqlalchemy import text
-
-from app.core.database import SessionLocal
 from app.schemas.forecast import CashflowForecastResponse, DailyForecast
-from app.services.json_data import load_invoices_from_json
-from app.services.risk_scoring import (
-    build_amount_reference,
-    delay_probability_from_score,
-    risk_score,
-)
-
-logger = logging.getLogger(__name__)
+from app.services.portfolio_intelligence_service import PortfolioIntelligenceService
 
 
 class CashflowService:
-    # Shortfall threshold: flag if expected collections < this % of total outstanding
     SHORTFALL_THRESHOLD = 0.70
 
-    def forecast(self) -> CashflowForecastResponse:
-        """
-        Build an enhanced 30-day cashflow forecast.
+    def __init__(self) -> None:
+        self.portfolio_svc = PortfolioIntelligenceService()
 
-        Each invoice contributes:
-          expected_inflow = amount × pay_probability × recency_weight
+    async def forecast(self) -> CashflowForecastResponse:
+        results = await self.portfolio_svc.build_portfolio_results()
+        return self._build_forecast(results)
 
-        Additional signals:
-          - amount_at_risk: sum of amounts with delay_prob > 0.60
-          - overdue_carry_forward: expected uncollected overdue in 30d
-          - borrower_concentration_risk: top single borrower as % of outstanding
-          - shortfall_signal: expected_30d < 70% of total outstanding
-        """
-        try:
-            with SessionLocal() as db:
-                db_rows = db.execute(
-                    text(
-                        """
-                        SELECT
-                            i.invoice_number AS invoice_id,
-                            c.name AS customer_name,
-                            COALESCE(i.outstanding_amount, i.amount) AS amount,
-                            i.due_date,
-                            i.days_overdue,
-                            i.status
-                        FROM invoices i
-                        LEFT JOIN customers c ON c.id = i.customer_id
-                        WHERE i.status IN ('open', 'overdue')
-                        """
-                    )
-                ).mappings().all()
-            invoices = []
-            for row in db_rows:
-                days_overdue = int(row["days_overdue"] or 0)
-                pay_30 = max(0.05, min(0.95, 1.0 - (days_overdue / 45.0)))
-                invoices.append(
-                    {
-                        "invoice_id": row["invoice_id"],
-                        "customer_name": row["customer_name"] or "Unknown Customer",
-                        "amount": float(row["amount"] or 0),
-                        "due_date": row["due_date"],
-                        "status": row["status"],
-                        "days_overdue": days_overdue,
-                        "pay_30_days": pay_30,
-                    }
-                )
-        except Exception as exc:
-            logger.warning("CashflowService: DB unavailable (%s) — using JSON fallback", exc)
-            raw = load_invoices_from_json()
-            invoices = []
-            for row in raw:
-                days_overdue = int(row["days_overdue"] or 0)
-                pay_30 = max(0.05, min(0.95, 1.0 - (days_overdue / 45.0)))
-                invoices.append(
-                    {
-                        "invoice_id": row["invoice_id"],
-                        "customer_name": row["customer_name"],
-                        "amount": float(row["amount"] or 0),
-                        "due_date": row["due_date"],   # already a date object
-                        "status": row["status"],
-                        "days_overdue": days_overdue,
-                        "pay_30_days": pay_30,
-                    }
-                )
-        return self._build_forecast_from_invoices(invoices)
-
-    def _build_forecast_from_invoices(self, invoices: list[dict]) -> CashflowForecastResponse:
+    def _build_forecast(self, results) -> CashflowForecastResponse:
         today = date.today()
-        daily: dict[date, dict] = {}
-
-        for i in range(30):
-            d = today + timedelta(days=i)
-            daily[d] = {"predicted": 0.0, "lower": 0.0, "upper": 0.0}
+        daily: dict[date, dict[str, float]] = {
+            today + timedelta(days=offset): {"predicted": 0.0, "lower": 0.0, "upper": 0.0}
+            for offset in range(30)
+        }
 
         total_outstanding = 0.0
         amount_at_risk = 0.0
         overdue_carry_forward = 0.0
+        weighted_confidence = 0.0
         customer_amounts: dict[str, float] = {}
-        amount_reference = build_amount_reference(inv["amount"] for inv in invoices)
 
-        for inv in invoices:
-            if inv["status"] not in ("open", "overdue"):
-                continue
-
-            due = inv["due_date"]
-            amount = inv["amount"]
-            combined_risk = risk_score(int(inv.get("days_overdue", 0) or 0), amount, amount_reference)
-            delay_prob = delay_probability_from_score(combined_risk)
-            pay_prob = max(0.05, min(0.95, 1.0 - delay_prob))
-            customer = inv["customer_name"]
-
+        for result in results:
+            amount = float(result.invoice["amount"])
+            customer = str(result.invoice["customer_name"])
             total_outstanding += amount
             customer_amounts[customer] = customer_amounts.get(customer, 0.0) + amount
+            weighted_confidence += amount * float(result.delay.confidence)
 
-            # Track amount at risk (delay_prob > 0.60)
-            if delay_prob > 0.60:
+            if result.delay.delay_probability > 0.60:
                 amount_at_risk += amount
 
-            # Overdue carry-forward: expected uncollected in 30 days
-            overdue_carry_forward += amount * delay_prob
+            overdue_carry_forward += amount * max(1.0 - result.payment.pay_30_days, 0.0)
 
-            # For overdue invoices, spread expected recovery over near-term horizon.
-            if due < today:
-                due = today + timedelta(days=min(max(inv.get("days_overdue", 0) // 3, 1), 10))
-
-            # Distribute expected inflow across forecast window
-            for offset in range(-3, 4):
-                target_date = due + timedelta(days=offset)
-                if target_date not in daily:
+            bucket_0_7, bucket_8_15, bucket_16_30, _tail = (
+                result.incremental_payment_probabilities()
+            )
+            for start_day, end_day, probability in (
+                (0, 7, bucket_0_7),
+                (7, 15, bucket_8_15),
+                (15, 30, bucket_16_30),
+            ):
+                if probability <= 0:
                     continue
-                weight = max(0.0, 1.0 - abs(offset) * 0.15)
-                contribution = amount * pay_prob * weight / 4
-                daily[target_date]["predicted"] += contribution
-                daily[target_date]["lower"] += contribution * 0.75
-                daily[target_date]["upper"] += contribution * 1.25
+                daily_amount = amount * probability / max(end_day - start_day, 1)
+                uncertainty = max(0.15, 1.0 - float(result.delay.confidence))
+                lower_multiplier = max(0.55, 1.0 - uncertainty * 0.8)
+                upper_multiplier = 1.0 + uncertainty * 0.8
 
-        # Build breakdown
+                for offset in range(start_day, end_day):
+                    target = today + timedelta(days=offset)
+                    if target not in daily:
+                        continue
+                    daily[target]["predicted"] += daily_amount
+                    daily[target]["lower"] += daily_amount * lower_multiplier
+                    daily[target]["upper"] += daily_amount * upper_multiplier
+
         breakdown: list[DailyForecast] = []
         total_7 = 0.0
+        total_15 = 0.0
         total_30 = 0.0
 
-        for i, (day, vals) in enumerate(sorted(daily.items())):
-            df = DailyForecast(
-                date=day.isoformat(),
-                predicted_inflow=round(vals["predicted"], 2),
-                lower_bound=round(vals["lower"], 2),
-                upper_bound=round(vals["upper"], 2),
+        for index, forecast_day in enumerate(sorted(daily)):
+            values = daily[forecast_day]
+            breakdown.append(
+                DailyForecast(
+                    date=forecast_day.isoformat(),
+                    predicted_inflow=round(values["predicted"], 2),
+                    lower_bound=round(values["lower"], 2),
+                    upper_bound=round(values["upper"], 2),
+                )
             )
-            breakdown.append(df)
-            total_30 += vals["predicted"]
-            if i < 7:
-                total_7 += vals["predicted"]
+            total_30 += values["predicted"]
+            if index < 15:
+                total_15 += values["predicted"]
+            if index < 7:
+                total_7 += values["predicted"]
 
-        # Borrower concentration risk
         if customer_amounts and total_outstanding > 0:
-            max_single = max(customer_amounts.values())
-            concentration_pct = max_single / total_outstanding
+            max_single_exposure = max(customer_amounts.values())
+            concentration_pct = max_single_exposure / total_outstanding
             if concentration_pct > 0.40:
                 borrower_concentration = "High"
             elif concentration_pct > 0.20:
@@ -177,16 +97,17 @@ class CashflowService:
         else:
             borrower_concentration = "Low"
 
-        # Shortfall signal
+        confidence = round(weighted_confidence / max(total_outstanding, 1.0), 4) if total_outstanding else 0.0
         shortfall = total_outstanding > 0 and (total_30 / total_outstanding) < self.SHORTFALL_THRESHOLD
 
         return CashflowForecastResponse(
             next_7_days_inflow=round(total_7, 2),
+            next_15_days_inflow=round(total_15, 2),
             next_30_days_inflow=round(total_30, 2),
             daily_breakdown=breakdown,
-            confidence=0.82,
-            # Enhanced fields
+            confidence=confidence,
             expected_7_day_collections=round(total_7, 2),
+            expected_15_day_collections=round(total_15, 2),
             expected_30_day_collections=round(total_30, 2),
             amount_at_risk=round(amount_at_risk, 2),
             shortfall_signal=shortfall,

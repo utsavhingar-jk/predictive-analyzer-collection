@@ -2,13 +2,13 @@
 XGBoost Payment Probability Training Pipeline — INR Edition.
 
 Trains three binary classifiers (one per time horizon: 7, 15, 30 days)
-on a 1500-record INR dataset of Indian B2B invoices.
+on a future-looking synthetic INR dataset of Indian B2B invoices.
 
 Changes from v1:
   - Amounts in INR — log-normalised to handle ₹25K–₹5Cr range
   - CIBIL score range (300–900) normalised
   - class_weight='balanced' via scale_pos_weight to handle imbalance
-  - Additional engineered features: credit_bucket, overdue_band, amount_tier
+  - Pre-outcome-safe engineered features only (no current DPD leakage)
 
 Usage:
     python training/train_payment.py
@@ -32,7 +32,6 @@ MODEL_DIR.mkdir(exist_ok=True)
 
 FEATURE_COLS = [
     "invoice_amount",
-    "days_overdue",
     "customer_credit_score",
     "customer_avg_days_to_pay",
     "payment_terms",
@@ -62,23 +61,17 @@ XGB_PARAMS = {
 def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
-    # Core ratios
-    df["overdue_ratio"]     = df["days_overdue"] / df["payment_terms"].clip(lower=1)
+    # Pre-outcome-safe historical stress signals
+    df["terms_gap_days"] = df["customer_avg_days_to_pay"] - df["payment_terms"]
+    df["terms_stress"] = df["terms_gap_days"].clip(lower=0) / df["payment_terms"].clip(lower=1)
     df["late_payment_rate"] = df["num_late_payments"] / df["num_previous_invoices"].clip(lower=1)
 
     # Log transforms — important for INR amounts spanning 4 orders of magnitude
-    df["log_amount"]        = np.log1p(df["invoice_amount"])
-    df["log_overdue_ar"]    = np.log1p(df["customer_total_overdue"])
+    df["log_amount"] = np.log1p(df["invoice_amount"])
+    df["log_overdue_ar"] = np.log1p(df["customer_total_overdue"])
 
     # CIBIL normalised to 0–1 (300–900 range)
-    df["credit_norm"]       = (df["customer_credit_score"] - 300) / 600
-
-    # Overdue severity band
-    df["overdue_band"] = pd.cut(
-        df["days_overdue"],
-        bins=[-1, 0, 30, 60, 90, 999],
-        labels=[0, 1, 2, 3, 4],
-    ).astype(int)
+    df["credit_norm"] = (df["customer_credit_score"] - 300) / 600
 
     # Amount tier (INR-specific buckets)
     df["amount_tier"] = pd.cut(
@@ -87,21 +80,23 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
         labels=[0, 1, 2, 3, 4],
     ).astype(int)
 
-    # Interaction: credit × overdue
-    df["credit_x_overdue"] = df["credit_norm"] * df["overdue_ratio"]
-
-    # Customer stress ratio
-    df["stress_ratio"] = df["customer_total_overdue"] / df["invoice_amount"].clip(lower=1)
-    df["log_stress"]   = np.log1p(df["stress_ratio"])
+    # Exposure stress at prediction time
+    df["exposure_ratio"] = df["customer_total_overdue"] / df["invoice_amount"].clip(lower=1)
+    df["credit_x_terms_stress"] = df["credit_norm"] * df["terms_stress"]
 
     return df
 
 
 ENGINEERED_COLS = [
-    "overdue_ratio", "late_payment_rate",
-    "log_amount", "log_overdue_ar",
-    "credit_norm", "overdue_band", "amount_tier",
-    "credit_x_overdue", "log_stress",
+    "terms_gap_days",
+    "terms_stress",
+    "late_payment_rate",
+    "log_amount",
+    "log_overdue_ar",
+    "credit_norm",
+    "amount_tier",
+    "exposure_ratio",
+    "credit_x_terms_stress",
 ]
 
 

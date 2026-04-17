@@ -27,6 +27,10 @@ from app.schemas.borrower import (
     BorrowerPredictionResponse,
 )
 from app.services.llm_refiner import LLMRefiner
+from app.services.portfolio_intelligence_service import (
+    PortfolioCustomerSnapshot,
+    PortfolioIntelligenceService,
+)
 from app.services.json_data import load_invoices_from_json
 
 logger = logging.getLogger(__name__)
@@ -44,6 +48,7 @@ class BorrowerService:
         self.ml_base = settings.ML_SERVICE_URL
         self.timeout = 10.0
         self.refiner = LLMRefiner()
+        self.portfolio_svc = PortfolioIntelligenceService()
         # Shared client: thread-safe for concurrent POSTs; avoids new TCP pool per borrower
         self._http = httpx.Client(timeout=self.timeout)
 
@@ -82,6 +87,7 @@ class BorrowerService:
             ml_result = BorrowerPredictionResponse(**resp.json())
             ml_result.prediction_source = "ml"
             ml_result.llm_refined = False
+            ml_result.llm_used = False
             ml_result.used_fallback = False
             ml_result.explanation = ml_result.explanation or (
                 f"Phase 1 ML output ({ml_result.model_version}) generated from borrower exposure and invoice-level features."
@@ -105,6 +111,7 @@ class BorrowerService:
                     ml_result.model_version = f"{ml_result.model_version}+gpt-refiner-v1"
                     ml_result.prediction_source = "ml+llm"
                     ml_result.llm_refined = True
+                    ml_result.llm_used = True
                     ml_result.used_fallback = False
                     ml_result.explanation = refined["explanation"]
             return ml_result
@@ -308,6 +315,7 @@ class BorrowerService:
             model_version="borrower-rule-v1",
             prediction_source="rule-based",
             llm_refined=False,
+            llm_used=False,
             used_fallback=True,
             explanation="Phase 3 fallback: rule-based borrower aggregation using weighted delay, overdue ratio, concentration, and credit stress.",
         )
@@ -412,8 +420,48 @@ class BorrowerService:
 
     # ── Private helpers ───────────────────────────────────────────────────────
 
+    def _load_portfolio_customer_snapshots(
+        self,
+    ) -> tuple[dict[str, PortfolioCustomerSnapshot], float]:
+        snapshots = self.portfolio_svc.build_customer_snapshots_sync()
+        snapshot_map = {snapshot.customer_id: snapshot for snapshot in snapshots}
+        portfolio_total = round(
+            sum(snapshot.total_outstanding() for snapshot in snapshots),
+            2,
+        )
+        return snapshot_map, portfolio_total
+
+    @staticmethod
+    def _snapshot_to_invoice_summaries(
+        snapshot: PortfolioCustomerSnapshot,
+    ) -> list[BorrowerInvoiceSummary]:
+        return [
+            BorrowerInvoiceSummary(
+                invoice_id=str(item.invoice["invoice_id"]),
+                amount=round(float(item.invoice["amount"]), 2),
+                days_overdue=int(item.invoice["days_overdue"]),
+                status=str(item.invoice["status"]),
+                risk_label=item.delay.risk_tier,
+                delay_probability=round(float(item.delay.delay_probability), 4),
+                pay_30_days=round(float(item.payment.pay_30_days), 4),
+                recommended_action=item.strategy.recommended_action,
+            )
+            for item in snapshot.invoices
+        ]
+
     def _load_borrower_invoices(self, customer_id: str) -> list[BorrowerInvoiceSummary]:
         """Look up open invoices for a customer from database."""
+        try:
+            snapshot_map, _portfolio_total = self._load_portfolio_customer_snapshots()
+            snapshot = snapshot_map.get(str(customer_id))
+            if snapshot:
+                return self._snapshot_to_invoice_summaries(snapshot)
+        except Exception as exc:
+            logger.warning(
+                "Failed loading borrower invoices from portfolio intelligence (%s), falling back",
+                exc,
+            )
+
         try:
             with SessionLocal() as db:
                 rows = db.execute(
@@ -478,6 +526,29 @@ class BorrowerService:
 
     def _load_portfolio_customer_map(self) -> tuple[dict[str, dict], float]:
         """Load grouped borrower invoice map from database rows."""
+        try:
+            snapshot_map, portfolio_total = self._load_portfolio_customer_snapshots()
+            if snapshot_map:
+                customer_map = {
+                    customer_id: {
+                        "customer_id": snapshot.customer_id,
+                        "customer_name": snapshot.customer_name,
+                        "industry": snapshot.industry,
+                        "credit_score": snapshot.credit_score,
+                        "avg_days_to_pay": snapshot.avg_days_to_pay,
+                        "payment_terms": snapshot.payment_terms,
+                        "num_late_payments": snapshot.num_late_payments,
+                        "invoices": self._snapshot_to_invoice_summaries(snapshot),
+                    }
+                    for customer_id, snapshot in snapshot_map.items()
+                }
+                return customer_map, portfolio_total
+        except Exception as exc:
+            logger.warning(
+                "Failed loading borrower portfolio from portfolio intelligence (%s), falling back",
+                exc,
+            )
+
         try:
             with SessionLocal() as db:
                 rows = db.execute(
@@ -584,6 +655,26 @@ class BorrowerService:
     def get_borrower_request_by_customer_id(
         self, customer_id: str
     ) -> Optional[BorrowerPredictionRequest]:
+        try:
+            snapshot_map, _portfolio_total = self._load_portfolio_customer_snapshots()
+            snapshot = snapshot_map.get(str(customer_id))
+            if snapshot:
+                return BorrowerPredictionRequest(
+                    customer_id=snapshot.customer_id,
+                    customer_name=snapshot.customer_name,
+                    industry=snapshot.industry,
+                    credit_score=snapshot.credit_score,
+                    avg_days_to_pay=snapshot.avg_days_to_pay,
+                    payment_terms=snapshot.payment_terms,
+                    num_late_payments=snapshot.num_late_payments,
+                    invoices=self._snapshot_to_invoice_summaries(snapshot),
+                )
+        except Exception as exc:
+            logger.warning(
+                "Failed loading borrower request from portfolio intelligence (%s), falling back",
+                exc,
+            )
+
         customer_invoices = self._load_borrower_invoices(customer_id)
         if not customer_invoices:
             return None
@@ -720,6 +811,7 @@ class BorrowerService:
             model_version="borrower-rule-v1",
             prediction_source="rule-based",
             llm_refined=False,
+            llm_used=False,
             used_fallback=True,
             explanation="Phase 3 fallback: no open invoices available for ML/LLM borrower scoring.",
         )

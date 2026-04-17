@@ -82,6 +82,17 @@ const TOOL_CONFIG = {
     icon_color: "text-teal-500",
     bar_color: "bg-teal-500",
   },
+  get_portfolio_worklist: {
+    label: "Escalation Worklist",
+    shortLabel: "Worklist",
+    icon: BarChart3,
+    gradient: "from-cyan-500/10 to-cyan-500/5",
+    border: "border-cyan-400/30",
+    dot: "bg-cyan-500",
+    badge: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800",
+    icon_color: "text-cyan-500",
+    bar_color: "bg-cyan-500",
+  },
 };
 
 const DEFAULT_CONFIG = {

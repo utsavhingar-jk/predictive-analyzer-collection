@@ -67,7 +67,7 @@ def pick_archetype():
 
 
 def _delay_prob_and_risk(
-    days_overdue: int,
+    avg_days_to_pay: float,
     payment_terms: int,
     credit_score: int,
     num_prev: int,
@@ -77,23 +77,31 @@ def _delay_prob_and_risk(
     industry_code: int,
     label_bias: float,
     noise_scale: float = 0.06,
-) -> tuple[float, int, int, int, int]:
-    """Shared label logic for payment (7/15/30), delay target, and risk_label."""
+) -> tuple[float, int, int, int, int, int]:
+    """Shared future-looking label logic for payment, delay, and risk targets."""
     ind = INDUSTRIES[industry_code]
+    terms_gap = max(0.0, avg_days_to_pay - payment_terms)
+    terms_stress = terms_gap / max(payment_terms, 1)
+    late_payment_rate = num_late / max(num_prev, 1)
+    exposure_ratio = customer_total_overdue / max(invoice_amount * 4, 1)
+    amount_stress = min(1.0, np.log1p(invoice_amount) / np.log1p(ind["max"]))
     base_delay_prob = (
-        (days_overdue / max(payment_terms, 1)) * 0.35
-        + (1 - credit_score / 900) * 0.25
-        + (num_late / max(num_prev, 1)) * 0.20
-        + (customer_total_overdue / max(invoice_amount * 5, 1)) * 0.10
+        terms_stress * 0.28
+        + (1 - credit_score / 900) * 0.24
+        + late_payment_rate * 0.22
+        + exposure_ratio * 0.12
+        + amount_stress * 0.06
         + ind["delay_bias"] * 0.10
-        + label_bias * 0.15
+        + label_bias * 0.12
     )
     noise = np.random.normal(0, noise_scale)
     delay_prob = float(np.clip(base_delay_prob + noise, 0.01, 0.99))
 
-    p7 = max(0.0, 0.95 - delay_prob * 2.2 - days_overdue * 0.02)
-    p15 = max(0.0, 0.90 - delay_prob * 1.5 - days_overdue * 0.01)
-    p30 = max(0.0, 0.85 - delay_prob * 0.90)
+    will_be_late_in_30_days = int(random.random() < delay_prob)
+
+    p7 = max(0.0, 0.92 - delay_prob * 1.15 - late_payment_rate * 0.18 - terms_stress * 0.12)
+    p15 = max(0.0, 0.88 - delay_prob * 0.92 - late_payment_rate * 0.10 - terms_stress * 0.08)
+    p30 = max(0.0, 0.84 - delay_prob * 0.74)
     p7, p15, p30 = min(p7, 0.98), min(p15, 0.98), min(p30, 0.98)
 
     paid_in_7 = int(random.random() < p7)
@@ -114,7 +122,7 @@ def _delay_prob_and_risk(
     if random.random() < 0.05:
         risk_label = random.randint(0, 2)
 
-    return delay_prob, paid_in_7, paid_in_15, paid_in_30, risk_label
+    return delay_prob, will_be_late_in_30_days, paid_in_7, paid_in_15, paid_in_30, risk_label
 
 
 def generate_record(i: int) -> dict:
@@ -137,29 +145,12 @@ def generate_record(i: int) -> dict:
     num_late       = int(round(num_prev * late_rate * random.uniform(0.6, 1.4)))
     num_late       = max(0, min(num_late, num_prev))
 
-    # ── Days overdue ──────────────────────────────────────────────────────────
-    # Higher archetype bias → more likely to be overdue and by more days
-    overdue_prob = 0.15 + label_bias * 0.5 + ind["delay_bias"]
-    overdue_prob = max(0.05, min(0.95, overdue_prob))
-
-    is_overdue = random.random() < overdue_prob
-    if is_overdue:
-        # Overdue days correlated with payment behavior
-        max_overdue = int(90 + label_bias * 120)
-        days_overdue = random.randint(1, max(1, max_overdue))
-    else:
-        days_overdue = 0
-
     # ── Customer total overdue (across all their invoices) ────────────────────
-    if is_overdue and random.random() < 0.6:
-        # Customer likely has more overdue invoices
-        multiplier = random.uniform(1.0, 4.0)
-        customer_total_overdue = round(invoice_amount * multiplier, -3)
-    else:
-        customer_total_overdue = invoice_amount if is_overdue else 0
+    projected_overdue_multiplier = max(0.0, late_rate * random.uniform(0.6, 1.8) + max(label_bias, 0.0))
+    customer_total_overdue = round(invoice_amount * projected_overdue_multiplier, -3)
 
-    delay_prob, paid_in_7, paid_in_15, paid_in_30, risk_label = _delay_prob_and_risk(
-        days_overdue,
+    delay_prob, will_be_late_in_30_days, paid_in_7, paid_in_15, paid_in_30, risk_label = _delay_prob_and_risk(
+        avg_days_to_pay,
         payment_terms,
         credit_score,
         num_prev,
@@ -169,6 +160,12 @@ def generate_record(i: int) -> dict:
         industry_code,
         label_bias,
     )
+
+    if will_be_late_in_30_days:
+        max_overdue = int(20 + delay_prob * 120 + max(label_bias, 0.0) * 35)
+        days_overdue = random.randint(1, max(1, max_overdue))
+    else:
+        days_overdue = 0
 
     return {
         "invoice_id":               f"INV-{i:05d}",
@@ -185,8 +182,9 @@ def generate_record(i: int) -> dict:
         "paid_in_7":               paid_in_7,
         "paid_in_15":              paid_in_15,
         "paid_in_30":              paid_in_30,
+        "will_be_late_in_30_days": will_be_late_in_30_days,
         "risk_label":              risk_label,
-        # Regression target for XGBoost delay model (same latent signal as rules in main.py)
+        # Regression target for XGBoost delay model using pre-outcome-safe context.
         "delay_probability_target": round(delay_prob, 6),
         # Extra context columns (used in behavior engine but not in ML features)
         "currency":                "INR",
@@ -259,8 +257,8 @@ def generate_edge_record(seq: int) -> dict:
     else:
         customer_total_overdue = round(invoice_amount, -3) if is_overdue else 0.0
 
-    delay_prob, paid_in_7, paid_in_15, paid_in_30, risk_label = _delay_prob_and_risk(
-        days_overdue,
+    delay_prob, will_be_late_in_30_days, paid_in_7, paid_in_15, paid_in_30, risk_label = _delay_prob_and_risk(
+        avg_days_to_pay,
         payment_terms,
         credit_score,
         num_prev,
@@ -290,6 +288,7 @@ def generate_edge_record(seq: int) -> dict:
         "paid_in_7": paid_in_7,
         "paid_in_15": paid_in_15,
         "paid_in_30": paid_in_30,
+        "will_be_late_in_30_days": will_be_late_in_30_days,
         "risk_label": risk_label,
         "delay_probability_target": round(delay_prob, 6),
         "currency": "INR",

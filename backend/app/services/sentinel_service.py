@@ -3,11 +3,11 @@
 import logging
 from datetime import date
 
-from sqlalchemy import text
-
-from app.core.database import SessionLocal
 from app.schemas.sentinel import SentinelCheckResponse, SentinelSignal, WatchlistResponse
-from app.services.json_data import load_invoices_from_json
+from app.services.portfolio_intelligence_service import (
+    PortfolioCustomerSnapshot,
+    PortfolioIntelligenceService,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -15,68 +15,20 @@ TODAY = date.today().isoformat()
 
 
 class SentinelService:
+    def __init__(self) -> None:
+        self.portfolio_svc = PortfolioIntelligenceService()
+
     def check_customer(self, customer_id: str) -> SentinelCheckResponse:
-        """Return sentinel signals for a specific customer from DB-derived heuristics."""
+        """Return sentinel signals for a specific customer from canonical portfolio facts."""
         customer_id = str(customer_id)
         try:
-            with SessionLocal() as db:
-                customer = db.execute(
-                    text(
-                        """
-                        SELECT
-                            CAST(c.id AS TEXT) AS customer_id,
-                            c.name AS customer_name,
-                            COALESCE(c.industry, 'unknown') AS industry,
-                            COALESCE(c.num_late_payments, 0) AS num_late_payments
-                        FROM customers c
-                        WHERE CAST(c.id AS TEXT) = :customer_id
-                        LIMIT 1
-                        """
-                    ),
-                    {"customer_id": customer_id},
-                ).mappings().one_or_none()
-
-                invoice_rows = db.execute(
-                    text(
-                        """
-                        SELECT
-                            i.invoice_number,
-                            COALESCE(i.outstanding_amount, i.amount) AS amount,
-                            i.days_overdue,
-                            i.status
-                        FROM invoices i
-                        WHERE CAST(i.customer_id AS TEXT) = :customer_id
-                          AND i.status IN ('open', 'overdue')
-                        ORDER BY i.days_overdue DESC, i.due_date ASC
-                        """
-                    ),
-                    {"customer_id": customer_id},
-                ).mappings().all()
+            snapshot_map = self._load_customer_snapshot_map()
+            snapshot = snapshot_map.get(customer_id)
         except Exception as exc:
-            logger.warning("SentinelService: DB unavailable (%s) — using JSON fallback", exc)
-            raw = load_invoices_from_json()
-            invoices_for_cust = [r for r in raw if str(r.get("customer_id") or r.get("invoice_id")) == customer_id]
-            if not invoices_for_cust:
-                customer = None
-                invoice_rows = []
-            else:
-                customer = {
-                    "customer_id": customer_id,
-                    "customer_name": invoices_for_cust[0].get("customer_name") or f"Customer {customer_id}",
-                    "industry": "unknown",
-                    "num_late_payments": invoices_for_cust[0].get("num_late_payments", 0),
-                }
-                invoice_rows = [
-                    {
-                        "invoice_number": r["invoice_id"],
-                        "amount": r["amount"],
-                        "days_overdue": r["days_overdue"],
-                        "status": r["status"]
-                    }
-                    for r in invoices_for_cust
-                ]
+            logger.warning("SentinelService: portfolio intelligence unavailable (%s)", exc)
+            snapshot = None
 
-        if not customer:
+        if not snapshot:
             return SentinelCheckResponse(
                 customer_id=customer_id,
                 customer_name=f"Customer {customer_id}",
@@ -92,12 +44,42 @@ class SentinelService:
                 primary_invoice_id=None,
             )
 
+        return self._check_snapshot(snapshot)
+
+    def get_watchlist(self) -> WatchlistResponse:
+        """Return all flagged customers sorted by sentinel score."""
+        snapshot_map = self._load_customer_snapshot_map()
+        flagged: list[SentinelCheckResponse] = []
+        for snapshot in snapshot_map.values():
+            response = self._check_snapshot(snapshot)
+            if response.is_flagged:
+                flagged.append(response)
+        flagged.sort(key=lambda x: x.overall_sentinel_score, reverse=True)
+        critical = sum(1 for c in flagged if c.risk_level == "Critical")
+        high = sum(1 for c in flagged if c.risk_level == "High")
+
+        return WatchlistResponse(
+            total_flagged=len(flagged),
+            critical_count=critical,
+            high_count=high,
+            customers=flagged,
+        )
+
+    def _load_customer_snapshot_map(self) -> dict[str, PortfolioCustomerSnapshot]:
+        snapshots = self.portfolio_svc.build_customer_snapshots_sync()
+        return {snapshot.customer_id: snapshot for snapshot in snapshots}
+
+    def _check_snapshot(self, snapshot: PortfolioCustomerSnapshot) -> SentinelCheckResponse:
         signals: list[SentinelSignal] = []
-        total_outstanding = sum(float(r["amount"] or 0) for r in invoice_rows)
-        overdue_count = sum(1 for r in invoice_rows if int(r["days_overdue"] or 0) > 0)
-        max_days_overdue = max((int(r["days_overdue"] or 0) for r in invoice_rows), default=0)
-        num_late_payments = int(customer["num_late_payments"] or 0)
-        primary_invoice_id = str(invoice_rows[0]["invoice_number"]) if invoice_rows else None
+        total_outstanding = snapshot.total_outstanding()
+        overdue_count = snapshot.overdue_invoice_count()
+        max_days_overdue = max(
+            (int(item.invoice["days_overdue"]) for item in snapshot.invoices),
+            default=0,
+        )
+        num_late_payments = int(snapshot.num_late_payments or 0)
+        weighted_delay_prob = snapshot.weighted_delay_probability()
+        primary_invoice_id = snapshot.primary_invoice_id()
 
         if max_days_overdue >= 45:
             signals.append(
@@ -139,6 +121,19 @@ class SentinelService:
                     detected_at=TODAY,
                 )
             )
+        if weighted_delay_prob >= 0.65 and max_days_overdue < 30:
+            signals.append(
+                SentinelSignal(
+                    signal_type="news_alert",
+                    severity="High" if weighted_delay_prob >= 0.8 else "Medium",
+                    description=(
+                        f"Canonical portfolio view shows {round(weighted_delay_prob * 100)}% "
+                        "weighted delay probability across this borrower."
+                    ),
+                    source="Portfolio Intelligence",
+                    detected_at=TODAY,
+                )
+            )
         if max_days_overdue >= 30:
             signals.append(
                 SentinelSignal(
@@ -168,9 +163,9 @@ class SentinelService:
             recommendation = "No material external risk signal; continue standard cadence."
 
         return SentinelCheckResponse(
-            customer_id=str(customer["customer_id"]),
-            customer_name=str(customer["customer_name"]),
-            industry=str(customer["industry"]),
+            customer_id=snapshot.customer_id,
+            customer_name=snapshot.customer_name,
+            industry=snapshot.industry,
             is_flagged=risk_level != "Clear",
             risk_level=risk_level,
             signals=signals,
@@ -180,44 +175,4 @@ class SentinelService:
             high_signal_count=high_count,
             medium_signal_count=medium_count,
             primary_invoice_id=primary_invoice_id,
-        )
-
-    def get_watchlist(self) -> WatchlistResponse:
-        """Return all flagged customers sorted by sentinel score."""
-        try:
-            with SessionLocal() as db:
-                customer_ids = [
-                    str(r.customer_id)
-                    for r in db.execute(
-                        text(
-                            """
-                            SELECT DISTINCT CAST(customer_id AS TEXT) AS customer_id
-                            FROM invoices
-                            WHERE status IN ('open', 'overdue')
-                            ORDER BY customer_id
-                            """
-                        )
-                    ).fetchall()
-                ]
-        except Exception as exc:
-            logger.warning("SentinelService: DB unavailable (%s) — using JSON fallback for watchlist", exc)
-            raw = load_invoices_from_json()
-            customer_ids = list({str(r.get("customer_id") or r.get("invoice_id")) for r in raw})
-            customer_ids.sort()
-
-        flagged: list[SentinelCheckResponse] = []
-        for customer_id in customer_ids:
-            resp = self.check_customer(customer_id)
-            if resp.is_flagged:
-                flagged.append(resp)
-
-        flagged.sort(key=lambda x: x.overall_sentinel_score, reverse=True)
-        critical = sum(1 for c in flagged if c.risk_level == "Critical")
-        high = sum(1 for c in flagged if c.risk_level == "High")
-
-        return WatchlistResponse(
-            total_flagged=len(flagged),
-            critical_count=critical,
-            high_count=high,
-            customers=flagged,
         )

@@ -12,6 +12,10 @@ import httpx
 
 from app.core.config import get_settings
 from app.services.llm_refiner import LLMRefiner
+from app.services.pipeline_validation import (
+    normalize_acknowledgement_behavior,
+    payment_style_for_behavior_type,
+)
 from app.schemas.behavior import PaymentBehaviorRequest, PaymentBehaviorResponse
 
 logger = logging.getLogger(__name__)
@@ -24,12 +28,18 @@ class BehaviorService:
         self.timeout = 10.0
         self.refiner = LLMRefiner()
 
-    async def analyze(self, request: PaymentBehaviorRequest) -> PaymentBehaviorResponse:
+    async def analyze(
+        self,
+        request: PaymentBehaviorRequest,
+        *,
+        allow_llm_refinement: bool = True,
+    ) -> PaymentBehaviorResponse:
         """
         Classify borrower payment behavior.
 
         3-phase pipeline: ML -> LLM refinement -> deterministic rule engine.
         """
+        request = self._normalize_request(request)
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 resp = await client.post(
@@ -40,32 +50,47 @@ class BehaviorService:
                 ml_result = PaymentBehaviorResponse(**resp.json())
                 ml_result.prediction_source = "ml"
                 ml_result.llm_refined = False
+                ml_result.llm_used = False
                 ml_result.used_fallback = False
                 ml_result.explanation = ml_result.explanation or (
                     f"Phase 1 ML output ({ml_result.model_version}) generated from payment behavior features."
                 )
 
-                refined = await self.refiner.refine_behavior(
-                    {
-                        "model_input": request.model_dump(),
-                        "ml_output": ml_result.model_dump(),
-                    }
-                )
-                if refined:
-                    ml_result.behavior_type = refined["behavior_type"]
-                    ml_result.trend = refined["trend"]
-                    ml_result.behavior_risk_score = refined["behavior_risk_score"]
-                    ml_result.followup_dependency = refined["followup_dependency"]
-                    ml_result.nach_recommended = refined["nach_recommended"]
-                    ml_result.behavior_summary = refined["behavior_summary"]
-                    ml_result.model_version = f"{ml_result.model_version}+gpt-refiner-v1"
-                    ml_result.prediction_source = "ml+llm"
-                    ml_result.llm_refined = True
-                    ml_result.used_fallback = False
+                if allow_llm_refinement:
+                    refined = await self.refiner.refine_behavior(
+                        {
+                            "model_input": request.model_dump(),
+                            "ml_output": ml_result.model_dump(),
+                        }
+                    )
+                    if refined:
+                        ml_result.behavior_type = refined["behavior_type"]
+                        ml_result.payment_style = payment_style_for_behavior_type(refined["behavior_type"])
+                        ml_result.trend = refined["trend"]
+                        ml_result.behavior_risk_score = refined["behavior_risk_score"]
+                        ml_result.followup_dependency = refined["followup_dependency"]
+                        ml_result.nach_recommended = refined["nach_recommended"]
+                        ml_result.behavior_summary = refined["behavior_summary"]
+                        ml_result.model_version = f"{ml_result.model_version}+gpt-refiner-v1"
+                        ml_result.prediction_source = "ml+llm"
+                        ml_result.llm_refined = True
+                        ml_result.llm_used = True
+                        ml_result.used_fallback = False
+                        ml_result.explanation = refined["explanation"]
                 return ml_result
         except Exception as exc:
             logger.warning("ML behavior pipeline failed (%s) — using rule engine", exc)
             return self._rule_based_classify(request)
+
+    @staticmethod
+    def _normalize_request(req: PaymentBehaviorRequest) -> PaymentBehaviorRequest:
+        return req.model_copy(
+            update={
+                "invoice_acknowledgement_behavior": normalize_acknowledgement_behavior(
+                    req.invoice_acknowledgement_behavior
+                )
+            }
+        )
 
     def _rule_based_classify(self, req: PaymentBehaviorRequest) -> PaymentBehaviorResponse:
         """
@@ -169,5 +194,7 @@ class BehaviorService:
             model_version="behavior-rule-v1",
             prediction_source="rule-based",
             llm_refined=False,
+            llm_used=False,
             used_fallback=True,
+            explanation="Phase 3 fallback: deterministic behavior rules over on-time ratio, follow-up dependence, partial payments, and acknowledgement risk.",
         )

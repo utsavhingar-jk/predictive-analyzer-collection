@@ -3,6 +3,7 @@
 from functools import lru_cache
 from typing import Optional, Union
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -40,6 +41,17 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
         "https://predictive-analyzer-collection.vercel.app",
     ]
+
+    @field_validator("DEBUG", mode="before")
+    @classmethod
+    def normalize_debug_flag(cls, value):
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if normalized in {"release", "prod", "production"}:
+                return False
+            if normalized in {"dev", "development", "debug"}:
+                return True
+        return value
 
     @property
     def allowed_origins_list(self) -> list[str]:
