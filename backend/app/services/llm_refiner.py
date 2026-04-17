@@ -28,12 +28,27 @@ def _clamp(value: float, lower: float = 0.0, upper: float = 1.0) -> float:
 
 
 class LLMRefiner:
-    """Refines ML predictions using request + ML output context."""
+    """Refines ML predictions using request + ML output context.
+
+    Implemented as a singleton — all services share one instance so only
+    a single pair of AsyncOpenAI / OpenAI clients is ever created.
+    """
+
+    _instance: "LLMRefiner | None" = None
+
+    def __new__(cls) -> "LLMRefiner":
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._initialised = False
+        return cls._instance
 
     def __init__(self) -> None:
+        if getattr(self, "_initialised", False):
+            return
         self.model = settings.OPENAI_MODEL
         self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY) if settings.OPENAI_API_KEY else None
         self.sync_client = OpenAI(api_key=settings.OPENAI_API_KEY) if settings.OPENAI_API_KEY else None
+        self._initialised = True
 
     @property
     def enabled(self) -> bool:

@@ -43,14 +43,17 @@ HIGH_RECOVERY_THRESHOLD = 0.70
 MEDIUM_RECOVERY_THRESHOLD = 0.40
 
 
+# Reuse a fixed-size thread pool across all borrower portfolio fetches instead
+# of creating/destroying one per request (each creation is ~2-4 KB overhead).
+_BORROWER_THREAD_POOL = ThreadPoolExecutor(max_workers=4)
+
+
 class BorrowerService:
     def __init__(self) -> None:
         self.ml_base = settings.ML_SERVICE_URL
         self.timeout = 10.0
         self.refiner = LLMRefiner()
         self.portfolio_svc = PortfolioIntelligenceService()
-        # Shared client: thread-safe for concurrent POSTs; avoids new TCP pool per borrower
-        self._http = httpx.Client(timeout=self.timeout)
 
     def predict_borrower(
         self,
@@ -79,10 +82,11 @@ class BorrowerService:
 
         ml_payload = self._build_ml_payload(request, invoices, portfolio_total)
         try:
-            resp = self._http.post(
-                f"{self.ml_base}/predict/borrower",
-                json=ml_payload,
-            )
+            with httpx.Client(timeout=self.timeout) as http:
+                resp = http.post(
+                    f"{self.ml_base}/predict/borrower",
+                    json=ml_payload,
+                )
             resp.raise_for_status()
             ml_result = BorrowerPredictionResponse(**resp.json())
             ml_result.prediction_source = "ml"
@@ -354,14 +358,14 @@ class BorrowerService:
             )
 
         try:
-            resp = self._http.post(
-                f"{self.ml_base}/predict/borrowers/portfolio",
-                json={
-                    "portfolio_total_outstanding": portfolio_total,
-                    "borrowers": borrowers_payload,
-                },
-                timeout=120.0,
-            )
+            with httpx.Client(timeout=120.0) as http:
+                resp = http.post(
+                    f"{self.ml_base}/predict/borrowers/portfolio",
+                    json={
+                        "portfolio_total_outstanding": portfolio_total,
+                        "borrowers": borrowers_payload,
+                    },
+                )
             resp.raise_for_status()
             ml_rows = resp.json()
             ordered = list(customer_map.values())
@@ -413,8 +417,7 @@ class BorrowerService:
         if max_workers == 1 or len(rows) == 1:
             results = [_predict_one(d) for d in rows]
         else:
-            with ThreadPoolExecutor(max_workers=max_workers) as pool:
-                results = list(pool.map(_predict_one, rows))
+            results = list(_BORROWER_THREAD_POOL.map(_predict_one, rows))
 
         return sorted(results, key=lambda b: b.borrower_risk_score, reverse=True)
 

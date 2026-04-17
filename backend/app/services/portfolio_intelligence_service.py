@@ -30,6 +30,10 @@ from app.services.strategy_service import StrategyService
 
 logger = logging.getLogger(__name__)
 
+# Module-level thread pool used by _run_sync so we don't create/destroy
+# a new OS thread on every synchronous portfolio call.
+_SYNC_THREAD_POOL = ThreadPoolExecutor(max_workers=1)
+
 
 def _clamp(value: float, lower: float, upper: float) -> float:
     return max(lower, min(upper, value))
@@ -640,8 +644,9 @@ class PortfolioIntelligenceService:
             asyncio.get_running_loop()
         except RuntimeError:
             return asyncio.run(coroutine)
-        with ThreadPoolExecutor(max_workers=1) as pool:
-            return pool.submit(lambda: asyncio.run(coroutine)).result()
+        # Already inside an event loop — submit to the shared thread pool
+        # to avoid spawning a new thread (and ThreadPoolExecutor) per call.
+        return _SYNC_THREAD_POOL.submit(lambda: asyncio.run(coroutine)).result()
 
     def _normalize_row(self, raw: dict[str, Any]) -> dict[str, Any]:
         today = date.today()
