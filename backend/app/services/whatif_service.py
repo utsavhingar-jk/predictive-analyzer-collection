@@ -1,18 +1,7 @@
-"""
-What-If scenario simulation service.
+"""What-if scenario simulation anchored to predictive portfolio baselines."""
 
-Allows collectors and managers to model the impact of strategy changes
-(efficiency improvements, discounts, follow-up timing shifts) on key AR metrics.
-"""
-
-import logging
-from sqlalchemy import text
-
-from app.core.database import SessionLocal
 from app.schemas.whatif import WhatIfRequest, WhatIfResponse
-from app.services.json_data import load_invoices_from_json
-
-logger = logging.getLogger(__name__)
+from app.services.portfolio_intelligence_service import PortfolioIntelligenceService
 
 
 class WhatIfService:
@@ -20,40 +9,19 @@ class WhatIfService:
     DEFAULT_DSO: float = 45.0
     DEFAULT_CASHFLOW: float = 0.0
 
-    def _baseline_metrics(self) -> tuple[float, float, float]:
-        """
-        Build baseline scenario metrics from live invoice data.
+    def __init__(self) -> None:
+        self.portfolio_svc = PortfolioIntelligenceService()
 
-        - baseline_recovery_pct: weighted 30-day pay probability
-        - baseline_cashflow: expected 30-day collections (weighted)
-        - baseline_dso: weighted expected collection delay in days
-        """
-        try:
-            with SessionLocal() as db:
-                db_rows = db.execute(
-                    text(
-                        """
-                        SELECT
-                            COALESCE(i.outstanding_amount, i.amount) AS amount,
-                            i.days_overdue
-                        FROM invoices i
-                        WHERE i.status IN ('open', 'overdue')
-                        """
-                    )
-                ).mappings().all()
-            rows = [dict(r) for r in db_rows]
-        except Exception as exc:
-            logger.warning("WhatIfService: DB unavailable (%s) — using JSON fallback", exc)
-            rows = load_invoices_from_json()
-
-        if not rows:
+    async def _baseline_metrics(self) -> tuple[float, float, float]:
+        results = await self.portfolio_svc.build_portfolio_results()
+        if not results:
             return (
                 self.DEFAULT_RECOVERY_PCT,
                 self.DEFAULT_CASHFLOW,
                 self.DEFAULT_DSO,
             )
 
-        total_outstanding = sum(float(r["amount"] or 0.0) for r in rows)
+        total_outstanding = sum(float(result.invoice["amount"]) for result in results)
         if total_outstanding <= 0:
             return (
                 self.DEFAULT_RECOVERY_PCT,
@@ -61,53 +29,43 @@ class WhatIfService:
                 self.DEFAULT_DSO,
             )
 
-        weighted_recovery = 0.0
-        weighted_expected_days = 0.0
-
-        for r in rows:
-            amount = float(r["amount"] or 0.0)
-            days_overdue = int(r["days_overdue"] or 0)
-            pay_30 = max(0.05, min(0.95, 1.0 - (days_overdue / 45.0)))
-            expected_days = days_overdue + (1.0 - pay_30) * 30.0
-
-            weighted_recovery += amount * pay_30
-            weighted_expected_days += amount * expected_days
-
-        baseline_recovery_pct = (weighted_recovery / total_outstanding) * 100.0
-        baseline_cashflow = weighted_recovery
-        baseline_dso = weighted_expected_days / total_outstanding
+        baseline_cashflow = sum(
+            float(result.invoice["amount"]) * float(result.payment.pay_30_days)
+            for result in results
+        )
+        baseline_recovery_pct = (baseline_cashflow / total_outstanding) * 100.0
+        baseline_dso = sum(
+            float(result.invoice["amount"]) * result.predicted_collection_age_days()
+            for result in results
+        ) / total_outstanding
         return baseline_recovery_pct, baseline_cashflow, baseline_dso
 
-    def simulate(self, request: WhatIfRequest) -> WhatIfResponse:
+    async def simulate(self, request: WhatIfRequest) -> WhatIfResponse:
         """
-        Apply scenario levers to baseline metrics and return projected impact.
+        Apply scenario levers to predictive baseline metrics and return projected impact.
 
         Modelling assumptions:
-        - Each 1% efficiency gain → +0.8% recovery and proportional cashflow uplift
-        - Each 1% discount offered → +1.2% recovery but discount haircut on cashflow
-        - Each day earlier follow-up → −0.5 DSO days, +0.4% recovery
+        - Each 1% efficiency gain -> +0.8% recovery and proportional cashflow uplift
+        - Each 1% discount offered -> +1.2% recovery but discount haircut on cashflow
+        - Each day earlier follow-up -> -0.5 DSO days, +0.4% recovery
         """
-        baseline_recovery, baseline_cashflow, baseline_dso = self._baseline_metrics()
+        baseline_recovery, baseline_cashflow, baseline_dso = await self._baseline_metrics()
         recovery = baseline_recovery
         cashflow = baseline_cashflow
         dso = baseline_dso
 
-        # Efficiency lever
         eff = request.recovery_improvement_pct
         recovery += eff * 0.8
         cashflow += baseline_cashflow * (eff * 0.008)
 
-        # Discount lever — attracts faster payment but reduces top-line
         disc = request.discount_pct
         recovery += disc * 1.2
-        cashflow -= baseline_cashflow * (disc / 100)  # revenue haircut
+        cashflow -= baseline_cashflow * (disc / 100)
 
-        # Follow-up timing lever
         delay = request.delay_followup_days
-        dso -= delay * 0.5          # earlier = lower DSO
-        recovery += (-delay) * 0.4  # earlier = higher recovery
+        dso -= delay * 0.5
+        recovery += (-delay) * 0.4
 
-        # Cap realistic bounds
         recovery = min(100.0, max(0.0, recovery))
         dso = max(0.0, dso)
 

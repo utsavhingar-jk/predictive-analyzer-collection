@@ -29,7 +29,7 @@ class BorrowerPredictionRequest(BaseModel):
     customer_id: str
     customer_name: str
     industry: str = "unknown"
-    credit_score: int = Field(default=650, ge=300, le=850)
+    credit_score: int = Field(default=650, ge=300, le=900)
     avg_days_to_pay: float = 30.0
     payment_terms: int = 30
     num_late_payments: int = 0
@@ -89,6 +89,7 @@ class BorrowerPredictionResponse(BaseModel):
     model_version: str = "borrower-rule-v1"
     prediction_source: str = "rule-based"  # "ml" | "ml+llm" | "rule-based"
     llm_refined: bool = False
+    llm_used: bool = False
     used_fallback: bool = True
     explanation: Optional[str] = None
     feature_drivers: list[FeatureDriver] = Field(default_factory=list)

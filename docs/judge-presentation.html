@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>AI Collector — Hackathon Judge Presentation</title>
+<title>Utsav Predictive Analytics for Collections — Judge Presentation</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
@@ -330,9 +330,9 @@
 <!-- COVER PAGE -->
 <!-- ═══════════════════════════════════════════════════════════════ -->
 <div class="cover">
-  <div class="cover-badge">⚡ CredServ Hackathon 2026 — Team Submission</div>
+  <div class="cover-badge">⚡ CredServ Hackathon 2026 — Utsav Problem Statement Submission</div>
   <h1>AI Collector</h1>
-  <p class="tagline">An agentic, AI-native receivables intelligence platform that predicts payment delays, profiles borrower behavior, and autonomously recommends collection strategies — before invoices become write-offs.</p>
+  <p class="tagline">Our solution to "Predictive Analytics for Collections": an AI-native receivables intelligence platform that predicts payment behavior, payment delays, cash flow, DSO, and the next best collection action before invoices become write-offs.</p>
 
   <div class="cover-grid">
     <div class="cover-stat">
@@ -354,8 +354,8 @@
   </div>
 
   <div class="cover-footer">
-    <div><strong>Tech Stack:</strong> React · FastAPI · XGBoost · LightGBM · GPT-4o · Docker</div>
-    <div><strong>Date:</strong> April 2024</div>
+    <div><strong>Tech Stack:</strong> React · FastAPI · XGBoost · SHAP · GPT-4o · Docker</div>
+    <div><strong>Date:</strong> April 2026</div>
   </div>
 </div>
 
@@ -682,7 +682,7 @@
   <div class="card-grid card-grid-4" style="margin:20px 0;">
     <div class="arch-box frontend">Frontend<br><small>React + Vite + TailwindCSS + ShadCN + Recharts</small></div>
     <div class="arch-box backend">Backend<br><small>Python FastAPI + Pydantic v2 + SQLAlchemy</small></div>
-    <div class="arch-box ml">ML Service<br><small>XGBoost · LightGBM · SHAP · Scikit-learn</small></div>
+    <div class="arch-box ml">ML Service<br><small>XGBoost · SHAP · Scikit-learn · Legacy LGBM Support</small></div>
     <div class="arch-box ai">AI Agent<br><small>OpenAI GPT-4o · Function Calling · ReAct</small></div>
   </div>
 
@@ -736,7 +736,7 @@
   <table style="margin-top:10px;">
     <tr><th>Model</th><th>Type</th><th>Task</th><th>Training Data</th><th>Fallback</th></tr>
     <tr><td><strong>payment_model_7d/15d/30d</strong></td><td>XGBoost Binary</td><td>Payment probability per horizon</td><td>1,500 INR invoices, 18 features</td><td>Heuristic rule engine</td></tr>
-    <tr><td><strong>risk_classifier_lgbm</strong></td><td>LightGBM Multi-class</td><td>High/Medium/Low risk classification</td><td>Same dataset, class-balanced</td><td>Score-based thresholds</td></tr>
+    <tr><td><strong>risk_classifier_xgb</strong></td><td>XGBoost Multi-class</td><td>High/Medium/Low risk classification</td><td>Same dataset, class-balanced</td><td>Score-based thresholds</td></tr>
     <tr><td><strong>Delay prediction</strong></td><td>Rule + ML hybrid</td><td>Delay probability with behavior enrichment</td><td>18-feature vector + behavior signals</td><td>Evidence-scored rule engine</td></tr>
   </table>
 </div>
@@ -929,7 +929,7 @@
       <div class="card-title" style="color:#059669;">✅ Built — Hackathon (Now)</div>
       <ul style="padding-left:16px;">
         <li>Payment behavior profiling</li>
-        <li>XGBoost/LightGBM delay + risk prediction</li>
+        <li>XGBoost-backed payment, delay, and risk prediction</li>
         <li>Candidate actions + agentic selector</li>
         <li>Probability-weighted cashflow forecast</li>
         <li>GPT-4o ReAct agent with 9 tools</li>
@@ -979,7 +979,7 @@
     </p>
     <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
       <span style="background:rgba(99,102,241,0.2); border:1px solid rgba(99,102,241,0.4); color:#a5b4fc; padding:6px 16px; border-radius:20px; font-size:11px; font-weight:600;">React + FastAPI + Docker</span>
-      <span style="background:rgba(99,102,241,0.2); border:1px solid rgba(99,102,241,0.4); color:#a5b4fc; padding:6px 16px; border-radius:20px; font-size:11px; font-weight:600;">XGBoost + LightGBM + SHAP</span>
+      <span style="background:rgba(99,102,241,0.2); border:1px solid rgba(99,102,241,0.4); color:#a5b4fc; padding:6px 16px; border-radius:20px; font-size:11px; font-weight:600;">XGBoost + SHAP + Forecasting</span>
       <span style="background:rgba(99,102,241,0.2); border:1px solid rgba(99,102,241,0.4); color:#a5b4fc; padding:6px 16px; border-radius:20px; font-size:11px; font-weight:600;">GPT-4o ReAct Agent · 9 Tools</span>
       <span style="background:rgba(99,102,241,0.2); border:1px solid rgba(99,102,241,0.4); color:#a5b4fc; padding:6px 16px; border-radius:20px; font-size:11px; font-weight:600;">100% INR Native</span>
     </div>

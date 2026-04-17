@@ -2,7 +2,7 @@
 Risk Classification Inference Module — INR Edition.
 
 Loads XGBoost (preferred) or legacy LightGBM classifier.
-Builds the same 18-feature vector used during training.
+Builds the same pre-outcome-safe feature vector used during training.
 Falls back to heuristic if model not found.
 """
 
@@ -38,22 +38,22 @@ INDUSTRY_MAP = {
 
 FEATURE_LABELS = {
     "invoice_amount": "Invoice Amount",
-    "days_overdue": "Days Overdue",
     "customer_credit_score": "Customer Credit Score",
     "customer_avg_days_to_pay": "Customer Average Days To Pay",
     "payment_terms": "Payment Terms",
+    "num_previous_invoices": "Previous Invoice Count",
     "num_late_payments": "Historical Late Payments",
     "industry_encoded": "Industry Segment",
     "customer_total_overdue": "Customer Total Overdue",
-    "overdue_ratio": "Overdue Ratio",
+    "terms_gap_days": "Historical Days Beyond Terms",
+    "terms_stress": "Payment Terms Stress",
     "late_payment_rate": "Late Payment Rate",
     "log_amount": "Log Invoice Amount",
     "log_overdue_ar": "Log Customer Overdue Exposure",
     "credit_norm": "Normalized Credit Score",
-    "overdue_band": "Overdue Severity Band",
     "amount_tier": "Invoice Amount Tier",
-    "credit_x_overdue": "Credit-Overdue Interaction",
-    "log_stress": "Payment Stress Indicator",
+    "exposure_ratio": "Outstanding Exposure Ratio",
+    "credit_x_terms_stress": "Credit-Terms Stress Interaction",
 }
 
 
@@ -71,37 +71,25 @@ _scaler = _load("risk_classifier_xgb_scaler.pkl") or _load("risk_classifier_lgbm
 
 
 def build_features(data: dict) -> np.ndarray:
-    """18-feature vector — must match train_risk.py exactly."""
-    amount        = float(data.get("invoice_amount", 0))
-    overdue       = float(data.get("days_overdue", 0))
-    credit        = float(data.get("customer_credit_score", 650))
-    avg_dtp       = float(data.get("customer_avg_days_to_pay", 30))
-    terms         = float(data.get("payment_terms", 30))
-    num_late      = float(data.get("num_late_payments", 0))
+    """Pre-outcome-safe feature vector — must match train_risk.py exactly."""
+    amount = float(data.get("invoice_amount", 0))
+    credit = float(data.get("customer_credit_score", 650))
+    avg_dtp = float(data.get("customer_avg_days_to_pay", 30))
+    terms = float(data.get("payment_terms", 30))
+    num_prev = float(data.get("num_previous_invoices", 10))
+    num_late = float(data.get("num_late_payments", 0))
     total_overdue = float(data.get("customer_total_overdue", 0))
 
-    industry_str  = str(data.get("industry", "unknown")).lower()
+    industry_str = str(data.get("industry", "unknown")).lower()
     industry_code = float(INDUSTRY_MAP.get(industry_str, 1))
 
-    num_prev = float(data.get("num_previous_invoices", 10))
-
     # Engineered
-    overdue_ratio     = overdue / max(terms, 1)
+    terms_gap_days = avg_dtp - terms
+    terms_stress = max(0.0, terms_gap_days) / max(terms, 1)
     late_payment_rate = num_late / max(num_prev, 1)
-    log_amount        = np.log1p(amount)
-    log_overdue_ar    = np.log1p(total_overdue)
-    credit_norm       = (credit - 300) / 600
-
-    if overdue == 0:
-        overdue_band = 0
-    elif overdue <= 30:
-        overdue_band = 1
-    elif overdue <= 60:
-        overdue_band = 2
-    elif overdue <= 90:
-        overdue_band = 3
-    else:
-        overdue_band = 4
+    log_amount = np.log1p(amount)
+    log_overdue_ar = np.log1p(total_overdue)
+    credit_norm = (credit - 300) / 600
 
     if amount <= 100_000:
         amount_tier = 0
@@ -114,25 +102,36 @@ def build_features(data: dict) -> np.ndarray:
     else:
         amount_tier = 4
 
-    credit_x_overdue = credit_norm * overdue_ratio
-    log_stress        = np.log1p(total_overdue / max(amount, 1))
+    exposure_ratio = total_overdue / max(amount, 1)
+    credit_x_terms_stress = credit_norm * terms_stress
 
     return np.array([[
-        # 8 raw features (no num_previous_invoices in risk model)
-        amount, overdue, credit, avg_dtp, terms,
-        num_late, industry_code, total_overdue,
-        # 9 engineered features
-        overdue_ratio, late_payment_rate, log_amount, log_overdue_ar,
-        credit_norm, overdue_band, amount_tier, credit_x_overdue, log_stress,
+        amount, credit, avg_dtp, terms,
+        num_prev, num_late, industry_code, total_overdue,
+        terms_gap_days, terms_stress, late_payment_rate, log_amount, log_overdue_ar,
+        credit_norm, amount_tier, exposure_ratio, credit_x_terms_stress,
     ]])
 
 
 def _heuristic_risk(data: dict) -> dict:
-    overdue = float(data.get("days_overdue", 0))
     credit = float(data.get("customer_credit_score", 650))
+    avg_dtp = float(data.get("customer_avg_days_to_pay", 30))
+    terms = max(1.0, float(data.get("payment_terms", 30)))
+    amount = max(1.0, float(data.get("invoice_amount", 0)))
+    total_overdue = max(0.0, float(data.get("customer_total_overdue", 0)))
+    prev = max(1.0, float(data.get("num_previous_invoices", 1)))
     late = float(data.get("num_late_payments", 0))
-    score = (overdue / 90) * 0.5 + (late / 10) * 0.3
-    score += max(0.0, (650 - credit) / 650) * 0.2
+    credit_norm = min(1.0, max(0.0, (credit - 300.0) / 600.0))
+    terms_stress = max(0.0, avg_dtp - terms) / terms
+    late_rate = min(1.0, late / prev)
+    exposure_ratio = min(2.0, total_overdue / amount)
+
+    score = (
+        terms_stress * 0.35
+        + late_rate * 0.30
+        + min(1.0, exposure_ratio) * 0.15
+        + (1.0 - credit_norm) * 0.20
+    )
     score = min(1.0, max(0.0, score))
     label = "High" if score >= 0.55 else ("Medium" if score >= 0.28 else "Low")
     return {
@@ -162,22 +161,22 @@ def classify(data: dict) -> dict:
             features,
             [
                 "invoice_amount",
-                "days_overdue",
                 "customer_credit_score",
                 "customer_avg_days_to_pay",
                 "payment_terms",
+                "num_previous_invoices",
                 "num_late_payments",
                 "industry_encoded",
                 "customer_total_overdue",
-                "overdue_ratio",
+                "terms_gap_days",
+                "terms_stress",
                 "late_payment_rate",
                 "log_amount",
                 "log_overdue_ar",
                 "credit_norm",
-                "overdue_band",
                 "amount_tier",
-                "credit_x_overdue",
-                "log_stress",
+                "exposure_ratio",
+                "credit_x_terms_stress",
             ],
             top_n=5,
             class_index=class_idx,

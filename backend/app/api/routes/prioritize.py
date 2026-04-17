@@ -28,8 +28,8 @@ whatif_svc = WhatIfService()
         "(amount × delay_probability) descending."
     ),
 )
-def get_worklist() -> list[PrioritizedInvoice]:
-    return priority_svc.get_prioritized_worklist()
+async def get_worklist() -> list[PrioritizedInvoice]:
+    return await priority_svc.get_prioritized_worklist()
 
 
 @router.post(
@@ -41,5 +41,5 @@ def get_worklist() -> list[PrioritizedInvoice]:
         "(efficiency %, discount %, follow-up timing) on recovery, cashflow, and DSO."
     ),
 )
-def simulate_whatif(request: WhatIfRequest) -> WhatIfResponse:
-    return whatif_svc.simulate(request)
+async def simulate_whatif(request: WhatIfRequest) -> WhatIfResponse:
+    return await whatif_svc.simulate(request)

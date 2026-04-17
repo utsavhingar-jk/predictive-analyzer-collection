@@ -24,5 +24,5 @@ cashflow_svc = CashflowService()
         "using payment probabilities weighted by invoice amounts."
     ),
 )
-def get_cashflow_forecast() -> CashflowForecastResponse:
-    return cashflow_svc.forecast()
+async def get_cashflow_forecast() -> CashflowForecastResponse:
+    return await cashflow_svc.forecast()

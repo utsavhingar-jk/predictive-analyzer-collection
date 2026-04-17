@@ -14,6 +14,8 @@ import httpx
 from app.core.config import get_settings
 from app.services.llm_refiner import LLMRefiner
 from app.schemas.prediction import (
+    DefaultPredictionRequest,
+    DefaultPredictionResponse,
     PaymentPredictionRequest,
     PaymentPredictionResponse,
     RiskClassificationRequest,
@@ -34,8 +36,19 @@ class PredictionService:
 
     # ─── Payment Prediction ───────────────────────────────────────────────────
 
+    @staticmethod
+    def _default_risk_tier(default_probability: float) -> str:
+        if default_probability >= 0.65:
+            return "High"
+        if default_probability >= 0.35:
+            return "Medium"
+        return "Low"
+
     async def predict_payment(
-        self, request: PaymentPredictionRequest
+        self,
+        request: PaymentPredictionRequest,
+        *,
+        allow_llm_refinement: bool = True,
     ) -> PaymentPredictionResponse:
         """3-phase pipeline: ML -> LLM refinement -> rule fallback."""
         try:
@@ -48,41 +61,76 @@ class PredictionService:
                 ml_result = PaymentPredictionResponse(**resp.json())
                 ml_result.prediction_source = "ml"
                 ml_result.llm_refined = False
+                ml_result.llm_used = False
                 ml_result.used_fallback = False
                 ml_result.explanation = ml_result.explanation or (
                     f"Phase 1 ML output ({ml_result.model_version}) generated directly from invoice features."
                 )
 
-                refined = await self.refiner.refine_payment(
-                    {
-                        "model_input": request.model_dump(),
-                        "ml_output": ml_result.model_dump(),
-                    }
-                )
-                if refined:
-                    return PaymentPredictionResponse(
-                        invoice_id=request.invoice_id,
-                        pay_7_days=refined["pay_7_days"],
-                        pay_15_days=refined["pay_15_days"],
-                        pay_30_days=refined["pay_30_days"],
-                        model_version=f"{ml_result.model_version}+gpt-refiner-v1",
-                        prediction_source="ml+llm",
-                        llm_refined=True,
-                        used_fallback=False,
-                        explanation=refined["explanation"],
-                        feature_drivers_by_horizon=ml_result.feature_drivers_by_horizon,
+                if allow_llm_refinement:
+                    refined = await self.refiner.refine_payment(
+                        {
+                            "model_input": request.model_dump(),
+                            "ml_output": ml_result.model_dump(),
+                        }
                     )
+                    if refined:
+                        return PaymentPredictionResponse(
+                            invoice_id=request.invoice_id,
+                            pay_7_days=refined["pay_7_days"],
+                            pay_15_days=refined["pay_15_days"],
+                            pay_30_days=refined["pay_30_days"],
+                            model_version=f"{ml_result.model_version}+gpt-refiner-v1",
+                            prediction_source="ml+llm",
+                            llm_refined=True,
+                            llm_used=True,
+                            used_fallback=False,
+                            explanation=refined["explanation"],
+                            feature_drivers_by_horizon=ml_result.feature_drivers_by_horizon,
+                        )
                 return ml_result
         except Exception as exc:
             logger.warning("ML payment pipeline failed (%s) — using heuristic fallback", exc)
             return self._heuristic_payment(request)
+
+    async def predict_default(
+        self,
+        request: DefaultPredictionRequest,
+        *,
+        allow_llm_refinement: bool = False,
+    ) -> DefaultPredictionResponse:
+        """
+        Dedicated default proxy model:
+        probability the invoice remains unpaid after 30 days.
+        """
+        del allow_llm_refinement
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                resp = await client.post(
+                    f"{self.ml_base}/predict/default",
+                    json=request.model_dump(),
+                )
+                resp.raise_for_status()
+                ml_result = DefaultPredictionResponse(**resp.json())
+                ml_result.prediction_source = ml_result.prediction_source or "ml"
+                ml_result.llm_refined = False
+                ml_result.llm_used = False
+                ml_result.used_fallback = False
+                ml_result.explanation = ml_result.explanation or (
+                    f"Phase 1 ML output ({ml_result.model_version}) estimated the probability "
+                    "that the invoice remains unpaid after 30 days."
+                )
+                return ml_result
+        except Exception as exc:
+            logger.warning("ML default pipeline failed (%s) — using heuristic fallback", exc)
+            return self._heuristic_default(request)
 
     def _heuristic_payment(
         self, req: PaymentPredictionRequest
     ) -> PaymentPredictionResponse:
         """Phase-3 fallback when ML/LLM path is unavailable."""
         base = max(0.0, 1.0 - (req.days_overdue / 90))
-        credit_factor = req.customer_credit_score / 850
+        credit_factor = req.customer_credit_score / 900
         late_penalty = req.num_late_payments * 0.05
 
         p7 = max(0.0, min(1.0, base * credit_factor * 0.5 - late_penalty))
@@ -97,14 +145,53 @@ class PredictionService:
             model_version="heuristic-fallback",
             prediction_source="rule-based",
             llm_refined=False,
+            llm_used=False,
             used_fallback=True,
             explanation="Phase 3 fallback: rule-based payment estimate using overdue days, credit score, and late-payment history.",
+        )
+
+    def _heuristic_default(
+        self, req: DefaultPredictionRequest
+    ) -> DefaultPredictionResponse:
+        payment = self._heuristic_payment(req)
+        late_rate = min(1.0, req.num_late_payments / max(req.num_previous_invoices, 1))
+        credit_stress = min(1.0, max(0.0, (650 - req.customer_credit_score) / 350))
+        overdue_stress = min(1.0, req.days_overdue / 90)
+        exposure_stress = min(1.0, req.customer_total_overdue / max(req.invoice_amount * 2, 1.0))
+
+        default_probability = (
+            max(0.0, 1.0 - payment.pay_30_days) * 0.65
+            + late_rate * 0.15
+            + credit_stress * 0.10
+            + overdue_stress * 0.07
+            + exposure_stress * 0.03
+        )
+        default_probability = round(min(0.98, max(0.01, default_probability)), 4)
+        default_risk_tier = self._default_risk_tier(default_probability)
+
+        return DefaultPredictionResponse(
+            invoice_id=req.invoice_id,
+            default_probability=default_probability,
+            default_risk_tier=default_risk_tier,
+            confidence=0.72,
+            model_version="heuristic-default-fallback",
+            prediction_source="rule-based",
+            llm_refined=False,
+            llm_used=False,
+            used_fallback=True,
+            explanation=(
+                "Phase 3 fallback: rule-based default estimate using the 30-day payment proxy, "
+                "late-payment history, credit stress, overdue pressure, and exposure stress."
+            ),
         )
 
     # ─── Risk Classification ──────────────────────────────────────────────────
 
     async def classify_risk(
-        self, request: RiskClassificationRequest
+        self,
+        request: RiskClassificationRequest,
+        *,
+        allow_llm_refinement: bool = True,
     ) -> RiskClassificationResponse:
         """3-phase pipeline: ML -> LLM refinement -> rule fallback."""
         try:
@@ -117,30 +204,33 @@ class PredictionService:
                 ml_result = RiskClassificationResponse(**resp.json())
                 ml_result.prediction_source = "ml"
                 ml_result.llm_refined = False
+                ml_result.llm_used = False
                 ml_result.used_fallback = False
                 ml_result.explanation = ml_result.explanation or (
                     f"Phase 1 ML output ({ml_result.model_version}) generated from invoice and borrower risk features."
                 )
 
-                refined = await self.refiner.refine_risk(
-                    {
-                        "model_input": request.model_dump(),
-                        "ml_output": ml_result.model_dump(),
-                    }
-                )
-                if refined:
-                    return RiskClassificationResponse(
-                        invoice_id=request.invoice_id,
-                        risk_label=refined["risk_label"],
-                        risk_score=refined["risk_score"],
-                        confidence=refined["confidence"],
-                        model_version=f"{ml_result.model_version}+gpt-refiner-v1",
-                        prediction_source="ml+llm",
-                        llm_refined=True,
-                        used_fallback=False,
-                        explanation=refined["explanation"],
-                        feature_drivers=ml_result.feature_drivers,
+                if allow_llm_refinement:
+                    refined = await self.refiner.refine_risk(
+                        {
+                            "model_input": request.model_dump(),
+                            "ml_output": ml_result.model_dump(),
+                        }
                     )
+                    if refined:
+                        return RiskClassificationResponse(
+                            invoice_id=request.invoice_id,
+                            risk_label=refined["risk_label"],
+                            risk_score=refined["risk_score"],
+                            confidence=refined["confidence"],
+                            model_version=f"{ml_result.model_version}+gpt-refiner-v1",
+                            prediction_source="ml+llm",
+                            llm_refined=True,
+                            llm_used=True,
+                            used_fallback=False,
+                            explanation=refined["explanation"],
+                            feature_drivers=ml_result.feature_drivers,
+                        )
                 return ml_result
         except Exception as exc:
             logger.warning("ML risk pipeline failed (%s) — using heuristic fallback", exc)
@@ -168,6 +258,7 @@ class PredictionService:
             model_version="heuristic-fallback",
             prediction_source="rule-based",
             llm_refined=False,
+            llm_used=False,
             used_fallback=True,
             explanation="Phase 3 fallback: weighted rule score from DPD, late-payment history, and credit-score stress.",
         )

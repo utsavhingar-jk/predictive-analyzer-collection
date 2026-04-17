@@ -3,6 +3,7 @@ Prediction API routes.
 
 Endpoints:
   POST /predict/payment  — payment probability (7/15/30 days)
+  POST /predict/default  — default probability (still unpaid after 30 days)
   POST /predict/risk     — risk classification (High/Medium/Low)
   GET  /predict/dso      — DSO prediction
   POST /predict/explain  — SHAP explainability for a single invoice
@@ -11,6 +12,8 @@ Endpoints:
 from fastapi import APIRouter, HTTPException
 
 from app.schemas.prediction import (
+    DefaultPredictionRequest,
+    DefaultPredictionResponse,
     DSOPredictionResponse,
     PaymentPredictionRequest,
     PaymentPredictionResponse,
@@ -43,6 +46,21 @@ async def predict_payment(
 
 
 @router.post(
+    "/default",
+    response_model=DefaultPredictionResponse,
+    summary="Predict default probability",
+    description=(
+        "Returns the probability that the invoice will still be unpaid after 30 days "
+        "using the dedicated XGBoost default-proxy model."
+    ),
+)
+async def predict_default(
+    request: DefaultPredictionRequest,
+) -> DefaultPredictionResponse:
+    return await prediction_svc.predict_default(request)
+
+
+@router.post(
     "/risk",
     response_model=RiskClassificationResponse,
     summary="Classify invoice risk",
@@ -60,8 +78,8 @@ async def classify_risk(
     summary="Predict DSO",
     description="Returns current and predicted Days Sales Outstanding for the portfolio.",
 )
-def predict_dso() -> DSOPredictionResponse:
-    return dso_svc.predict_dso()
+async def predict_dso() -> DSOPredictionResponse:
+    return await dso_svc.predict_dso()
 
 
 @router.post(

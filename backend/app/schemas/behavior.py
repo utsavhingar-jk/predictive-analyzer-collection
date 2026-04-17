@@ -74,6 +74,7 @@ class PaymentBehaviorResponse(BaseModel):
     model_version: str = "behavior-rule-v1"
     prediction_source: str = "ml"  # "ml" | "ml+llm" | "rule-based"
     llm_refined: bool = False
+    llm_used: bool = False
     used_fallback: bool = False
     explanation: Optional[str] = None
     feature_drivers: list[FeatureDriver] = Field(default_factory=list)

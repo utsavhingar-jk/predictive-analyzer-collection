@@ -11,6 +11,7 @@ import httpx
 
 from app.core.config import get_settings
 from app.services.llm_refiner import LLMRefiner
+from app.services.pipeline_validation import clamp_float, normalize_payment_behavior_type
 from app.schemas.delay import DelayDriver, DelayPredictionRequest, DelayPredictionResponse
 
 logger = logging.getLogger(__name__)
@@ -44,11 +45,86 @@ class DelayService:
         score = round(1.0 - len(missing) / len(self._OPTIONAL_EVIDENCE_FIELDS), 2)
         return score, missing
 
-    async def predict(self, request: DelayPredictionRequest) -> DelayPredictionResponse:
+    @staticmethod
+    def _estimate_ml_confidence(data: dict, evidence_score: float) -> float:
+        raw_conf = clamp_float(data.get("confidence"), 0.0, 1.0)
+        if raw_conf is not None:
+            return round(raw_conf, 2)
+        delay_probability = clamp_float(data.get("delay_probability"), 0.0, 1.0, default=0.5)
+        assert delay_probability is not None
+        separation = abs(delay_probability - 0.5) * 2.0
+        derived = 0.35 + separation * 0.40 + evidence_score * 0.20
+        return round(min(0.99, max(0.0, derived)), 2)
+
+    @staticmethod
+    def _normalize_request(request: DelayPredictionRequest) -> DelayPredictionRequest:
+        behavior_type = normalize_payment_behavior_type(request.behavior_type)
+        return request.model_copy(update={"behavior_type": behavior_type})
+
+    @staticmethod
+    def _operational_risk_score(
+        request: DelayPredictionRequest,
+        delay_probability: float,
+    ) -> int:
+        """
+        Convert model delay probability into an operational collections risk score.
+
+        The ML delay model is intentionally trained on pre-outcome-safe features, which
+        means current collections urgency signals like DPD should still influence the
+        final risk tier seen by collectors and dashboards.
+        """
+        delay_component = delay_probability * 45.0
+        overdue_component = min(max(request.days_overdue, 0) / 90.0, 1.0) * 30.0
+        late_rate = min(
+            max(request.num_late_payments / max(request.num_previous_invoices, 1), 0.0),
+            1.0,
+        )
+        late_component = late_rate * 10.0
+        credit_component = max(0.0, (650 - request.customer_credit_score) / 350.0) * 8.0
+
+        behavior_component = 0.0
+        if request.behavior_risk_score is not None:
+            behavior_component += min(max(request.behavior_risk_score, 0.0), 100.0) / 100.0 * 12.0
+        elif request.behavior_type:
+            if "Chronic" in request.behavior_type or "High Risk" in request.behavior_type:
+                behavior_component += 10.0
+            elif "Reminder" in request.behavior_type or "Partial" in request.behavior_type:
+                behavior_component += 6.0
+            elif "Occasional" in request.behavior_type:
+                behavior_component += 3.0
+
+        exposure_ratio = request.customer_total_overdue / max(request.invoice_amount, 1.0)
+        exposure_component = min(max(exposure_ratio, 0.0), 3.0) / 3.0 * 5.0
+
+        score = (
+            delay_component
+            + overdue_component
+            + late_component
+            + credit_component
+            + behavior_component
+            + exposure_component
+        )
+        return int(round(min(100.0, max(0.0, score))))
+
+    @staticmethod
+    def _risk_tier_from_score(risk_score: int) -> str:
+        if risk_score >= 65:
+            return "High"
+        if risk_score >= 35:
+            return "Medium"
+        return "Low"
+
+    async def predict(
+        self,
+        request: DelayPredictionRequest,
+        *,
+        allow_llm_refinement: bool = True,
+    ) -> DelayPredictionResponse:
         """
         3-phase pipeline: ML -> LLM refinement -> enriched rule fallback.
         Always attaches evidence_score, confidence, missing_data_indicators, used_fallback.
         """
+        request = self._normalize_request(request)
         evidence_score, missing = self._compute_evidence(request)
 
         try:
@@ -59,7 +135,7 @@ class DelayService:
                 )
                 resp.raise_for_status()
                 data = resp.json()
-                ml_confidence = float(data.get("confidence", 0.80))
+                ml_confidence = self._estimate_ml_confidence(data, evidence_score)
 
                 result = DelayPredictionResponse(**data)
                 result.confidence = ml_confidence
@@ -68,36 +144,59 @@ class DelayService:
                 result.used_fallback = False
                 result.prediction_source = "ml"
                 result.llm_refined = False
+                result.llm_used = False
                 result.explanation = data.get("explanation") or (
                     f"Phase 1 ML output ({result.model_version}) generated from invoice + behavior signals."
                 )
-
-                refined = await self.refiner.refine_delay(
-                    {
-                        "model_input": request.model_dump(),
-                        "ml_output": result.model_dump(),
-                    }
+                calibrated_score = self._operational_risk_score(
+                    request,
+                    float(result.delay_probability),
                 )
-                if refined:
-                    result.delay_probability = refined["delay_probability"]
-                    result.risk_score = refined["risk_score"]
-                    result.risk_tier = refined["risk_tier"]
-                    if refined["top_drivers"]:
-                        result.top_drivers = refined["top_drivers"]
-                    result.confidence = max(result.confidence, refined["confidence"])
-                    result.model_version = f"{result.model_version}+gpt-refiner-v1"
-                    result.prediction_source = "ml+llm"
-                    result.llm_refined = True
-                    result.used_fallback = False
-                    result.explanation = refined["explanation"]
-                    return result
+                result.risk_score = calibrated_score
+                result.risk_tier = self._risk_tier_from_score(calibrated_score)
 
-                # ML succeeded but is low-confidence and no LLM refinement was available.
                 if ml_confidence < self._ML_CONFIDENCE_THRESHOLD:
                     logger.info(
-                        "ML confidence %.2f below threshold %.2f and LLM refinement unavailable",
-                        ml_confidence, self._ML_CONFIDENCE_THRESHOLD,
+                        "ML confidence %.2f below threshold %.2f — falling back to rules",
+                        ml_confidence,
+                        self._ML_CONFIDENCE_THRESHOLD,
                     )
+                    return self._rule_based_delay(
+                        request,
+                        evidence_score,
+                        missing,
+                        explanation=(
+                            "Phase 3 fallback: ML delay prediction confidence was below threshold, "
+                            "so bounded rule-engine scoring was used instead."
+                        ),
+                    )
+
+                if allow_llm_refinement:
+                    refined = await self.refiner.refine_delay(
+                        {
+                            "model_input": request.model_dump(),
+                            "ml_output": result.model_dump(),
+                        }
+                    )
+                    if refined:
+                        result.delay_probability = refined["delay_probability"]
+                        calibrated_score = self._operational_risk_score(
+                            request,
+                            float(result.delay_probability),
+                        )
+                        result.risk_score = calibrated_score
+                        result.risk_tier = self._risk_tier_from_score(calibrated_score)
+                        if refined["top_drivers"]:
+                            result.top_drivers = refined["top_drivers"]
+                        result.confidence = max(result.confidence, refined["confidence"])
+                        result.model_version = f"{result.model_version}+gpt-refiner-v1"
+                        result.prediction_source = "ml+llm"
+                        result.llm_refined = True
+                        result.llm_used = True
+                        result.used_fallback = False
+                        result.explanation = refined["explanation"]
+                        return result
+
                 return result
 
         except Exception as exc:
@@ -109,6 +208,8 @@ class DelayService:
         req: DelayPredictionRequest,
         evidence_score: float = 0.5,
         missing: list[str] | None = None,
+        *,
+        explanation: str | None = None,
     ) -> DelayPredictionResponse:
         """
         Enriched rule-based delay prediction.
@@ -244,5 +345,6 @@ class DelayService:
             used_fallback=True,
             prediction_source="rule-based",
             llm_refined=False,
-            explanation="Phase 3 fallback: rule-engine delay score from DPD, behavior signals, exposure, and credit stress.",
+            llm_used=False,
+            explanation=explanation or "Phase 3 fallback: rule-engine delay score from DPD, behavior signals, exposure, and credit stress.",
         )

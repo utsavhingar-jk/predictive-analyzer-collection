@@ -16,7 +16,7 @@ export function useWorklist() {
     async function load() {
       setLoading(true);
       try {
-        const data = await api.getPortfolioStrategy();
+        const data = await api.getPrioritizedWorklist();
         if (!cancelled) setWorklist(data);
       } catch {
         if (!cancelled) setWorklist([]);
@@ -34,7 +34,8 @@ export function useWorklist() {
       search === "" ||
       inv.customer_name.toLowerCase().includes(search.toLowerCase()) ||
       inv.invoice_id.toLowerCase().includes(search.toLowerCase());
-    const matchRisk = riskFilter === "all" || inv.risk_label === riskFilter;
+    const effectiveRisk = inv.risk_tier || inv.risk_label;
+    const matchRisk = riskFilter === "all" || effectiveRisk === riskFilter;
     return matchSearch && matchRisk;
   });
 

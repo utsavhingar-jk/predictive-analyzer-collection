@@ -23,8 +23,10 @@ export const mockDSO = {
 
 export const mockCashflow = {
   next_7_days_inflow: 980000,
+  next_15_days_inflow: 2130000,
   next_30_days_inflow: 4850000,
   expected_7_day_collections: 980000,
+  expected_15_day_collections: 2130000,
   expected_30_day_collections: 4850000,
   amount_at_risk: 19400000,
   shortfall_signal: true,

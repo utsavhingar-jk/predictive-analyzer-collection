@@ -84,7 +84,7 @@ export function CollectorWorklist() {
                   <th className="text-center px-4 py-3 font-semibold text-muted-foreground text-xs">DPD</th>
                   <th className="text-center px-4 py-3 font-semibold text-muted-foreground text-xs">Risk Tier</th>
                   <th className="text-left px-4 py-3 font-semibold text-muted-foreground text-xs">Behavior</th>
-                  <th className="text-center px-4 py-3 font-semibold text-muted-foreground text-xs">Priority</th>
+                  <th className="text-center px-4 py-3 font-semibold text-muted-foreground text-xs">Priority Impact</th>
                   <th className="text-left px-4 py-3 font-semibold text-muted-foreground text-xs">Action</th>
                   <th className="px-4 py-3" />
                 </tr>
@@ -172,7 +172,7 @@ export function CollectorWorklist() {
                           {/* Priority score */}
                           <td className="px-4 py-3 text-center">
                             <div className="font-bold text-foreground text-lg leading-tight">
-                              {inv.priority_score}
+                              {formatCurrency(inv.priority_score)}
                             </div>
                             <div className="text-xs text-muted-foreground">
                               {formatPct(inv.delay_probability)} delay

@@ -1,6 +1,25 @@
-# AI Collector — Predictive Analytics Platform for Receivables
+# AI Collector — Utsav Predictive Analytics for Collections
 
 > **AI-native, agentic receivables optimization platform.** Predicts payment probability, forecasts cash flow, classifies risk, prioritizes collections, and generates GPT-4o powered collection strategies — all in one unified dashboard.
+
+---
+
+## Problem Statement Alignment
+
+This project is structured as a direct answer to the **"Predictive Analytics for Collections"** prompt:
+
+| Prompt Requirement | Current Implementation |
+|---|---|
+| Payment default / delay probability prediction | `POST /predict/payment` for 7 / 15 / 30 day payment probability and `POST /predict/delay` for enriched delay risk |
+| Collection prioritization | `GET /prioritize/invoices` and `GET /optimize/portfolio-strategy` |
+| Cash flow forecasting | `GET /forecast/cashflow` with 7-day and 30-day expected inflows |
+| DSO prediction | `GET /predict/dso` |
+| Prescriptive analytics engine | `POST /optimize/collection-strategy` and `POST /recommend/action` |
+| What-if scenario analysis tool | `POST /whatif/simulate` and `frontend/src/pages/ScenarioSimulator.jsx` |
+
+Primary model support today is **XGBoost + SHAP + probabilistic portfolio forecasting**. Legacy LightGBM compatibility still exists in inference, while CatBoost / neural-network baselines remain optional next-step enhancements if you want a stricter one-to-one technology match with the prompt.
+
+See [`docs/problem-statement-alignment.md`](docs/problem-statement-alignment.md) for the full objective/use-case/deliverable mapping.
 
 ---
 
@@ -10,7 +29,7 @@
 predictive-analyzer-collection/
 ├── frontend/          React + Vite + TailwindCSS + ShadCN UI
 ├── backend/           Python FastAPI — orchestration & OpenAI agent
-├── ml-service/        XGBoost / LightGBM training + SHAP inference service
+├── ml-service/        XGBoost training + SHAP inference service
 ├── shared/            Cross-service contracts and constants
 ├── docs/              Architecture docs and API reference
 └── docker-compose.yml Full-stack local orchestration
@@ -23,11 +42,12 @@ predictive-analyzer-collection/
 | Feature | Description |
 |---|---|
 | Payment Prediction | P(pay in 7 / 15 / 30 days) per invoice |
-| Risk Classification | High / Medium / Low risk via ML |
+| Risk Classification | High / Medium / Low invoice risk via ML |
 | Cash Flow Forecast | 7-day and 30-day inflow forecast |
 | DSO Prediction | Days Sales Outstanding prediction |
-| Collection Prioritization | Priority = amount × delay_probability |
-| AI Recommendation | GPT-4o prescriptive collection actions |
+| Delay Prediction | Invoice-level late payment probability with human-readable drivers |
+| Collection Prioritization | Rank accounts and invoices for collector focus |
+| Prescriptive Analytics | Optimized collection actions + GPT-4o recommendations |
 | What-If Simulator | Scenario impact on recovery / cashflow / DSO |
 | SHAP Explainability | Feature-level explanations per prediction |
 
@@ -115,10 +135,12 @@ See [`docs/api-reference.md`](docs/api-reference.md) for full endpoint docs.
 
 Key endpoints:
 - `POST /predict/payment` — Payment probability predictions
+- `POST /predict/delay` — Invoice-level delay probability + risk tier
 - `POST /predict/risk` — Risk classification + score
 - `GET  /forecast/cashflow` — 7 / 30 day cashflow forecast
 - `GET  /predict/dso` — Predicted DSO
 - `GET  /prioritize/invoices` — Priority-sorted invoice worklist
+- `POST /optimize/collection-strategy` — Prescriptive next-best action
 - `POST /recommend/action` — GPT-4o collection recommendation
 - `POST /whatif/simulate` — What-if scenario simulation
 
@@ -128,7 +150,7 @@ Key endpoints:
 
 | Role | Focus |
 |---|---|
-| Data Scientist | ML pipeline (XGBoost, LightGBM, SHAP) in `ml-service/` |
+| Data Scientist | ML pipeline (XGBoost, SHAP, forecasting) in `ml-service/` |
 | Full-stack Dev 1 | FastAPI backend, OpenAI agent in `backend/` |
 | Full-stack Dev 2 | React dashboard pages + routing in `frontend/` |
 | Full-stack Dev 3 | Charts, UI components, scenario simulator in `frontend/` |
@@ -139,7 +161,7 @@ Key endpoints:
 
 - **Frontend**: React 18, Vite, TailwindCSS, ShadCN UI, Recharts
 - **Backend**: Python 3.11, FastAPI, SQLAlchemy 2, Pydantic v2
-- **ML**: XGBoost, LightGBM, SHAP, scikit-learn, pandas
+- **ML**: XGBoost, SHAP, scikit-learn, pandas, legacy LightGBM compatibility
 - **AI**: OpenAI GPT-4o via `openai` Python SDK
 - **Database**: PostgreSQL 16
 - **Infra**: Docker, Docker Compose

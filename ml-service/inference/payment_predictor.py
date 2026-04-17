@@ -1,8 +1,8 @@
 """
 Payment Probability Inference Module — INR Edition.
 
-Loads XGBoost models trained on 1500-record INR dataset.
-Builds the same 18-feature vector used during training (9 raw + 9 engineered).
+Loads XGBoost models trained on a future-looking synthetic INR dataset.
+Builds the same pre-outcome-safe feature vector used during training.
 Falls back to heuristic if models not found.
 """
 
@@ -18,9 +18,8 @@ MODEL_DIR = Path(__file__).parent.parent / "serialized_models"
 
 # Must match FEATURE_COLS + ENGINEERED_COLS in train_payment.py exactly
 FEATURE_ORDER = [
-    # Raw features (9)
+    # Raw features
     "invoice_amount",
-    "days_overdue",
     "customer_credit_score",
     "customer_avg_days_to_pay",
     "payment_terms",
@@ -28,16 +27,16 @@ FEATURE_ORDER = [
     "num_late_payments",
     "industry_encoded",
     "customer_total_overdue",
-    # Engineered features (9)
-    "overdue_ratio",
+    # Engineered features
+    "terms_gap_days",
+    "terms_stress",
     "late_payment_rate",
     "log_amount",
     "log_overdue_ar",
     "credit_norm",
-    "overdue_band",
     "amount_tier",
-    "credit_x_overdue",
-    "log_stress",
+    "exposure_ratio",
+    "credit_x_terms_stress",
 ]
 
 # Industry name → integer code mapping (INR dataset uses 10 industries)
@@ -63,7 +62,6 @@ INDUSTRY_MAP = {
 
 FEATURE_LABELS = {
     "invoice_amount": "Invoice Amount",
-    "days_overdue": "Days Overdue",
     "customer_credit_score": "Customer Credit Score",
     "customer_avg_days_to_pay": "Customer Average Days To Pay",
     "payment_terms": "Payment Terms",
@@ -71,15 +69,15 @@ FEATURE_LABELS = {
     "num_late_payments": "Historical Late Payments",
     "industry_encoded": "Industry Segment",
     "customer_total_overdue": "Customer Total Overdue",
-    "overdue_ratio": "Overdue Ratio",
+    "terms_gap_days": "Historical Days Beyond Terms",
+    "terms_stress": "Payment Terms Stress",
     "late_payment_rate": "Late Payment Rate",
     "log_amount": "Log Invoice Amount",
     "log_overdue_ar": "Log Customer Overdue Exposure",
     "credit_norm": "Normalized Credit Score",
-    "overdue_band": "Overdue Severity Band",
     "amount_tier": "Invoice Amount Tier",
-    "credit_x_overdue": "Credit-Overdue Interaction",
-    "log_stress": "Payment Stress Indicator",
+    "exposure_ratio": "Outstanding Exposure Ratio",
+    "credit_x_terms_stress": "Credit-Terms Stress Interaction",
 }
 
 
@@ -102,42 +100,29 @@ _scaler_30d = _load("payment_model_30d_scaler")
 
 def build_features(data: dict) -> np.ndarray:
     """
-    Build the 18-feature vector matching the training pipeline.
-    Handles INR amounts (log-transform normalises scale for large values).
+    Build the pre-outcome-safe feature vector matching the training pipeline.
     """
-    amount        = float(data.get("invoice_amount", 0))
-    overdue       = float(data.get("days_overdue", 0))
-    credit        = float(data.get("customer_credit_score", 650))
-    avg_dtp       = float(data.get("customer_avg_days_to_pay", 30))
-    terms         = float(data.get("payment_terms", 30))
-    num_prev      = float(data.get("num_previous_invoices", 10))
-    num_late      = float(data.get("num_late_payments", 0))
+    amount = float(data.get("invoice_amount", 0))
+    credit = float(data.get("customer_credit_score", 650))
+    avg_dtp = float(data.get("customer_avg_days_to_pay", 30))
+    terms = float(data.get("payment_terms", 30))
+    num_prev = float(data.get("num_previous_invoices", 10))
+    num_late = float(data.get("num_late_payments", 0))
     total_overdue = float(data.get("customer_total_overdue", 0))
 
     # Industry code
-    industry_str  = str(data.get("industry", "unknown")).lower()
+    industry_str = str(data.get("industry", "unknown")).lower()
     industry_code = float(INDUSTRY_MAP.get(industry_str, 1))
 
     # ── Engineered features (must match training exactly) ─────────────────────
-    overdue_ratio     = overdue / max(terms, 1)
+    terms_gap_days = avg_dtp - terms
+    terms_stress = max(0.0, terms_gap_days) / max(terms, 1)
     late_payment_rate = num_late / max(num_prev, 1)
-    log_amount        = np.log1p(amount)
-    log_overdue_ar    = np.log1p(total_overdue)
+    log_amount = np.log1p(amount)
+    log_overdue_ar = np.log1p(total_overdue)
 
     # CIBIL normalisation (300–900 → 0–1)
-    credit_norm       = (credit - 300) / 600
-
-    # Overdue band: 0=current, 1=1-30d, 2=31-60d, 3=61-90d, 4=90d+
-    if overdue == 0:
-        overdue_band = 0
-    elif overdue <= 30:
-        overdue_band = 1
-    elif overdue <= 60:
-        overdue_band = 2
-    elif overdue <= 90:
-        overdue_band = 3
-    else:
-        overdue_band = 4
+    credit_norm = (credit - 300) / 600
 
     # Amount tier for INR — log-normalised during training
     if amount <= 100_000:
@@ -151,29 +136,40 @@ def build_features(data: dict) -> np.ndarray:
     else:
         amount_tier = 4
 
-    credit_x_overdue  = credit_norm * overdue_ratio
-    stress_ratio      = total_overdue / max(amount, 1)
-    log_stress        = np.log1p(stress_ratio)
+    exposure_ratio = total_overdue / max(amount, 1)
+    credit_x_terms_stress = credit_norm * terms_stress
 
     return np.array([[
-        amount, overdue, credit, avg_dtp, terms,
+        amount, credit, avg_dtp, terms,
         num_prev, num_late, industry_code, total_overdue,
-        overdue_ratio, late_payment_rate, log_amount, log_overdue_ar,
-        credit_norm, overdue_band, amount_tier, credit_x_overdue, log_stress,
+        terms_gap_days, terms_stress, late_payment_rate, log_amount, log_overdue_ar,
+        credit_norm, amount_tier, exposure_ratio, credit_x_terms_stress,
     ]])
 
 
 def _heuristic_payment_probs(data: dict) -> tuple[float, float, float]:
-    """Rule-based payment probabilities when a horizon model is missing or errors."""
+    """Rule-based payment probabilities using pre-outcome-safe historical signals."""
     credit = float(data.get("customer_credit_score", 650))
-    overdue = float(data.get("days_overdue", 0))
+    avg_dtp = float(data.get("customer_avg_days_to_pay", 30))
+    terms = max(1.0, float(data.get("payment_terms", 30)))
+    amount = max(1.0, float(data.get("invoice_amount", 0)))
+    total_overdue = max(0.0, float(data.get("customer_total_overdue", 0)))
+    prev = max(1.0, float(data.get("num_previous_invoices", 1)))
     late = float(data.get("num_late_payments", 0))
-    base = max(0.0, 1.0 - overdue / 90)
-    cf = credit / 900
-    pen = late * 0.05
-    p7 = round(max(0.0, min(1.0, base * cf * 0.5 - pen)), 4)
-    p15 = round(max(0.0, min(1.0, base * cf * 0.7 - pen)), 4)
-    p30 = round(max(0.0, min(1.0, base * cf * 0.9 - pen)), 4)
+    credit_norm = min(1.0, max(0.0, (credit - 300.0) / 600.0))
+    terms_stress = max(0.0, avg_dtp - terms) / terms
+    late_rate = min(1.0, late / prev)
+    exposure_ratio = min(2.0, total_overdue / amount)
+
+    delay_pressure = (
+        terms_stress * 0.35
+        + late_rate * 0.30
+        + (1.0 - credit_norm) * 0.25
+        + min(1.0, exposure_ratio) * 0.10
+    )
+    p30 = round(max(0.02, min(0.98, 0.90 - delay_pressure * 0.65)), 4)
+    p15 = round(max(0.01, min(p30, p30 - 0.08 - terms_stress * 0.06)), 4)
+    p7 = round(max(0.01, min(p15, p15 - 0.10 - late_rate * 0.05)), 4)
     return p7, p15, p30
 
 

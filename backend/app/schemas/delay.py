@@ -15,12 +15,14 @@ class DelayPredictionRequest(BaseModel):
     invoice_id: str
     invoice_amount: float = Field(..., gt=0)
     days_overdue: int = Field(..., ge=0)
-    payment_terms: int = Field(default=30, ge=0)
+    payment_terms: int = Field(default=30, ge=1)
     customer_avg_invoice_amount: float = Field(default=0.0, ge=0)
+    industry: str = Field(default="unknown")
 
     # Borrower context
-    customer_credit_score: int = Field(..., ge=300, le=850)
+    customer_credit_score: int = Field(..., ge=300, le=900)
     customer_avg_days_to_pay: float = Field(..., ge=0)
+    num_previous_invoices: int = Field(default=1, ge=1)
     num_late_payments: int = Field(default=0, ge=0)
     customer_total_overdue: float = 0.0
 
@@ -62,5 +64,6 @@ class DelayPredictionResponse(BaseModel):
     used_fallback: bool = False
     prediction_source: str = "ml"  # "ml" | "ml+llm" | "rule-based"
     llm_refined: bool = False
+    llm_used: bool = False
     explanation: Optional[str] = None
     feature_drivers: list[FeatureDriver] = Field(default_factory=list)

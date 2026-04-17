@@ -1,7 +1,7 @@
 """
-XGBoost regressor for delay probability (same 18 features as payment predictor).
+XGBoost regressor for delay probability (same pre-outcome-safe features as payment predictor).
 
-Label: delay_probability_target from datasets/invoices.csv (see generate_dataset.py).
+Label: delay_probability_target from datasets/invoices.csv (future outcome probability target).
 """
 
 import json
@@ -25,7 +25,6 @@ MODEL_NAME = "delay_probability_xgb"
 # Must match train_payment.py FEATURE_COLS + ENGINEERED_COLS
 FEATURE_COLS = [
     "invoice_amount",
-    "days_overdue",
     "customer_credit_score",
     "customer_avg_days_to_pay",
     "payment_terms",
@@ -38,32 +37,32 @@ FEATURE_COLS = [
 
 def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
-    df["overdue_ratio"] = df["days_overdue"] / df["payment_terms"].clip(lower=1)
+    df["terms_gap_days"] = df["customer_avg_days_to_pay"] - df["payment_terms"]
+    df["terms_stress"] = df["terms_gap_days"].clip(lower=0) / df["payment_terms"].clip(lower=1)
     df["late_payment_rate"] = df["num_late_payments"] / df["num_previous_invoices"].clip(lower=1)
     df["log_amount"] = np.log1p(df["invoice_amount"])
     df["log_overdue_ar"] = np.log1p(df["customer_total_overdue"])
     df["credit_norm"] = (df["customer_credit_score"] - 300) / 600
-    df["overdue_band"] = pd.cut(
-        df["days_overdue"],
-        bins=[-1, 0, 30, 60, 90, 999],
-        labels=[0, 1, 2, 3, 4],
-    ).astype(int)
     df["amount_tier"] = pd.cut(
         df["invoice_amount"],
         bins=[0, 100_000, 500_000, 2_000_000, 10_000_000, float("inf")],
         labels=[0, 1, 2, 3, 4],
     ).astype(int)
-    df["credit_x_overdue"] = df["credit_norm"] * df["overdue_ratio"]
-    df["stress_ratio"] = df["customer_total_overdue"] / df["invoice_amount"].clip(lower=1)
-    df["log_stress"] = np.log1p(df["stress_ratio"])
+    df["exposure_ratio"] = df["customer_total_overdue"] / df["invoice_amount"].clip(lower=1)
+    df["credit_x_terms_stress"] = df["credit_norm"] * df["terms_stress"]
     return df
 
 
 ENGINEERED_COLS = [
-    "overdue_ratio", "late_payment_rate",
-    "log_amount", "log_overdue_ar",
-    "credit_norm", "overdue_band", "amount_tier",
-    "credit_x_overdue", "log_stress",
+    "terms_gap_days",
+    "terms_stress",
+    "late_payment_rate",
+    "log_amount",
+    "log_overdue_ar",
+    "credit_norm",
+    "amount_tier",
+    "exposure_ratio",
+    "credit_x_terms_stress",
 ]
 
 XGB_PARAMS = {
@@ -78,7 +77,7 @@ XGB_PARAMS = {
 
 def main() -> None:
     print("=" * 60)
-    print("Delay probability — XGBoost regressor (18 features)")
+    print("Delay probability — XGBoost regressor (pre-outcome-safe features)")
     print("=" * 60)
 
     df = pd.read_csv(DATASET_PATH)

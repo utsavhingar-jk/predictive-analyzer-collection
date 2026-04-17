@@ -48,6 +48,25 @@ function PaymentProbabilityBar({ label, value }) {
   );
 }
 
+function DefaultProbabilityBar({ label, value }) {
+  const pct = Math.round((Number(value) || 0) * 100);
+  const color = pct >= 70 ? "bg-red-500" : pct >= 40 ? "bg-amber-500" : "bg-green-500";
+  return (
+    <div className="space-y-1.5">
+      <div className="flex justify-between text-sm">
+        <span className="text-muted-foreground">{label}</span>
+        <span className="font-semibold text-foreground">{pct}%</span>
+      </div>
+      <div className="h-2 rounded-full bg-muted overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-700 ${color}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function InfoRow({ label, value, mono }) {
   return (
     <div className="flex justify-between py-2 border-b border-border last:border-0">
@@ -69,11 +88,6 @@ export function InvoiceDetail() {
   const [borrowerPrediction, setBorrowerPrediction] = useState(null);
   const [interactions, setInteractions] = useState(null);
   const [error, setError] = useState(null);
-  const [paymentPrediction, setPaymentPrediction] = useState(null);
-  const [riskPrediction, setRiskPrediction] = useState(null);
-  const [behaviorPrediction, setBehaviorPrediction] = useState(null);
-  const [delayPrediction, setDelayPrediction] = useState(null);
-  const [optimizedStrategy, setOptimizedStrategy] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -108,137 +122,50 @@ export function InvoiceDetail() {
       .catch(() => {});
   }, [invoice]);
 
-  useEffect(() => {
-    if (!invoice) return;
-    let cancelled = false;
-
-    const basePredictionPayload = {
-      invoice_id: String(invoice.invoice_id),
-      invoice_amount: Number(invoice.amount) || 1,
-      days_overdue: Math.round(Number(invoice.days_overdue) || 0),
-      customer_credit_score: Math.round(Number(invoice.credit_score) || 650),
-      customer_avg_days_to_pay: Number(invoice.avg_days_to_pay) || 30,
-      payment_terms: Math.round(Number(invoice.payment_terms) || 30),
-      num_previous_invoices: Math.round(Number(invoice.num_previous_invoices) || 10),
-      num_late_payments: Math.round(Number(invoice.num_late_payments) || 0),
-      industry: invoice.industry || "unknown",
-      customer_total_overdue: Number(invoice.customer_total_overdue) || 0,
-    };
-
-    const behaviorPayload = {
-      customer_id: String(invoice.customer_id ?? invoice.customer_name),
-      customer_name: String(invoice.customer_name),
-      historical_on_time_ratio: Number(invoice.payment_behavior?.on_time_ratio ?? 70) / 100,
-      avg_delay_days: Number(invoice.payment_behavior?.avg_delay_days) || Math.max(4, Number(invoice.days_overdue) * 0.45 || 10),
-      repayment_consistency: 0.6,
-      partial_payment_frequency: 0.1,
-      prior_delayed_invoice_count: Math.round(Number(invoice.num_late_payments) || 0),
-      payment_after_followup_count: Math.round(Number(invoice.num_late_payments) || 0),
-      total_invoices: Math.round(Number(invoice.num_previous_invoices) || 10),
-      deterioration_trend: 0.0,
-      invoice_acknowledgement_behavior: "normal",
-      transaction_success_failure_pattern: 0.05,
-    };
-
-    async function loadPredictions() {
-      const [paymentRes, riskRes, behaviorRes] = await Promise.allSettled([
-        api.predictPayment(basePredictionPayload),
-        api.predictRisk(basePredictionPayload),
-        api.analyzePaymentBehavior(behaviorPayload),
-      ]);
-
-      const paymentData = paymentRes.status === "fulfilled" ? paymentRes.value : null;
-      const riskData = riskRes.status === "fulfilled" ? riskRes.value : null;
-      const behaviorData = behaviorRes.status === "fulfilled" ? behaviorRes.value : null;
-
-      if (!cancelled) {
-        setPaymentPrediction(paymentData);
-        setRiskPrediction(riskData);
-        setBehaviorPrediction(behaviorData);
-      }
-
-      const delayPayload = {
-        invoice_id: String(invoice.invoice_id),
-        invoice_amount: Number(invoice.amount) || 1,
-        days_overdue: Math.round(Number(invoice.days_overdue) || 0),
-        payment_terms: Math.round(Number(invoice.payment_terms) || 30),
-        customer_avg_invoice_amount: Number(invoice.amount) || 1,
-        customer_credit_score: Math.round(Number(invoice.credit_score) || 650),
-        customer_avg_days_to_pay: Number(invoice.avg_days_to_pay) || 30,
-        num_late_payments: Math.round(Number(invoice.num_late_payments) || 0),
-        num_previous_invoices: Math.round(Number(invoice.num_previous_invoices) || 10),
-        industry: invoice.industry || "unknown",
-        customer_total_overdue: Number(invoice.customer_total_overdue) || 0,
-        behavior_type: behaviorData?.behavior_type,
-        on_time_ratio: behaviorData?.on_time_ratio,
-        avg_delay_days_historical: behaviorData?.avg_delay_days,
-        behavior_risk_score: behaviorData?.behavior_risk_score,
-        deterioration_trend:
-          behaviorData?.trend === "Worsening"
-            ? 0.3
-            : behaviorData?.trend === "Improving"
-            ? -0.2
-            : 0.0,
-        followup_dependency: behaviorData?.followup_dependency,
-      };
-
-      const delayRes = await api.predictDelay(delayPayload).catch(() => null);
-      if (!cancelled) setDelayPrediction(delayRes);
-
-      const strategyInput = {
-        invoice_id: String(invoice.invoice_id),
-        customer_name: String(invoice.customer_name),
-        invoice_amount: Number(invoice.amount) || 1,
-        days_overdue: Math.round(Number(invoice.days_overdue) || 0),
-        delay_probability:
-          Number(delayRes?.delay_probability ?? invoice.delay_prediction?.delay_probability) || 0,
-        risk_tier:
-          String(delayRes?.risk_tier ?? invoice.delay_prediction?.risk_tier ?? riskData?.risk_label ?? "Medium"),
-        nach_applicable: Boolean(
-          behaviorData?.nach_recommended ?? borrowerPrediction?.nach_recommended ?? false,
-        ),
-        behavior_type: behaviorData?.behavior_type,
-        followup_dependency: behaviorData?.followup_dependency,
-      };
-
-      const strategyRes = await api.optimizeStrategy(strategyInput).catch(() => null);
-      if (!cancelled) setOptimizedStrategy(strategyRes);
-    }
-
-    loadPredictions();
-    return () => { cancelled = true; };
-  }, [invoice, borrowerPrediction]);
-
   async function runAgentAnalysis() {
     if (!invoice) return;
     setAgentLoading(true);
     try {
-      // Coerce all values to the exact types the backend schema requires.
-      // customer_id MUST be a string (Pydantic v2 won't coerce int→str).
-      // All numeric fields default-guarded so null/undefined never reaches the API.
-      const activeBehavior = behaviorPrediction || invoice.payment_behavior;
-      const behaviorOnTimeRatio = activeBehavior?.on_time_ratio ?? 70;
+      const canonicalPaymentInput = invoice.model_inputs?.payment || {};
+      const canonicalBehaviorInput = invoice.model_inputs?.behavior || {};
+      const activeBehavior = invoice.payment_behavior;
+      const historicalOnTimeRatio =
+        canonicalBehaviorInput.historical_on_time_ratio ?? ((Number(activeBehavior?.on_time_ratio) || 70) / 100);
+      const avgDelayDays =
+        canonicalBehaviorInput.avg_delay_days ?? activeBehavior?.avg_delay_days ?? 10;
+      const repaymentConsistency =
+        canonicalBehaviorInput.repayment_consistency ?? 0.6;
+      const partialPaymentFrequency =
+        canonicalBehaviorInput.partial_payment_frequency ?? 0.1;
+      const paymentAfterFollowupCount =
+        canonicalBehaviorInput.payment_after_followup_count ?? invoice.num_late_payments ?? 0;
+      const totalInvoices =
+        canonicalBehaviorInput.total_invoices ?? invoice.num_previous_invoices ?? 10;
+      const deteriorationTrend =
+        canonicalBehaviorInput.deterioration_trend ?? 0;
+      const transactionFailurePattern =
+        canonicalBehaviorInput.transaction_success_failure_pattern ?? 0.05;
       const result = await api.analyzeCase({
         invoice_id: String(invoice.invoice_id),
         customer_id: String(invoice.customer_id ?? invoice.customer_name),
         customer_name: String(invoice.customer_name),
         invoice_amount: Number(invoice.amount) || 0,
         days_overdue: Math.round(Number(invoice.days_overdue) || 0),
-        payment_terms: Math.round(Number(invoice.payment_terms) || 30),
-        customer_credit_score: Math.round(Number(invoice.credit_score) || 650),
-        customer_avg_days_to_pay: Number(invoice.avg_days_to_pay) || 30,
+        payment_terms: Math.round(Number(canonicalPaymentInput.payment_terms ?? invoice.payment_terms) || 30),
+        customer_credit_score: Math.round(Number(canonicalPaymentInput.customer_credit_score ?? invoice.credit_score) || 650),
+        customer_avg_days_to_pay: Number(canonicalPaymentInput.customer_avg_days_to_pay ?? invoice.avg_days_to_pay) || 30,
         num_late_payments: Math.round(Number(invoice.num_late_payments) || 0),
-        customer_total_overdue: Number(invoice.customer_total_overdue) || 0,
-        industry: invoice.industry || "unknown",
-        historical_on_time_ratio: Number(behaviorOnTimeRatio) / 100,
-        avg_delay_days: Number(activeBehavior?.avg_delay_days) || 10,
-        repayment_consistency: 0.6,
-        partial_payment_frequency: 0.1,
-        payment_after_followup_count: Math.round(Number(invoice.num_late_payments) || 0),
-        total_invoices: 10,
-        deterioration_trend: 0.0,
-        invoice_acknowledgement_behavior: "normal",
-        transaction_success_failure_pattern: 0.05,
+        customer_total_overdue: Number(canonicalPaymentInput.customer_total_overdue ?? invoice.customer_total_overdue) || 0,
+        industry: canonicalPaymentInput.industry || invoice.industry || "unknown",
+        historical_on_time_ratio: Number(historicalOnTimeRatio),
+        avg_delay_days: Number(avgDelayDays),
+        repayment_consistency: Number(repaymentConsistency),
+        partial_payment_frequency: Number(partialPaymentFrequency),
+        payment_after_followup_count: Math.round(Number(paymentAfterFollowupCount) || 0),
+        total_invoices: Math.round(Number(totalInvoices) || 10),
+        deterioration_trend: Number(deteriorationTrend),
+        invoice_acknowledgement_behavior: canonicalBehaviorInput.invoice_acknowledgement_behavior || "normal",
+        transaction_success_failure_pattern: Number(transactionFailurePattern),
       });
       setAgentResult(result);
     } catch {
@@ -272,42 +199,64 @@ export function InvoiceDetail() {
     );
   }
 
-  const recommendation = agentResult?.strategy || optimizedStrategy || invoice.strategy || invoice.ai_recommendation;
-  const displayedPayment = paymentPrediction || invoice;
-  const displayedRisk = riskPrediction || invoice;
-  const displayedBehavior = agentResult?.payment_behavior || behaviorPrediction || invoice.payment_behavior;
-  const displayedDelay = agentResult?.delay_prediction || delayPrediction || invoice.delay_prediction;
+  const recommendation = agentResult?.strategy || invoice.strategy || invoice.ai_recommendation;
+  const canonicalPayment = {
+    ...(invoice.payment_prediction || {}),
+    pay_7_days: invoice.pay_7_days ?? invoice.payment_prediction?.pay_7_days ?? 0,
+    pay_15_days: invoice.pay_15_days ?? invoice.payment_prediction?.pay_15_days ?? 0,
+    pay_30_days: invoice.pay_30_days ?? invoice.payment_prediction?.pay_30_days ?? 0,
+  };
+  const canonicalDefault = {
+    ...(invoice.default_prediction || {}),
+    default_probability:
+      invoice.default_probability
+      ?? invoice.default_prediction?.default_probability
+      ?? Math.max(0, 1 - (canonicalPayment.pay_30_days ?? 0)),
+    default_risk_tier:
+      invoice.default_risk_tier
+      || invoice.default_prediction?.default_risk_tier
+      || "Medium",
+  };
+  const displayedPayment = agentResult?.payment_prediction || canonicalPayment;
+  const displayedDefault = agentResult?.default_prediction || canonicalDefault;
+  const displayedRisk = invoice.risk_prediction || invoice.delay_prediction || invoice;
+  const displayedBehavior = agentResult?.payment_behavior || invoice.payment_behavior;
+  const displayedDelay = agentResult?.delay_prediction || invoice.delay_prediction;
 
   const paymentStatus = displayedPayment?.used_fallback
     ? { label: "Rule Fallback", variant: "warning" }
     : displayedPayment?.llm_refined
     ? { label: "ML + LLM", variant: "success" }
-    : paymentPrediction
-    ? { label: "ML Live", variant: "success" }
-    : { label: "Seeded", variant: "outline" };
+    : displayedPayment
+    ? { label: "Canonical Pipeline", variant: "success" }
+    : { label: "Unavailable", variant: "outline" };
 
   const behaviorStatus = displayedBehavior?.used_fallback
     ? { label: "Rule Fallback", variant: "warning" }
     : displayedBehavior?.llm_refined
     ? { label: "ML + LLM", variant: "success" }
-    : behaviorPrediction
-    ? { label: "ML Live", variant: "success" }
+    : displayedBehavior
+    ? { label: "Canonical Pipeline", variant: "success" }
     : { label: "Unavailable", variant: "outline" };
 
   const delayStatus = displayedDelay?.used_fallback
     ? { label: "Rule Fallback", variant: "warning" }
     : displayedDelay?.llm_refined
     ? { label: "ML + LLM", variant: "success" }
-    : delayPrediction
-    ? { label: "ML Live", variant: "success" }
-    : { label: "Seeded", variant: "outline" };
+    : displayedDelay
+    ? { label: "Canonical Pipeline", variant: "success" }
+    : { label: "Unavailable", variant: "outline" };
+
+  const defaultStatus = displayedDefault?.used_fallback
+    ? { label: "Rule Fallback", variant: "warning" }
+    : displayedDefault
+    ? { label: "Canonical Pipeline", variant: "success" }
+    : { label: "Unavailable", variant: "outline" };
 
   const strategyStatus = agentResult?.strategy
     ? { label: "Agent Output", variant: "success", description: "GPT-4o synthesis over the latest model results" }
-    : optimizedStrategy
-    ? { label: "Pipeline Live", variant: "success", description: "Generated from live behavior + delay predictions" }
     : invoice.strategy
-    ? { label: "Seeded Rule", variant: "warning", description: "Precomputed fallback from invoice context" }
+    ? { label: "Canonical Pipeline", variant: "success", description: "Generated from the shared portfolio intelligence pipeline" }
     : { label: "Unavailable", variant: "outline", description: "No strategy output available yet" };
 
   return (
@@ -323,6 +272,7 @@ export function InvoiceDetail() {
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <Badge variant={paymentStatus.variant}>Payment: {paymentStatus.label}</Badge>
+        <Badge variant={defaultStatus.variant}>Default: {defaultStatus.label}</Badge>
         <Badge variant={behaviorStatus.variant}>Behavior: {behaviorStatus.label}</Badge>
         <Badge variant={delayStatus.variant}>Delay: {delayStatus.label}</Badge>
         <Badge variant={strategyStatus.variant}>Strategy: {strategyStatus.label}</Badge>
@@ -372,15 +322,23 @@ export function InvoiceDetail() {
               </Badge>
             </CardTitle>
             <CardDescription>
-              {paymentPrediction
-                ? "Live model predictions per time horizon"
-                : "Precomputed invoice probabilities shown until live model output arrives"}
+              Canonical payment predictions reused across the portfolio, worklist, and forecasts
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5 pt-2">
             <PaymentProbabilityBar label="Within 7 Days" value={displayedPayment.pay_7_days ?? invoice.pay_7_days ?? 0} />
             <PaymentProbabilityBar label="Within 15 Days" value={displayedPayment.pay_15_days ?? invoice.pay_15_days ?? 0} />
             <PaymentProbabilityBar label="Within 30 Days" value={displayedPayment.pay_30_days ?? invoice.pay_30_days ?? 0} />
+            <div className="rounded-lg border border-red-200/70 bg-red-50/40 p-3 space-y-3">
+              <DefaultProbabilityBar
+                label="Still Unpaid After 30 Days"
+                value={displayedDefault.default_probability ?? invoice.default_probability ?? 0}
+              />
+              <div className="flex justify-between gap-4 text-xs text-muted-foreground">
+                <span>Default Tier: <strong>{displayedDefault.default_risk_tier || "—"}</strong></span>
+                <span>Confidence: <strong>{formatPct(displayedDefault.confidence ?? 0)}</strong></span>
+              </div>
+            </div>
             <div className="pt-2 text-xs text-muted-foreground space-y-1 border-t border-border">
               <p>Credit Score: <strong>{invoice.credit_score}</strong></p>
               <p>Avg. Days to Pay: <strong>{invoice.avg_days_to_pay}d</strong></p>
@@ -399,6 +357,11 @@ export function InvoiceDetail() {
                 drivers: section.drivers,
               }))}
               title="Why These Payment Probabilities Were Predicted"
+            />
+            <ExplainabilityPanel
+              explanation={displayedDefault.explanation}
+              drivers={displayedDefault.feature_drivers}
+              title="Why This Default Probability Was Predicted"
             />
           </CardContent>
         </Card>

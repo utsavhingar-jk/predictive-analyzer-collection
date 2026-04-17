@@ -68,7 +68,7 @@ export function ExecutiveDashboard() {
             <MetricCard
               title="Expected 30-Day Collections"
               value={formatCurrency(cashflow?.expected_30_day_collections || cashflow?.next_30_days_inflow || 0)}
-              subtitle={`7-day: ${formatCurrency(cashflow?.expected_7_day_collections || cashflow?.next_7_days_inflow || 0)}`}
+              subtitle={`7-day: ${formatCurrency(cashflow?.expected_7_day_collections || cashflow?.next_7_days_inflow || 0)} · 15-day: ${formatCurrency(cashflow?.expected_15_day_collections || cashflow?.next_15_days_inflow || 0)}`}
               icon={TrendingUp}
               trend="up"
               trendLabel="Predicted cash inflow"

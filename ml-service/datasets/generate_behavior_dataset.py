@@ -18,6 +18,13 @@ OUTPUT_PATH = Path(__file__).parent / "behavior_training.csv"
 N_RECORDS = 7500
 EDGE_RECORDS = 1200
 
+ACK_BEHAVIOR_MAP = {
+    "normal": 0,
+    "delayed": 1,
+    "ignored": 2,
+    "disputed": 3,
+}
+
 # Must match inference/behavior_predictor.py BEHAVIOR_CLASSES
 BEHAVIOR_CLASSES = [
     "Consistent Payer",
@@ -200,7 +207,10 @@ def generate_row(i: int) -> dict:
             transaction_success_failure_pattern,
         )
 
-    ack = random.choices(["normal", "slow", "unresponsive"], weights=[0.7, 0.2, 0.1])[0]
+    ack = random.choices(
+        ["normal", "delayed", "ignored", "disputed"],
+        weights=[0.62, 0.20, 0.12, 0.06],
+    )[0]
 
     return {
         "customer_id": f"CUST-BEH-{i:05d}",
@@ -213,7 +223,7 @@ def generate_row(i: int) -> dict:
         "total_invoices": total_invoices,
         "deterioration_trend": round(deterioration_trend, 4),
         "transaction_success_failure_pattern": round(transaction_success_failure_pattern, 4),
-        "invoice_acknowledgement_encoded": 0 if ack == "normal" else (1 if ack == "slow" else 2),
+        "invoice_acknowledgement_encoded": ACK_BEHAVIOR_MAP[ack],
         "behavior_class": y,
     }
 
